@@ -1,0 +1,12 @@
+java:
+  applicationPort: 4555
+  image: 'hmctspublic.azurecr.io/opal/commonlib:latest'
+  ingressHost: opal-commonlib-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  aadIdentityName: opal
+#  Uncomment once the vault containing the app insights key has been set up
+#  keyVaults:
+#    opal:
+#      secrets:
+#        - name: AppInsightsInstrumentationKey
+#          alias: azure.application-insights.instrumentation-key
+  environment:

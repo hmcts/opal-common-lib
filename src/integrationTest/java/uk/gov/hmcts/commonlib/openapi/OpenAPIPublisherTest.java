@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.demo.openapi;
+package uk.gov.hmcts.commonlib.openapi;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

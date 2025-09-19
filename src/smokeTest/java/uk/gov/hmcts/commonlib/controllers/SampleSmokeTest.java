@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.demo.controllers;
+package uk.gov.hmcts.commonlib.controllers;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -12,21 +12,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static io.restassured.RestAssured.given;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-class SampleFunctionalTest {
-    protected static final String CONTENT_TYPE_VALUE = "application/json";
-
-    @Value("${TEST_URL:http://localhost:8080}")
+class SampleSmokeTest {
+    @Value("${TEST_URL:http://localhost:4550}")
     private String testUrl;
 
     @BeforeEach
     public void setUp() {
-        RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
     }
 
     @Test
-    void functionalTest() {
+    void smokeTest() {
         Response response = given()
+            .baseUri(testUrl)
             .contentType(ContentType.JSON)
             .when()
             .get()

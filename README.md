@@ -1,88 +1,34 @@
 # opal-commonlib
 
-## Building and deploying the application
+Shared Opal components for authentication, authorisation, and other cross-cutting concerns.
+This module builds a reusable Java library—there is no runnable Spring Boot application here.
 
-### Building the application
+## Build & Test
 
-The project uses [Gradle](https://gradle.org) as a build tool. It already contains
-`./gradlew` wrapper script, so there's no need to install gradle.
-
-To build the project execute the following command:
+Use the bundled Gradle wrapper:
 
 ```bash
-  ./gradlew build
+./gradlew clean build
 ```
 
-### Running the application
+The task runs the JUnit 5 test suite and produces `build/libs/opal-common-lib-<version>.jar`.
+During day-to-day work the library is usually brought into `opal-fines-service` via Gradle composite build (`includeBuild('../opal-common-lib')` in settings.gradle), which gives instant feedback in IntelliJ.
 
-Create the image of the application by executing the following command:
+## Local Development Tips
 
-```bash
-  ./gradlew assemble
-```
+- Library source lives under `src/main/java/uk/gov/hmcts/opal/common/...`; unit tests live in `src/test/java/uk/gov/hmcts/opal/common/...`.
+- Additional source sets (`functionalTest`, `integrationTest`, `smokeTest`) are configured and available if extra coverage is helpful.
+- Dependency versions are managed through the Spring Boot and Spring Cloud BOMs declared in `build.gradle`.
+- If you prefer testing the published coordinates instead of `includeBuild`, install the jar to your local Maven cache:
+  ```bash
+  ./gradlew publishToMavenLocal
+  ```
+  Then depend on `uk.gov.hmcts:opal-common-lib:<version>` from the consuming project.
 
-Note: Docker Compose V2 is highly recommended for building and running the application.
-In the Compose V2 old `docker-compose` command is replaced with `docker compose`.
+## Publishing
 
-Create docker image:
-
-```bash
-  docker compose build
-```
-
-Run the distribution (created in `build/install/opal-commonlib` directory)
-by executing the following command:
-
-```bash
-  docker compose up
-```
-
-This will start the API container exposing the application's port
-(set to `4555` in this template app).
-
-In order to test if the application is up, you can call its health endpoint:
-
-```bash
-  curl http://localhost:4555/health
-```
-
-You should get a response similar to this:
-
-```
-  {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
-```
-
-### Alternative script to run application
-
-To skip all the setting up and building, just execute the following command:
-
-```bash
-./bin/run-in-docker.sh
-```
-
-For more information:
-
-```bash
-./bin/run-in-docker.sh -h
-```
-
-Script includes bare minimum environment variables necessary to start api instance. Whenever any variable is changed or any other script regarding docker image/container build, the suggested way to ensure all is cleaned up properly is by this command:
-
-```bash
-docker compose rm
-```
-
-It clears stopped containers correctly. Might consider removing clutter of images too, especially the ones fiddled with:
-
-```bash
-docker images
-
-docker image rm <image-id>
-```
-
-There is no need to remove postgres and java or similar core images.
+Azure Artifacts publishing is handled by the CI pipeline once pull requests merge; no local publish step is required when developing.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
+This project is licensed under the MIT License – see [LICENSE](LICENSE) for details.

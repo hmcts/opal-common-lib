@@ -18,12 +18,15 @@ import java.util.stream.Collectors;
 @Data
 public class UserState {
 
+    @JsonProperty("user_id")
     @NonNull
     Long userId;
 
+    @JsonProperty("user_name")
     @NonNull
     String userName;
 
+    @JsonProperty("business_unit_user")
     @EqualsAndHashCode.Exclude
     Set<BusinessUnitUser> businessUnitUser;
 

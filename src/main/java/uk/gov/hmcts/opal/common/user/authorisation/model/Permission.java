@@ -10,9 +10,11 @@ import lombok.Value;
 @Builder
 public class Permission {
 
+    @JsonProperty("permission_id")
     @NonNull
     Long permissionId;
 
+    @JsonProperty("permission_name")
     @NonNull
     String permissionName;
 

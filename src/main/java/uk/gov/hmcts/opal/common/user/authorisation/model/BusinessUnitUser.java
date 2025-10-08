@@ -16,12 +16,15 @@ import java.util.Set;
 @Data
 public class BusinessUnitUser {
 
+    @JsonProperty("business_unit_user_id")
     @NonNull
     String businessUnitUserId;
 
+    @JsonProperty("business_unit_id")
     @NonNull
     Short businessUnitId;
 
+    @JsonProperty("permissions")
     @EqualsAndHashCode.Exclude
     @NonNull
     Set<Permission> permissions;

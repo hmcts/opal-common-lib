@@ -1,8 +1,7 @@
 plugins {
-  id 'application'
+  id 'java-library'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.5'
   id 'com.github.ben-manes.versions' version '0.52.0'
   id 'org.sonarqube' version '6.3.1.5724'
   id 'maven-publish'
@@ -13,11 +12,8 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.67'
 }
 
-application {
-  mainClass = 'uk.gov.hmcts.commonlib.Application'
-  group = 'uk.gov.hmcts'
-  version = '0.0.1'
-}
+group = 'uk.gov.hmcts'
+version = '0.0.1-SNAPSHOT'
 
 java {
   toolchain {
@@ -51,11 +47,6 @@ configurations {
 
 tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
-}
-
-// https://github.com/gradle/gradle/issues/16791
-tasks.withType(JavaExec).configureEach {
-  javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
 tasks.withType(Test).configureEach {
@@ -136,15 +127,28 @@ repositories {
 ext {
   log4JVersion = "2.25.1"
   logbackVersion = "1.5.18"
+  lombokVersion = "1.18.40"
+  mapstructVersion = "1.6.3"
 }
 
 ext['snakeyaml.version'] = '2.0'
+
+dependencyManagement {
+  imports {
+    mavenBom 'org.springframework.boot:spring-boot-dependencies:3.5.5'
+    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
+  }
+}
 
 dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
+  implementation('org.springframework.cloud:spring-cloud-starter-openfeign') {
+    exclude group: 'commons-fileupload', module: 'commons-fileupload'
+  }
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.13'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.9'
@@ -153,17 +157,35 @@ dependencies {
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
   implementation group: 'ch.qos.logback', name: 'logback-classic', version: logbackVersion
   implementation group: 'ch.qos.logback', name: 'logback-core', version: logbackVersion
+  implementation group: 'org.mapstruct', name: 'mapstruct', version: mapstructVersion
+
+  compileOnly "org.projectlombok:lombok:${lombokVersion}"
+  annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+  annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+  testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+  testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+  testAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+  integrationTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+  integrationTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+  integrationTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+  functionalTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+  functionalTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+  functionalTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+  smokeTestCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+  smokeTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+  smokeTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.6'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-bootJar {
-  archiveFileName = "opal-commonlib.jar"
-
-  manifest {
-    attributes('Implementation-Version': project.version.toString())
-  }
+jar {
+  archiveClassifier.set('')
 }
 
 publishing {

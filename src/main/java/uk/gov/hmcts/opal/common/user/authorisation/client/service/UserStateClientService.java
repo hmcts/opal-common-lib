@@ -25,8 +25,8 @@ public class UserStateClientService {
 
 
     @Cacheable(value = "userState",
-        key = "#userId == 0 ? T(org.springframework.security.core.context.SecurityContextHolder)"
-           + ".getContext().getAuthentication().getName() : #userId")
+        key = "#root.args[0] == 0 ? (T(org.springframework.security.core.context.SecurityContextHolder)"
+           + ".getContext()?.getAuthentication()?.getName() ?: 'anonymous') : #root.args[0]")
     public Optional<UserState> getUserState(Long userId) {
 
         log.info(":getUserState: Fetching user state for specific userId: {}", userId);

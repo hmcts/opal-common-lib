@@ -25,7 +25,7 @@ public class Permission {
         this.permissionName = permissionName;
     }
 
-    boolean matchesPermissions(Permissions candidate) {
-        return candidate.id == permissionId;
+    boolean matchesPermissions(PermissionDescriptor candidate) {
+        return candidate.getId() == permissionId;
     }
 }

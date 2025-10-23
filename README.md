@@ -25,6 +25,26 @@ During day-to-day work the library is usually brought into `opal-fines-service` 
   ```
   Then depend on `uk.gov.hmcts:opal-common-lib:<version>` from the consuming project.
 
+## Permission Model
+
+The shared authentication models expose permissions via the `PermissionDescriptor`
+contract. Each consuming service supplies its own implementation (an `enum` is the
+recommended approach) that returns the numeric id issued by the user service. For example:
+
+```java
+@Getter
+@RequiredArgsConstructor
+public enum FinesPermission implements PermissionDescriptor {
+    ACCOUNT_ENQUIRY(3L, "Account Enquiry");
+
+    private final long id;
+    private final String description;
+}
+```
+
+Those enums can then be passed straight into `UserState` and `BusinessUnitUser`
+helpers (`hasPermission`, `anyBusinessUnitUserHasPermission`, etc.).
+
 ## Publishing
 
 Azure Artifacts publishing is handled by the CI pipeline once pull requests merge; no local publish step is required when developing.

@@ -41,48 +41,48 @@ public class UserState {
         this.businessUnitUser = businessUnitUser;
     }
 
-    public boolean anyBusinessUnitUserHasPermission(Permissions permission) {
+    public boolean anyBusinessUnitUserHasPermission(PermissionDescriptor permission) {
         return businessUnitUser.stream().anyMatch(r -> r.hasPermission(permission));
     }
 
-    public boolean noBusinessUnitUserHasPermission(Permissions permission) {
+    public boolean noBusinessUnitUserHasPermission(PermissionDescriptor permission) {
         return !anyBusinessUnitUserHasPermission(permission);
     }
 
-    public boolean anyBusinessUnitUserHasAnyPermission(Permissions... permission) {
+    public boolean anyBusinessUnitUserHasAnyPermission(PermissionDescriptor... permission) {
         return businessUnitUser.stream().anyMatch(r -> r.hasAnyPermission(permission));
     }
 
-    public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
+    public UserBusinessUnits allBusinessUnitUsersWithPermission(PermissionDescriptor permission) {
         return new UserBusinessUnitsImpl(
             businessUnitUser.stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
     }
 
-    public boolean hasBusinessUnitUserWithPermission(short businessUnitId, Permissions permission) {
+    public boolean hasBusinessUnitUserWithPermission(short businessUnitId, PermissionDescriptor permission) {
         return userHasPermission(getBusinessUnitUserForBusinessUnit(businessUnitId), permission);
     }
 
-    public static boolean userHasPermission(Optional<BusinessUnitUser> user, Permissions permission) {
+    public static boolean userHasPermission(Optional<BusinessUnitUser> user, PermissionDescriptor permission) {
         return user.stream().anyMatch(r -> r.hasPermission(permission));
     }
 
-    public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
+    public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, PermissionDescriptor... permissions) {
         return userHasAnyPermission(getBusinessUnitUserForBusinessUnit(businessUnitId), permissions);
     }
 
-    public static boolean userHasAnyPermission(Optional<BusinessUnitUser> user, Permissions... permissions) {
+    public static boolean userHasAnyPermission(Optional<BusinessUnitUser> user, PermissionDescriptor... permissions) {
         return user.stream().anyMatch(r -> r.hasAnyPermission(permissions));
     }
 
     public Set<Short> filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
-        Optional<List<Short>> businessUnitIds, Permissions... permissions) {
+        Optional<List<Short>> businessUnitIds, PermissionDescriptor... permissions) {
 
         return filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
             businessUnitIds.orElse(Collections.emptyList()), permissions);
     }
 
     public Set<Short> filterBusinessUnitsByBusinessUnitUsersWithAnyPermissions(
-        List<Short> businessUnitIds, Permissions... permissions) {
+        List<Short> businessUnitIds, PermissionDescriptor... permissions) {
 
         return businessUnitIds.stream()
             .filter(buid -> hasBusinessUnitUserWithAnyPermission(buid, permissions))
@@ -123,16 +123,16 @@ public class UserState {
         }
 
         @Override
-        public boolean anyBusinessUnitUserHasPermission(Permissions permission) {
+        public boolean anyBusinessUnitUserHasPermission(PermissionDescriptor permission) {
             return true;
         }
 
-        public boolean anyBusinessUnitUserHasAnyPermission(Permissions... permission) {
+        public boolean anyBusinessUnitUserHasAnyPermission(PermissionDescriptor... permission) {
             return true;
         }
 
         @Override
-        public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, Permissions... permissions) {
+        public boolean hasBusinessUnitUserWithAnyPermission(short businessUnitId, PermissionDescriptor... permissions) {
             return true;
         }
 
@@ -142,13 +142,13 @@ public class UserState {
         }
 
         @Override
-        public boolean hasBusinessUnitUserWithPermission(short businessUnitId, Permissions permission) {
+        public boolean hasBusinessUnitUserWithPermission(short businessUnitId, PermissionDescriptor permission) {
             return true;
         }
 
 
         @Override
-        public UserBusinessUnits allBusinessUnitUsersWithPermission(Permissions permission) {
+        public UserBusinessUnits allBusinessUnitUsersWithPermission(PermissionDescriptor permission) {
             return new UserBusinessUnits() {
                 @Override
                 public boolean containsBusinessUnit(Short businessUnitId) {

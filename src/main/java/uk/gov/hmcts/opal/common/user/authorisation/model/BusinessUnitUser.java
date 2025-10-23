@@ -39,19 +39,19 @@ public class BusinessUnitUser {
         this.permissions = permissions;
     }
 
-    public boolean hasPermission(Permissions reqPermission) {
+    public boolean hasPermission(PermissionDescriptor reqPermission) {
         return permissions.stream().anyMatch(p -> p.matchesPermissions(reqPermission));
     }
 
-    public boolean hasAnyPermission(Permissions... reqPermissions) {
+    public boolean hasAnyPermission(PermissionDescriptor... reqPermissions) {
         return Arrays.stream(reqPermissions).anyMatch(this::hasPermission);
     }
 
-    public boolean doesNotHavePermission(Permissions permission) {
+    public boolean doesNotHavePermission(PermissionDescriptor permission) {
         return !hasPermission(permission);
     }
 
-    public boolean doesNotHaveAnyPermission(Permissions... reqPermissions) {
+    public boolean doesNotHaveAnyPermission(PermissionDescriptor... reqPermissions) {
         return !hasAnyPermission(reqPermissions);
     }
 
@@ -69,12 +69,12 @@ public class BusinessUnitUser {
         }
 
         @Override
-        public boolean hasPermission(Permissions reqPermission) {
+        public boolean hasPermission(PermissionDescriptor reqPermission) {
             return true;
         }
 
         @Override
-        public boolean hasAnyPermission(Permissions... reqPermissions) {
+        public boolean hasAnyPermission(PermissionDescriptor... reqPermissions) {
             return true;
         }
 

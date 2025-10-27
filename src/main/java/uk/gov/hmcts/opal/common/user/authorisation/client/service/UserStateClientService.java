@@ -24,14 +24,19 @@ public class UserStateClientService {
     private final UserStateMapper userStateMapper;
 
 
-    @Cacheable(value = "userState",
-        key = "#root.args[0] == 0 ? (T(org.springframework.security.core.context.SecurityContextHolder)"
-           + ".getContext()?.getAuthentication()?.getName() ?: 'anonymous') : #root.args[0]")
     public Optional<UserState> getUserState(Long userId) {
+        return fetchUserState(userId);
+    }
 
+    @Cacheable(value = "userState",
+        key = "T(org.springframework.security.core.context.SecurityContextHolder)"
+            + ".getContext()?.getAuthentication()?.getName() ?: 'anonymous'")
+    public Optional<UserState> getUserStateByAuthenticatedUser() {
+        return fetchUserState(AUTHENTICATED_USER_SPECIAL_CODE);
+    }
+
+    private Optional<UserState> fetchUserState(Long userId) {
         log.info(":getUserState: Fetching user state for specific userId: {}", userId);
-
-        // Call the Feign client. Auth intercepted  - used to get authenticated user state if userId is 0.
 
         try {
             log.info(":getUserState: Fetching user state for userId: {}", userId);
@@ -46,9 +51,5 @@ public class UserStateClientService {
             log.warn(":getUserState: User not found in User Service for userId: {}", userId);
             return Optional.empty();
         }
-    }
-
-    public Optional<UserState> getUserStateByAuthenticatedUser(UserStateClientService cachedService) {
-        return cachedService.getUserState(AUTHENTICATED_USER_SPECIAL_CODE);
     }
 }

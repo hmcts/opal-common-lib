@@ -61,14 +61,14 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticatedUser_delegateSelfLookup() {
+    void getUserStateByAuthenticatedUser_returnsUserWhenPresent() {
         UserStateDto dto = UserStateDto.builder()
             .username("HMCTS User")
             .userId(777L)
             .build();
         when(userClient.getUserStateById(any())).thenReturn(dto);
 
-        Optional<UserState> userState = userStateClientService.getUserStateByAuthenticatedUser(userStateClientService);
+        Optional<UserState> userState = userStateClientService.getUserStateByAuthenticatedUser();
 
         assertTrue(userState.isPresent());
         assertEquals("HMCTS User", userState.get().getUserName());

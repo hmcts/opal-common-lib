@@ -36,6 +36,15 @@ public class UserStateClientService {
     }
 
     private Optional<UserState> fetchUserState(Long userId) {
+
+    @Cacheable(value = "userState",
+        key = "T(org.springframework.security.core.context.SecurityContextHolder)"
+            + ".getContext()?.getAuthentication()?.getName() ?: 'anonymous'")
+    public Optional<UserState> getUserStateByAuthenticatedUser() {
+        return fetchUserState(AUTHENTICATED_USER_SPECIAL_CODE);
+    }
+
+    private Optional<UserState> fetchUserState(Long userId) {
         log.info(":getUserState: Fetching user state for specific userId: {}", userId);
 
         try {

@@ -129,7 +129,7 @@ repositories {
 }
 
 ext {
-  log4JVersion = "2.25.1"
+  log4JVersion = "2.25.2"
   logbackVersion = "1.5.20"
   lombokVersion = "1.18.42"
   mapstructVersion = "1.6.3"

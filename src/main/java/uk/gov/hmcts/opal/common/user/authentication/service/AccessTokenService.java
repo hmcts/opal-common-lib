@@ -5,8 +5,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.exception.OpalApiException;
-import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
+import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 
 import java.text.ParseException;
 
@@ -56,7 +55,7 @@ public class AccessTokenService {
             return parsedJwt.getJWTClaimsSet();
         } catch (ParseException e) {
             log.error(":extractClaim: Unable to extract claims from JWT Token: {}", e.getMessage());
-            throw new OpalApiException(AuthenticationError.FAILED_TO_PARSE_ACCESS_TOKEN, e);
+            throw new UnauthorizedException("Unauthorized", "Failed to obtain access token");
         }
     }
 

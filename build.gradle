@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'uk.gov.hmcts'
-version = '0.1.9'
+version = '0.2.0'
 
 java {
   toolchain {
@@ -133,6 +133,7 @@ ext {
   logbackVersion = "1.5.22"
   lombokVersion = "1.18.42"
   mapstructVersion = "1.6.3"
+  springVersion = "3.5.8"
 }
 
 ext['snakeyaml.version'] = '2.0'
@@ -145,11 +146,12 @@ dependencyManagement {
 }
 
 dependencies {
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
+  implementation group: 'uk.gov.hmcts', name: 'spring-exception-handler', version: '0.0.3'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: springVersion
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: springVersion
   implementation('org.springframework.cloud:spring-cloud-starter-openfeign') {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
@@ -183,7 +185,7 @@ dependencies {
   smokeTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
   smokeTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
-  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springVersion
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.6'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

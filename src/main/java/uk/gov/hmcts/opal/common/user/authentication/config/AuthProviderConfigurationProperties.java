@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.common.user.authentication.config;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.jwk.source.JWKSourceBuilder;
 import com.nimbusds.jose.proc.SecurityContext;
-import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationException;
+import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -28,7 +28,8 @@ public interface AuthProviderConfigurationProperties {
 
             return JWKSourceBuilder.create(jwksUrl).build();
         } catch (MalformedURLException | URISyntaxException malformedUrlException) {
-            throw new AuthenticationException("Sorry authentication jwks URL (" + getJwkSetUri() + ") is incorrect");
+            throw new UnauthorizedException("Unauthorized",
+                "Sorry authentication jwks URL (" + getJwkSetUri() + ") is incorrect");
         }
     }
 }

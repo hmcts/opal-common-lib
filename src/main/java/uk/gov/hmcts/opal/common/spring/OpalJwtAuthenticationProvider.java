@@ -1,8 +1,6 @@
 package uk.gov.hmcts.opal.common.spring;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.CaseUtils;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;

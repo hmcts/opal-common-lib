@@ -223,3 +223,10 @@ rootProject.tasks.named("processSmokeTestResources") {
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
+
+tasks.register('runAllStyleChecks') {
+  dependsOn 'checkstyleMain'
+  dependsOn 'checkstyleTest'
+  dependsOn 'checkstyleIntegrationTest'
+  dependsOn 'checkstyleFunctionalTest'
+}

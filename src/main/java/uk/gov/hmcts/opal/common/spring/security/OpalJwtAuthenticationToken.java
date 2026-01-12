@@ -32,7 +32,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         this.userState = userState;
 
         Function<Permission, String> toPermissionNameString = permission ->
-            String.valueOf(permission.getPermissionId())
+            permission.getPermissionName()
                 .toUpperCase()
                 .replace(" ", "_");
 
@@ -61,7 +61,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
 
     public boolean hasPermissionInBusinessUnit(String permission, String businessUnitId) {
         List<String> permissionsInBusinessUnit = businessUnitIdsToPermissionNames
-            .get(Short.parseShort(businessUnitId))
+            .getOrDefault(Short.parseShort(businessUnitId), Set.of())
             .stream()
             .toList();
         return permissionsInBusinessUnit.contains(permission);

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.common.spring;
+package uk.gov.hmcts.opal.common.spring.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
@@ -7,7 +7,6 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -20,9 +19,6 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClien
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 
 @Slf4j
 public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
@@ -55,8 +51,7 @@ public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
         UserState userState = userStateClientService.getUserStateByAuthenticationToken(jwt)
             .orElseThrow(() -> new InvalidBearerTokenException("User state not found for authenticated user"));
 
-        Set<GrantedAuthority> authorities = new HashSet<>(this.jwtGrantedAuthoritiesConverter.convert(jwt));
-        authorities.addAll(getOpalAuthorities(userState));
+        Collection<GrantedAuthority> authorities = this.jwtGrantedAuthoritiesConverter.convert(jwt);
 
         OpalJwtAuthenticationToken token = new OpalJwtAuthenticationToken(userState, jwt, authorities);
 
@@ -67,25 +62,6 @@ public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
         return token;
     }
 
-    private Collection<GrantedAuthority> getOpalAuthorities(UserState userState) {
-        Set<GrantedAuthority> authorities = new HashSet<>();
-        userState.getBusinessUnitUser()
-            .stream().filter(Objects::nonNull)
-            .forEach(businessUnitUser -> {
-                Short businessUnitId = businessUnitUser.getBusinessUnitId();
-                authorities.add(new SimpleGrantedAuthority("BUSINESS_UNIT:" + businessUnitId));
-                businessUnitUser.getPermissions()
-                    .stream().filter(Objects::nonNull)
-                    .forEach(permission -> {
-                        String permissionName = permission.getPermissionName().toUpperCase().replace(" ", "_");
-                        authorities.add(new SimpleGrantedAuthority(
-                            "PERMISSION:" + permissionName));
-                        authorities.add(new SimpleGrantedAuthority(
-                            "BUSINESS_UNIT:" + businessUnitId + ":PERMISSION:" + permissionName));
-                    });
-            });
-        return authorities;
-    }
 
     private Jwt getJwt(BearerTokenAuthenticationToken bearer) {
         try {

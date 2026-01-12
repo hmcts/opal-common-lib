@@ -98,8 +98,8 @@ tasks.check.dependsOn(integration)
 
 sonarqube {
   properties {
-    property "sonar.projectName", "Opal :: opal-commonlib"
-    property "sonar.projectKey", "uk.gov.hmcts:opal-commonlib"
+    property "sonar.projectName", "HMCTS :: opal-common-lib"
+    property "sonar.projectKey", "uk.gov.hmcts:opal-common-lib"
   }
 }
 

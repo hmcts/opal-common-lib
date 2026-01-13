@@ -40,7 +40,7 @@ class UserStateClientServiceTest {
             .username("HMCTS User")
             .userId(777L)
             .build();
-        when(userClient.getUserStateById(any())).thenReturn(dto);
+        when(userClient.getUserStateByIdWithAuthToken(any(), any())).thenReturn(dto);
 
         Optional<UserState> userState = userStateClientService.getUserState(0L);
 
@@ -52,7 +52,7 @@ class UserStateClientServiceTest {
     @Test
     void getUserState_returnsEmptyWhenNotFound() {
         Request request = Mockito.mock(Request.class);
-        when(userClient.getUserStateById(any()))
+        when(userClient.getUserStateByIdWithAuthToken(any(), any()))
             .thenThrow(new FeignException.NotFound("not found", request, null, null));
 
         Optional<UserState> userState = userStateClientService.getUserState(0L);
@@ -66,7 +66,7 @@ class UserStateClientServiceTest {
             .username("HMCTS User")
             .userId(777L)
             .build();
-        when(userClient.getUserStateById(any())).thenReturn(dto);
+        when(userClient.getUserStateByIdWithAuthToken(any(), any())).thenReturn(dto);
 
         Optional<UserState> userState = userStateClientService.getUserStateByAuthenticatedUser();
 

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.exception.OpalApiException;
+import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 
 import java.text.ParseException;
 
@@ -47,7 +47,7 @@ class AccessTokenServiceTest {
             when(tokenValidator.parse(invalidToken)).thenThrow(ParseException.class);
 
             assertThrows(
-                OpalApiException.class,
+                UnauthorizedException.class,
                 () -> accessTokenService.extractPreferredUsername("Bearer " + invalidToken)
             );
         }

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.common.spring.security;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -23,16 +22,17 @@ import java.util.Collection;
 @Slf4j
 public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
 
-    private final Converter<Jwt, Collection<GrantedAuthority>> jwtGrantedAuthoritiesConverter =
-        new JwtGrantedAuthoritiesConverter();
+    private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
     private final JwtDecoder jwtDecoder;
     private final UserStateClientService userStateClientService;
 
 
-    public OpalJwtAuthenticationProvider(JwtDecoder jwtDecoder, UserStateClientService userStateClientService) {
+    public OpalJwtAuthenticationProvider(JwtDecoder jwtDecoder, UserStateClientService userStateClientService,
+                                         JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter) {
         Assert.notNull(jwtDecoder, "jwtDecoder cannot be null");
         this.jwtDecoder = jwtDecoder;
         this.userStateClientService = userStateClientService;
+        this.jwtGrantedAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
     }
 
     /**
@@ -46,6 +46,7 @@ public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
      */
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        //This can only ever be BearerTokenAuthenticationToken due to the supports() method
         BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
         Jwt jwt = getJwt(bearer);
         UserState userState = userStateClientService.getUserStateByAuthenticationToken(jwt)
@@ -54,16 +55,13 @@ public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
         Collection<GrantedAuthority> authorities = this.jwtGrantedAuthoritiesConverter.convert(jwt);
 
         OpalJwtAuthenticationToken token = new OpalJwtAuthenticationToken(userState, jwt, authorities);
+        token.setDetails(bearer.getDetails());
 
-        if (token.getDetails() == null) {
-            token.setDetails(bearer.getDetails());
-        }
-        log.debug("Authenticated token");
         return token;
     }
 
 
-    private Jwt getJwt(BearerTokenAuthenticationToken bearer) {
+    Jwt getJwt(BearerTokenAuthenticationToken bearer) {
         try {
             return this.jwtDecoder.decode(bearer.getToken());
         } catch (BadJwtException failed) {

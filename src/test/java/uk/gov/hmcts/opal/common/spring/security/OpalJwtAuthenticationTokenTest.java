@@ -71,8 +71,8 @@ class OpalJwtAuthenticationTokenTest {
 
     }
 
-    private OpalJwtAuthenticationToken createOpalJwtAuthenticationToken(List<String> permissions,
-                                                                        Map<Short, Set<String>> businessUnitIdsToPermissionNames) {
+    private OpalJwtAuthenticationToken createOpalJwtAuthenticationToken(
+        List<String> permissions, Map<Short, Set<String>> businessUnitIdsToPermissionNames) {
 
         Set<BusinessUnitUser> businessUnitUsers = new HashSet<>();
 

@@ -43,16 +43,16 @@ class OpalMethodSecurityExpressionRootTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void hasPermissionInBusinessUnit_shouldReturnValueFromTokenIndicatingIfBusinessUnitHasTheAssociatedPermissionForTheUser(boolean value) {
+    void hasPermissionInBusinessUnit_shouldReturnValueFromToken(boolean value) {
         OpalJwtAuthenticationToken token = mock(OpalJwtAuthenticationToken.class);
         OpalMethodSecurityExpressionRoot expressionRoot = spy(new OpalMethodSecurityExpressionRoot(token));
         doReturn(token).when(expressionRoot).getAuthentication();
-        doReturn(value).when(token).hasPermissionInBusinessUnit("PERM123","BU123");
+        doReturn(value).when(token).hasPermissionInBusinessUnit("PERM123", "BU123");
 
-        assertThat(expressionRoot.hasPermissionInBusinessUnit("PERM123","BU123"))
+        assertThat(expressionRoot.hasPermissionInBusinessUnit("PERM123", "BU123"))
             .isEqualTo(value);
 
-        verify(token).hasPermissionInBusinessUnit("PERM123","BU123");
+        verify(token).hasPermissionInBusinessUnit("PERM123", "BU123");
         verify(expressionRoot).getAuthentication();
     }
 

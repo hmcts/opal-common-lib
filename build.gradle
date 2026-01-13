@@ -154,7 +154,7 @@ dependencies {
   implementation('org.springframework.cloud:spring-cloud-starter-openfeign') {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '3.0.0'
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '3.0.1'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '7.0.0'
 

@@ -133,7 +133,7 @@ ext {
   logbackVersion = "1.5.22"
   lombokVersion = "1.18.42"
   mapstructVersion = "1.6.3"
-  springVersion = "3.5.8"
+  springVersion = "4.0.1"
 }
 
 ext['snakeyaml.version'] = '2.0'

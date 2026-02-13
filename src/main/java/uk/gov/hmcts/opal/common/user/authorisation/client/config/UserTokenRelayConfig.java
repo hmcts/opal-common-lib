@@ -17,8 +17,6 @@ public class UserTokenRelayConfig {
             if (authentication instanceof JwtAuthenticationToken jwtAuth) {
                 String token = jwtAuth.getToken().getTokenValue();
                 requestTemplate.header("Authorization", "Bearer " + token);
-            } else {
-                log.warn(":requestInterceptor: Authentication not of type Jwt.");
             }
         };
     }

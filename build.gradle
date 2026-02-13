@@ -154,7 +154,10 @@ dependencies {
   implementation('org.springframework.cloud:spring-cloud-starter-openfeign') {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '3.0.0'
+  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1',{
+    exclude group: 'org.hibernate.validator', module: 'hibernate-validator'   // Excluded for CVE-2025-15104
+  }
+  implementation 'org.hibernate.validator:hibernate-validator:9.1.0.Final'    // CVE-2025-15104 not yet fixed, so suppressed in owasp file
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '7.0.0'
 
@@ -207,9 +210,9 @@ publishing {
   publications {
     Main(MavenPublication) {
       from components.java
-      groupId project.group
-      artifactId 'opal-common-lib'
-      version project.version
+      groupId = project.group
+      artifactId = 'opal-common-lib'
+      version = project.version
     }
   }
 }

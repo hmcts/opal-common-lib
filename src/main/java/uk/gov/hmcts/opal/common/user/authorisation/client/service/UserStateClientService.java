@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
+@Slf4j(topic = "opal.UserStateClientService")
 public class UserStateClientService {
 
     public static final long AUTHENTICATED_USER_SPECIAL_CODE = 0L;

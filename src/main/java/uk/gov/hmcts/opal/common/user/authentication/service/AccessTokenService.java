@@ -10,7 +10,7 @@ import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationErro
 
 import java.text.ParseException;
 
-@Slf4j
+@Slf4j(topic = "opal.AccessTokenService")
 @Service
 @RequiredArgsConstructor
 public class AccessTokenService {

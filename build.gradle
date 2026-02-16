@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'uk.gov.hmcts'
-version = '0.2.0'
+version = '0.2.1'
 
 java {
   toolchain {
@@ -156,11 +156,17 @@ dependencies {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1',{
+    exclude group: 'org.springframework.boot', module: 'spring-boot-jackson'
+    exclude group: 'org.springframework.boot', module: 'spring-boot-webmvc'
+    exclude group: 'org.springframework.boot', module: 'spring-boot-web-server'
+    exclude group: 'org.springframework.boot', module: 'spring-boot-validation'
     exclude group: 'org.hibernate.validator', module: 'hibernate-validator'   // Excluded for CVE-2025-15104
   }
   implementation 'org.hibernate.validator:hibernate-validator:9.1.0.Final'    // CVE-2025-15104 not yet fixed, so suppressed in owasp file
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '7.0.0'
+
+  implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
@@ -191,6 +197,8 @@ dependencies {
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springVersion
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.6'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+  testImplementation 'javax.servlet:javax.servlet-api:4.0.1'
 }
 
 jar {

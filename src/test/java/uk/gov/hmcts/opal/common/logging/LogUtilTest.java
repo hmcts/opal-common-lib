@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
+import com.microsoft.applicationinsights.web.internal.ThreadContext;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,7 @@ class LogUtilTest {
         // Ensure any SecurityContext / RequestContext / MDC set during tests is cleared
         SecurityContextHolder.clearContext();
         RequestContextHolder.resetRequestAttributes();
+        ThreadContext.remove();
         MDC.clear();
     }
 
@@ -136,6 +138,8 @@ class LogUtilTest {
 
     @Test
     void createOpalOperation_setsMdcWhenNoOperationContext() {
+        ThreadContext.remove();
+
         // Ensure there is no OperationContext available in the environment (test env typically has none).
         // createOpalOperation should return an id and set it in the MDC under "opal-operation-id".
         String operationId = LogUtil.createOpalOperation();

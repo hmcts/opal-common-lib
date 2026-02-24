@@ -67,6 +67,7 @@ public final class LogUtil {
             (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
         if (attributes == null) {
+            log.debug(":getIpAddress: No request attributes available.");
             return null;
         }
 
@@ -77,9 +78,12 @@ public final class LogUtil {
             return headerIp;
         }
 
+        log.debug(":getIpAddress: X-User-IP header missing or blank; falling back to authentication details.");
+
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         if (auth == null) {
+            log.debug(":getIpAddress: No authentication available.");
             return null;
         }
 
@@ -87,6 +91,8 @@ public final class LogUtil {
         if (details instanceof WebAuthenticationDetails webAuth) {
             return webAuth.getRemoteAddress();
         }
+
+        log.debug(":getIpAddress: Authentication details not WebAuthenticationDetails.");
 
         return null;
     }

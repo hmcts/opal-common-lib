@@ -142,7 +142,7 @@ ext['snakeyaml.version'] = '2.0'
 dependencyManagement {
   imports {
     mavenBom 'org.springframework.boot:spring-boot-dependencies:3.5.10'
-    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
+    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
   }
 }
 

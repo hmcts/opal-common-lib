@@ -1,7 +1,10 @@
 package uk.gov.hmcts.opal.common.logging;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -99,5 +102,22 @@ public final class LogUtil {
 
     public static OffsetDateTime getCurrentDateTime(Clock clock) {
         return OffsetDateTime.now(clock);
+    }
+
+    public static Optional<HttpServletRequest> getCurrentRequest() {
+        return RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes sra
+            ? Optional.of(sra.getRequest())
+            : Optional.empty();
+    }
+
+    public static Optional<Instant> getRequestInstant() {
+        return getCurrentRequest()
+            .map(req -> (Instant) req.getAttribute(RequestInstantFilter.REQUEST_RECEIVED_INSTANT));
+    }
+
+    public static LocalDateTime getRequestTimestamp() {
+        return getRequestInstant()
+            .map(instant -> LocalDateTime.ofInstant(instant, ZoneId.systemDefault()))
+            .orElse(LocalDateTime.now());
     }
 }

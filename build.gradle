@@ -164,7 +164,7 @@ dependencies {
   }
   implementation 'org.hibernate.validator:hibernate-validator:9.1.0.Final'    // CVE-2025-15104 not yet fixed, so suppressed in owasp file
 
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '8.0.0'
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '7.0.0'
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
 

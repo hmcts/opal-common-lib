@@ -134,14 +134,14 @@ ext {
   logbackVersion = "1.5.22"
   lombokVersion = "1.18.42"
   mapstructVersion = "1.6.3"
-  springVersion = "3.5.10"
+  springVersion = "3.5.11"
 }
 
 ext['snakeyaml.version'] = '2.0'
 
 dependencyManagement {
   imports {
-    mavenBom 'org.springframework.boot:spring-boot-dependencies:3.5.10'
+    mavenBom 'org.springframework.boot:spring-boot-dependencies:3.5.11'
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.0.0'
   }
 }

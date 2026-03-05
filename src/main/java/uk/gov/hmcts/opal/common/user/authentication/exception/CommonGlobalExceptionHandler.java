@@ -55,10 +55,12 @@ public class CommonGlobalExceptionHandler {
             businessUnitId = businessUnitUser.getBusinessUnitId();
         }
 
+        String resource = request.getPathInfo() != null ? request.getPathInfo() : UNKNOWN;
+
         Map<String, Object> eventData = Map.of(
             "UserIdentifier", userId,
             "Permission", permissionsDesc,
-            "Resource", request.getPathInfo());
+            "Resource", resource);
 
         securityEventLoggingService.logEvent(
             EVENT_NAME,

@@ -106,6 +106,16 @@ class AccessTokenServiceTest {
             assertEquals("opal-test@example.com", claim);
         }
 
+        @Test
+        void testExtractOidClaim_validToken() throws Exception {
+            PlainJWT jwt = new PlainJWT(buildJwt());
+            when(tokenValidator.parse(any())).thenReturn(jwt);
+
+            String claim = accessTokenService.extractOid("Bearer encryptedToken");
+
+            assertEquals("4d432627-dd62-41bd-b6c2-08e61eb836d9", claim);
+        }
+
         private JWTClaimsSet buildJwt() {
             return new JWTClaimsSet.Builder()
                 .issuer("example.com")
@@ -116,6 +126,7 @@ class AccessTokenServiceTest {
                 .claim("scp", "opalinternaluser")
                 .claim("unique_name", "opal-test@example.com")
                 .claim("upn", "opal-test@example.com")
+                .claim("oid", "4d432627-dd62-41bd-b6c2-08e61eb836d9")
                 .build();
         }
     }

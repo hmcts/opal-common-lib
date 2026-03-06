@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.common.user.authorisation.exception;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,10 +46,13 @@ class PermissionNotAllowedExceptionTest {
 
     @Test
     void constructorWithBusinessUnit_ShouldSetMessage() {
-        BusinessUnitUser user = BusinessUnitUser.builder().businessUnitUserId("BU123").build();
-        PermissionNotAllowedException exception = new PermissionNotAllowedException(TestPermission.SAMPLE, user);
+        Short businessUnitId = 4;
+        PermissionNotAllowedException exception = new PermissionNotAllowedException(
+            businessUnitId,
+            TestPermission.SAMPLE);
 
-        assertEquals(TestPermission.SAMPLE + " permission is not enabled for the business unit user: BU123",
-                     exception.getMessage());
+        assertEquals(
+            "[" + TestPermission.SAMPLE + "] permission(s) are not enabled for the user in business unit: 4",
+            exception.getMessage());
     }
 }

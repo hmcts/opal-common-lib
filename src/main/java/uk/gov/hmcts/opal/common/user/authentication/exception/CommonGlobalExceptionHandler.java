@@ -15,7 +15,6 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
@@ -29,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CommonGlobalExceptionHandler {
 
-    public static final String UNKNOWN = "'Unknown'";
+    public static final String UNKNOWN = "Unknown";
     public static final String EVENT_NAME = "Authorisation Access Control";
     public static final String EVENT_ACTION_OUTCOME = "Failure";
     public static final String EVENT_OP_TYPE = "Authentication";
@@ -49,11 +48,7 @@ public class CommonGlobalExceptionHandler {
             .toList();
         String permissionsDesc = Strings.join(permissionNames, ':');
 
-        Short businessUnitId = null;
-        BusinessUnitUser businessUnitUser = ex.getBusinessUnitUser();
-        if (businessUnitUser != null) {
-            businessUnitId = businessUnitUser.getBusinessUnitId();
-        }
+        Short businessUnitId = ex.getBusinessUnitId();
 
         String resource = request.getPathInfo() != null ? request.getPathInfo() : UNKNOWN;
 

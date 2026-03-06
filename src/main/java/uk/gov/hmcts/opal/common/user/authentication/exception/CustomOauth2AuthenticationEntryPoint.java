@@ -26,6 +26,7 @@ import static uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenSe
 @RequiredArgsConstructor
 public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    public static final String UNKNOWN = "Unknown";
     public static final String EVENT_NAME = "Authorisation Access Control";
     public static final String EVENT_ACTION_OUTCOME = "Failure";
     public static final String EVENT_OP_TYPE = "Authentication";
@@ -42,11 +43,17 @@ public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntry
         String authorization = request.getHeader(AUTH_HEADER);
         String oid = extractOid(authorization);
         String userIdentifier = oid != null ? oid : request.getRemoteAddr();
+        if (userIdentifier == null) {
+            userIdentifier = UNKNOWN;
+        }
+
+        String resource = request.getRequestURI() != null ? request.getRequestURI() : UNKNOWN;
+        String message = ex.getMessage() != null ? ex.getMessage() : UNKNOWN;
 
         Map<String, Object> eventData = Map.of(
             "UserIdentifier", userIdentifier,
-            "Details", ex.getMessage(),
-            "Resource", request.getRequestURI());
+            "Details", message,
+            "Resource", resource);
 
         securityEventLoggingService.logEvent(
             EVENT_NAME,

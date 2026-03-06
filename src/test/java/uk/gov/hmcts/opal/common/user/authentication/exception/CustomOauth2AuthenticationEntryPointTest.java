@@ -48,6 +48,7 @@ class CustomOauth2AuthenticationEntryPointTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         AuthenticationException authenticationException = mock(AuthenticationException.class);
+        when(authenticationException.getMessage()).thenReturn("err_message");
 
         StringWriter output = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(output));
@@ -86,7 +87,7 @@ class CustomOauth2AuthenticationEntryPointTest {
             eq("Authentication"),
             eq(timestamp),
             argThat(eventData -> "oid-123".equals(eventData.get("UserIdentifier"))
-                && "Invalid access token".equals(eventData.get("Details"))
+                && "err_message".equals(eventData.get("Details"))
                 && "/test/resource".equals(eventData.get("Resource"))));
     }
 
@@ -97,6 +98,7 @@ class CustomOauth2AuthenticationEntryPointTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         AuthenticationException authenticationException = mock(AuthenticationException.class);
+        when(authenticationException.getMessage()).thenReturn("err_message");
 
         StringWriter output = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(output));
@@ -136,7 +138,7 @@ class CustomOauth2AuthenticationEntryPointTest {
             eq("Authentication"),
             eq(timestamp),
             argThat(eventData -> "192.168.1.10".equals(eventData.get("UserIdentifier"))
-                && "Invalid access token".equals(eventData.get("Details"))
+                && "err_message".equals(eventData.get("Details"))
                 && "/test/fallback".equals(eventData.get("Resource"))));
     }
 }

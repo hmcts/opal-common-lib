@@ -16,20 +16,20 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class CommonGlobalExceptionHandlerTest {
@@ -62,14 +62,10 @@ class CommonGlobalExceptionHandlerTest {
                 .businessUnitUser(Collections.emptySet())
                 .build();
 
-            BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
-                .businessUnitUserId("bu-user-1")
-                .businessUnitId((short) 42)
-                .permissions(Set.of())
-                .build();
+            Short businessUnitId = 42;
 
             PermissionNotAllowedException exception =
-                new PermissionNotAllowedException(TestPermission.READ_CASE, businessUnitUser);
+                new PermissionNotAllowedException(businessUnitId, TestPermission.READ_CASE);
 
             when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
             when(request.getPathInfo()).thenReturn("/api/cases/1");

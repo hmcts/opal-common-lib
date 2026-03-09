@@ -22,6 +22,7 @@ public class AccessTokenService {
     public static final String UNIQUE_NAME_KEY = "unique_name";
     public static final String UPN_NAME_KEY = "upn";
     public static final String BEARER_PREFIX = "Bearer ";
+    public static final String OID_KEY = "oid";
 
     private final TokenValidator tokenValidator;
 
@@ -43,6 +44,10 @@ public class AccessTokenService {
 
     public String extractUpn(String accessToken) {
         return extractClaim(accessToken, UPN_NAME_KEY);
+    }
+
+    public String extractOid(String accessToken) {
+        return extractClaim(accessToken, OID_KEY);
     }
 
     public String extractClaim(String accessToken, String claimKey) {

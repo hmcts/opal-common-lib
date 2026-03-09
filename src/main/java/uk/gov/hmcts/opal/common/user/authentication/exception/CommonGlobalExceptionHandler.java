@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.common.user.authentication.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -15,12 +14,9 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j(topic = "opal.CommonGlobalExceptionHandler")
@@ -43,18 +39,13 @@ public class CommonGlobalExceptionHandler {
         UserState userState = userStateClientService.getUserStateByAuthenticatedUser().orElse(null);
         String userId = userState != null ? String.valueOf(userState.getUserId()) : UNKNOWN;
 
-        List<String> permissionNames = Arrays.stream(ex.getPermission())
-            .map(PermissionDescriptor::toString)
-            .toList();
-        String permissionsDesc = Strings.join(permissionNames, ':');
-
         Short businessUnitId = ex.getBusinessUnitId();
-
+        String message = ex.getMessage() != null ? ex.getMessage() : UNKNOWN;
         String resource = request.getPathInfo() != null ? request.getPathInfo() : UNKNOWN;
 
         Map<String, Object> eventData = Map.of(
             "UserIdentifier", userId,
-            "Permission", permissionsDesc,
+            "Permission", message,
             "Resource", resource);
 
         securityEventLoggingService.logEvent(

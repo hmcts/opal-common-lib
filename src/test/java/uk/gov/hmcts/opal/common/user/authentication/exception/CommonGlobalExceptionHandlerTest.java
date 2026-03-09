@@ -92,7 +92,8 @@ class CommonGlobalExceptionHandlerTest {
                 eq("Authentication"),
                 eq(localDateTime),
                 argThat(eventData -> "123".equals(eventData.get("UserIdentifier"))
-                    && "READ_CASE".equals(eventData.get("Permission"))
+                    && ((String)eventData.get("Permission")).contains("READ_CASE")
+                    && ((String)eventData.get("Permission")).contains(String.valueOf(businessUnitId))
                     && "/api/cases/1".equals(eventData.get("Resource"))));
 
         }

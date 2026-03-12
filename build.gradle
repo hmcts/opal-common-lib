@@ -152,7 +152,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: springVersion
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: springVersion
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: springVersion
-  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.3.1', {
+  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.1', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2',{

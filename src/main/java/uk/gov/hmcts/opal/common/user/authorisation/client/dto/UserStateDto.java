@@ -5,8 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.dto.Versioned;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 @Data
 @NoArgsConstructor
@@ -34,4 +38,9 @@ public class UserStateDto implements Versioned, ToJsonString {
 
     @JsonProperty("business_unit_users")
     private List<BusinessUnitUserDto> businessUnitUsers;
+
+    @Override
+    public BigInteger getVersion() {
+        return Optional.ofNullable(version).map(BigInteger::valueOf).orElse(null);
+    }
 }

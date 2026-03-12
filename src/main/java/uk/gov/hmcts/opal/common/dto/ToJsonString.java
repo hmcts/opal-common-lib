@@ -1,12 +1,14 @@
-package uk.gov.hmcts.opal.common.user.authorisation.client.dto;
+package uk.gov.hmcts.opal.common.dto;
+
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+
+import java.util.Optional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.JsonRuntimeException;
-
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
 public interface ToJsonString {
 
@@ -50,12 +52,31 @@ public interface ToJsonString {
         }
     }
 
+    static String objectToPrettyJson(Object json) {
+        try {
+            return toPrettyJsonString(json);
+        } catch (JsonProcessingException e) {
+            throw new JsonRuntimeException(e);
+        }
+    }
+
     default JsonNode toJsonNode() throws JsonProcessingException {
         return toJsonNode(this.toJsonString());
     }
 
     static JsonNode toJsonNode(String json) throws JsonProcessingException {
         return OBJECT_MAPPER.readTree(json);
+    }
+
+    static Optional<JsonNode> toOptionalJsonNode(String json) {
+        if (json == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(OBJECT_MAPPER.readTree(json));
+        } catch (JsonProcessingException e) {
+            return Optional.empty();
+        }
     }
 
     static ObjectMapper getObjectMapper() {

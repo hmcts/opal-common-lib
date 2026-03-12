@@ -15,7 +15,7 @@ import org.springframework.security.core.AuthenticationException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.dto.ToJsonString;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

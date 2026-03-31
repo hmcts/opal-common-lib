@@ -33,7 +33,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -56,9 +55,6 @@ class EventLoggingServiceTest {
 
     @MockitoBean
     private Appender<ILoggingEvent> mockAppender;
-
-    @Captor
-    private ArgumentCaptor<ILoggingEvent> captor;
 
     @Autowired
     private SecurityEventLoggingService service;
@@ -135,6 +131,7 @@ class EventLoggingServiceTest {
         service.logEvent("TestEvent", "Success", null, "TestType",null, null);
 
         // Assert
+        ArgumentCaptor<ILoggingEvent> captor = ArgumentCaptor.forClass(ILoggingEvent.class);
         verify(mockAppender, atLeastOnce()).doAppend(captor.capture());
         List<ILoggingEvent> events = captor.getAllValues();
         String nowText = now.toString();
@@ -162,6 +159,7 @@ class EventLoggingServiceTest {
         service.logEvent("TestEvent", "Success", buid, "TestType",opTimestamp, data);
 
         // Assert
+        ArgumentCaptor<ILoggingEvent> captor = ArgumentCaptor.forClass(ILoggingEvent.class);
         verify(mockAppender, atLeastOnce()).doAppend(captor.capture());
         List<ILoggingEvent> events = captor.getAllValues();
         String nowText = now.toString();

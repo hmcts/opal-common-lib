@@ -8,7 +8,17 @@
     <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
     <cve>CVE-2023-35116</cve>
   </suppress>
-  <suppress until="2026-04-01">
+  <suppress until="2026-06-01Z">
+    <notes><![CDATA[
+    Reviewed 2026-04-01.
+    CVE-2025-15104 relates to nu.validator:validator, which is not present in this repo's runtime classpath.
+    Keep this suppression only for Dependency-Check false positives where validator libraries are mapped to the
+    generic CPE "validator:validator".
+    Runtime review found org.hibernate.validator:hibernate-validator:9.1.0.Final, but no nu.validator:validator
+    dependency.
+    ]]></notes>
+    <!-- Matches: cpe:2.3:a:validator:validator:<any>:*:*:*:*:*:*:* -->
+    <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>
     <cve>CVE-2025-15104</cve>
   </suppress>
   <!--End of false positives section -->

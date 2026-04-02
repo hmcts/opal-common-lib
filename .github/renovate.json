@@ -7,92 +7,96 @@
     {
       "description": "Group all Gradle plugins (Minor/Patch)",
       "matchManagers": ["gradle"],
-      "matchPackagePatterns": [
-        "^org\\.springframework\\.boot$",
-        "^io\\.spring\\.dependency-management$",
-        "^com\\.github\\.ben-manes\\.versions$",
-        "^org\\.sonarqube$",
-        "^uk\\.gov\\.hmcts\\.java$",
-        "^org\\.flywaydb\\.flyway$",
-        "^net\\.serenity-bdd\\.serenity-gradle-plugin$",
-        "^org\\.openapi.generator$"
-      ],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Gradle Plugins (Minor/Patch)"
+      "groupName": "Gradle Plugins (Minor/Patch)",
+      "matchPackageNames": [
+        "/^org\.springframework\.boot$/",
+        "/^io\.spring\.dependency-management$/",
+        "/^com\.github\.ben-manes\.versions$/",
+        "/^org\.sonarqube$/",
+        "/^uk\.gov\.hmcts\.java$/",
+        "/^org\.flywaydb\.flyway$/",
+        "/^net\.serenity-bdd\.serenity-gradle-plugin$/",
+        "/^org\.openapi.generator$/"
+      ]
     },
     {
       "description": "Group all Gradle plugins (Major)",
       "matchManagers": ["gradle"],
-      "matchPackagePatterns": [
-        "^org\\.springframework\\.boot$",
-        "^io\\.spring\\.dependency-management$",
-        "^com\\.github\\.ben-manes\\.versions$",
-        "^org\\.sonarqube$",
-        "^uk\\.gov\\.hmcts\\.java$",
-        "^org\\.flywaydb\\.flyway$",
-        "^net\\.serenity-bdd\\.serenity-gradle-plugin$",
-        "^org\\.openapi.generator$"
-      ],
       "matchUpdateTypes": ["major"],
-      "groupName": "Gradle Plugins (Major)"
+      "groupName": "Gradle Plugins (Major)",
+      "matchPackageNames": [
+        "/^org\.springframework\.boot$/",
+        "/^io\.spring\.dependency-management$/",
+        "/^com\.github\.ben-manes\.versions$/",
+        "/^org\.sonarqube$/",
+        "/^uk\.gov\.hmcts\.java$/",
+        "/^org\.flywaydb\.flyway$/",
+        "/^net\.serenity-bdd\.serenity-gradle-plugin$/",
+        "/^org\.openapi.generator$/"
+      ]
     },
     {
       "description": "Group all Spring dependencies (Minor/Patch)",
       "matchManagers": ["gradle"],
-      "matchPackagePrefixes": "org.springframework",
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Spring Dependencies (Minor/Patch)"
+      "groupName": "Spring Dependencies (Minor/Patch)",
+      "matchPackageNames": [
+        "org.springframework{/,}**"
+      ]
     },
     {
       "description": "Group all Spring dependencies (Major)",
       "matchManagers": ["gradle"],
-      "matchPackagePrefixes": "org.springframework",
       "matchUpdateTypes": ["major"],
-      "groupName": "Spring Dependencies (Major)"
+      "groupName": "Spring Dependencies (Major)",
+      "matchPackageNames": [
+        "org.springframework{/,}**"
+      ]
     },
     {
       "description": "Group all test dependencies (Minor/Patch)",
       "matchManagers": ["gradle"],
-      "matchPackagePatterns": [
-        "^io\\.cucumber.*",
-        "^net\\.serenity-bdd.*",
-        "^org\\.junit.*",
-        "^org\\.mockito.*"
-      ],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Test Dependencies (Minor/Patch)"
+      "groupName": "Test Dependencies (Minor/Patch)",
+      "matchPackageNames": [
+        "/^io\.cucumber.*/",
+        "/^net\.serenity-bdd.*/",
+        "/^org\.junit.*/",
+        "/^org\.mockito.*/"
+      ]
     },
     {
       "description": "Group all test dependencies (Major)",
       "matchManagers": ["gradle"],
-      "matchPackagePatterns": [
-        "^io\\.cucumber.*",
-        "^net\\.serenity-bdd.*",
-        "^org\\.junit.*",
-        "^org\\.mockito.*"
-      ],
       "matchUpdateTypes": ["major"],
-      "groupName": "Test Dependencies (Major)"
+      "groupName": "Test Dependencies (Major)",
+      "matchPackageNames": [
+        "/^io\.cucumber.*/",
+        "/^net\.serenity-bdd.*/",
+        "/^org\.junit.*/",
+        "/^org\.mockito.*/"
+      ]
     },
     {
       "description": "Group all HMCTS dependencies (Minor/Patch)",
       "matchManagers": ["gradle"],
-      "matchPackagePatterns": [
-        "^uk\\.gov\\.hmcts.*",
-        ".*hmcts.*"
-      ],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "HMCTS Dependencies (Minor/Patch)"
+      "groupName": "HMCTS Dependencies (Minor/Patch)",
+      "matchPackageNames": [
+        "/^uk\.gov\.hmcts.*/",
+        "/.*hmcts.*/"
+      ]
     },
     {
       "description": "Group all HMCTS dependencies (Major)",
       "matchManagers": ["gradle"],
-      "matchPackagePatterns": [
-        "^uk\\.gov\\.hmcts.*",
-        ".*hmcts.*"
-      ],
       "matchUpdateTypes": ["major"],
-      "groupName": "HMCTS Dependencies (Major)"
+      "groupName": "HMCTS Dependencies (Major)",
+      "matchPackageNames": [
+        "/^uk\.gov\.hmcts.*/",
+        "/.*hmcts.*/"
+      ]
     }
   ],
   "description": "Schedule for Wednesdays only.",

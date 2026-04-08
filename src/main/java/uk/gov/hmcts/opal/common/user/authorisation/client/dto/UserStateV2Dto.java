@@ -9,14 +9,14 @@ import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.common.dto.Versioned;
 
 import java.math.BigInteger;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserStateDto implements Versioned, ToJsonString {
+public class UserStateV2Dto implements Versioned, ToJsonString {
 
     @JsonProperty("user_id")
     private Long userId;
@@ -34,8 +34,11 @@ public class UserStateDto implements Versioned, ToJsonString {
     @JsonProperty("version")
     private Long version;
 
-    @JsonProperty("business_unit_users")
-    private List<BusinessUnitUserDto> businessUnitUsers;
+    @JsonProperty("cache_name")
+    private String cacheName;
+
+    @JsonProperty("domains")
+    private Map<Domain, DomainDto> domains;
 
     @Override
     public BigInteger getVersion() {

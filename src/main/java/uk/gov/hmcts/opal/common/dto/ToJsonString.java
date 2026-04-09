@@ -20,6 +20,11 @@ public interface ToJsonString {
         return OBJECT_MAPPER.writeValueAsString(this);
     }
 
+
+    static String toJsonString(Object original) throws JsonProcessingException {
+        return OBJECT_MAPPER.writeValueAsString(original);
+    }
+
     default String toJson() {
         try {
             return toJsonString();
@@ -55,6 +60,14 @@ public interface ToJsonString {
     static String objectToPrettyJson(Object json) {
         try {
             return toPrettyJsonString(json);
+        } catch (JsonProcessingException e) {
+            throw new JsonRuntimeException(e);
+        }
+    }
+
+    static String objectToJson(Object json) {
+        try {
+            return toJsonString(json);
         } catch (JsonProcessingException e) {
             throw new JsonRuntimeException(e);
         }

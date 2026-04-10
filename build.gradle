@@ -162,7 +162,7 @@ dependencies {
   implementation 'org.hibernate.validator:hibernate-validator:9.1.0.Final'    // CVE-2025-15104 not yet fixed, so suppressed in owasp file
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
-  implementation group: 'org.mapstruct', name: 'mapstruct', version: mapstructVersion
+  implementation "org.mapstruct:mapstruct:${mapstructVersion}"
   runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-el'
 
   compileOnly "org.projectlombok:lombok:${lombokVersion}"
@@ -185,7 +185,7 @@ dependencies {
   smokeTestAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
   smokeTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
-  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springVersion
+  testImplementation "org.springframework.boot:spring-boot-starter-test:${springVersion}"
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   testImplementation 'javax.servlet:javax.servlet-api:4.0.1'
 }

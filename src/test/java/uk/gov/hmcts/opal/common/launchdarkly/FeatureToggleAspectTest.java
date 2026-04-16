@@ -1,0 +1,121 @@
+package uk.gov.hmcts.opal.common.launchdarkly;
+
+import com.launchdarkly.sdk.server.LDClient;
+import lombok.SneakyThrows;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = {
+    FeatureToggleAspect.class,
+    FeatureToggleApi.class
+})
+@Isolated
+class FeatureToggleAspectTest {
+
+    private static final String NEW_FEATURE = "NEW_FEATURE";
+    private static final String EXCEPTION = "Feature NEW_FEATURE is not enabled for method myFeatureToggledMethod";
+
+    @Autowired
+    FeatureToggleAspect featureToggleAspect;
+
+    @MockitoBean
+    LaunchDarklyProperties properties;
+
+    @MockitoBean
+    LDClient ldClient;
+
+    @MockitoBean
+    ProceedingJoinPoint proceedingJoinPoint;
+
+    @MockitoBean
+    FeatureToggle featureToggle;
+
+    @MockitoBean
+    MethodSignature methodSignature;
+
+    @BeforeEach
+    void setUp() {
+        when(featureToggle.feature()).thenReturn(NEW_FEATURE);
+        when(proceedingJoinPoint.getSignature()).thenReturn(methodSignature);
+        when(methodSignature.getName()).thenReturn("myFeatureToggledMethod");
+        when(properties.getEnabled()).thenReturn(true);
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldProceedToMethodInvocationWhenFeatureToggleIsEnabled(Boolean state) {
+        when(featureToggle.value()).thenReturn(state);
+        givenToggle(NEW_FEATURE, state);
+
+        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
+
+        verify(proceedingJoinPoint).proceed();
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldNotProceedToMethodInvocationWhenFeatureToggleIsDisabled(Boolean state) {
+        when(featureToggle.value()).thenReturn(state);
+        givenToggle(NEW_FEATURE, state);
+        when(properties.getEnabled()).thenReturn(false);
+
+        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
+
+        verify(proceedingJoinPoint).proceed();
+    }
+
+    @SneakyThrows
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldNotProceedToMethodInvocationWhenLaunchDarklyIsDisabled(Boolean state) {
+        when(featureToggle.value()).thenReturn(state);
+        givenToggle(NEW_FEATURE, !state);
+
+        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
+
+        verify(proceedingJoinPoint, never()).proceed();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldThrowExceptionWhenFeatureToggleIsDisabled(Boolean state) {
+        when(featureToggle.value()).thenReturn(state);
+        when(featureToggle.throwException()).thenAnswer(invocation -> FeatureDisabledException.class);
+        givenToggle(NEW_FEATURE, !state);
+
+        FeatureDisabledException exception = assertThrows(
+            FeatureDisabledException.class,
+            () -> featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle)
+        );
+
+        assertNotNull(exception);
+        assertEquals(EXCEPTION, exception.getMessage());
+    }
+
+    private void givenToggle(String feature, boolean state) {
+        when(ldClient.boolVariation(feature, null, false)).thenReturn(state);
+        when(ldClient.boolVariation(org.mockito.ArgumentMatchers.eq(feature),
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean())).thenReturn(state);
+    }
+}

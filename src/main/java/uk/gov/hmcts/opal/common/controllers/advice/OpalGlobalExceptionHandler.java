@@ -15,10 +15,10 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 
 import java.net.URI;
 
-@Slf4j(topic = "opal.GlobalExceptionHandler")
+@Slf4j(topic = "opal.OpalGlobalExceptionHandler")
 @ControllerAdvice
 @RequiredArgsConstructor
-public class GlobalExceptionHandler {
+public class OpalGlobalExceptionHandler {
 
 
     @ExceptionHandler(FeatureDisabledException.class)

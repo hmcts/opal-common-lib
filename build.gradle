@@ -152,7 +152,7 @@ dependencies {
   implementation 'org.springframework:spring-aop'
   implementation 'org.springframework:spring-web'
   implementation 'org.aspectj:aspectjweaver'
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.2'
+  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.4'
   implementation 'jakarta.servlet:jakarta.servlet-api'
   implementation 'org.springframework.security:spring-security-web'
   implementation 'org.springframework.security:spring-security-oauth2-jose'

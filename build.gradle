@@ -130,7 +130,7 @@ repositories {
 }
 
 ext {
-  jacksonVersion = "2.21.2"
+  jacksonVersion = "2.21.3"
   lombokVersion = "1.18.46"
   mapstructVersion = "1.6.3"
   springVersion = "4.0.6"

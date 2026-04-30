@@ -27,6 +27,7 @@ import java.util.Optional;
 public class UserStateClientService {
 
     public static final long AUTHENTICATED_USER_SPECIAL_CODE = 0L;
+    public static final String USER_STATE_CACHE_PREFIX = "USER_STATE_";
 
     private final UserClient userClient;
     private final UserStateMapper userStateMapper;
@@ -84,7 +85,7 @@ public class UserStateClientService {
     private Optional<UserStateV2Dto> getUserStateFromCache(Jwt jwt) {
 
         String tokenSubject = jwt.getClaim(JWTClaimNames.SUBJECT);
-        String cacheKey = "USER_STATE_" + tokenSubject;
+        String cacheKey = USER_STATE_CACHE_PREFIX + tokenSubject;
         String cachedUserState;
         try {
             cachedUserState = redisTemplate.opsForValue().get(cacheKey);

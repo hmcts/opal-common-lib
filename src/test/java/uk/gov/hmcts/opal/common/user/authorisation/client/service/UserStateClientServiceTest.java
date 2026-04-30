@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService.USER_STATE_CACHE_PREFIX;
 
 @ExtendWith(MockitoExtension.class)
 class UserStateClientServiceTest {
@@ -67,7 +68,7 @@ class UserStateClientServiceTest {
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(jwt.getTokenValue()).thenReturn(tokenValue);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("USER_STATE_" + subject)).thenReturn(null);
+        when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(null);
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue)).thenReturn(userStateV2Dto);
 
         // Act
@@ -92,7 +93,7 @@ class UserStateClientServiceTest {
 
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("USER_STATE_" + subject)).thenReturn(cachedUserState);
+        when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(cachedUserState);
         when(objectMapper.readValue(cachedUserState, UserStateV2Dto.class)).thenReturn(userStateV2Dto);
 
         // Act
@@ -115,7 +116,7 @@ class UserStateClientServiceTest {
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(jwt.getTokenValue()).thenReturn(tokenValue);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("USER_STATE_" + subject)).thenReturn(null);
+        when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(null);
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue))
             .thenThrow(new FeignException.NotFound("not found", request, null, null));
 
@@ -136,7 +137,7 @@ class UserStateClientServiceTest {
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(jwt.getTokenValue()).thenReturn(tokenValue);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("USER_STATE_" + subject))
+        when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject))
             .thenThrow(new DataAccessException("redis unavailable") { });
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue)).thenReturn(userStateV2Dto);
 
@@ -160,7 +161,7 @@ class UserStateClientServiceTest {
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(jwt.getTokenValue()).thenReturn(tokenValue);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.get("USER_STATE_" + subject)).thenReturn(cachedUserState);
+        when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(cachedUserState);
         when(objectMapper.readValue(cachedUserState, UserStateV2Dto.class))
             .thenThrow(new JsonProcessingException("invalid json") { });
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue)).thenReturn(userStateV2Dto);

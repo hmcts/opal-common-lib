@@ -110,9 +110,12 @@ public class UserStateClientService {
         String tokenSubject = jwt.getClaim(JWTClaimNames.SUBJECT);
         try {
             UserStateV2Dto userStateV2Dto = userClient.getUserStateByIdWithAuthToken("Bearer " + jwt.getTokenValue());
-            return Optional.of(userStateV2Dto);
+            if (userStateV2Dto == null) {
+                log.warn(":getUserStateFromUserService: Null response for subject: {}", tokenSubject);
+            }
+            return Optional.ofNullable(userStateV2Dto);
         } catch (FeignException.NotFound e) {
-            log.warn(":getUserState: User not found in User Service for subject: {}", tokenSubject);
+            log.warn(":getUserStateFromUserService: User not found in User Service for subject: {}", tokenSubject);
             return Optional.empty();
         }
     }

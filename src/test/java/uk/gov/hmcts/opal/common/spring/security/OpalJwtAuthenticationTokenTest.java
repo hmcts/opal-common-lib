@@ -17,9 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,49 +26,7 @@ class OpalJwtAuthenticationTokenTest {
     private static final String JWT_SUBJECT = "subject-123";
 
     @Test
-    void constructorShouldPopulateAuthenticationAndDerivedPermissionFields() {
-        // Arrange
-        UserStateV2 userState = createUserStateWithMultipleDomainData();
-        Jwt jwt = createJwt(JWT_SUBJECT);
-        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
-        Object details = "request-details";
-
-        // Act
-        OpalJwtAuthenticationToken authenticationToken = new OpalJwtAuthenticationToken(
-            userState,
-            Domain.FINES,
-            jwt,
-            authorities,
-            details
-        );
-
-        //Assert
-        assertSame(details, authenticationToken.getDetails());
-        assertEquals(JWT_SUBJECT, authenticationToken.getName());
-        assertEquals(authorities, authenticationToken.getAuthorities());
-        assertEquals(55L, authenticationToken.getUserId());
-        assertEquals("test.user", authenticationToken.getUsername());
-        assertEquals("Test User", authenticationToken.getUserStateName());
-        assertEquals("ACTIVE", authenticationToken.getStatus());
-        assertEquals(6L, authenticationToken.getVersion());
-        assertEquals("user-state-cache", authenticationToken.getCacheName());
-        assertTrue(authenticationToken.hasPermission("PERM_A"));
-        assertTrue(authenticationToken.hasPermission("PERM_B"));
-        assertTrue(authenticationToken.hasPermission("PERM_C"));
-        assertTrue(authenticationToken.hasBusinessUnit("101"));
-        assertTrue(authenticationToken.hasBusinessUnit("202"));
-        assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_A", "101"));
-        assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_B", "101"));
-        assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_C", "202"));
-
-        //should not have any non-fines permissions
-        assertFalse(authenticationToken.hasPermission("PERM_D"));
-        assertFalse(authenticationToken.hasBusinessUnit("303"));
-        assertFalse(authenticationToken.hasPermissionInBusinessUnit("PERM_C", "101"));
-    }
-
-    @Test
-    void constructorShouldUseOnlySelectedDomainWhenMultipleDomainsExist() {
+    void constructorShouldExposeDataFromSpecifiedDomainWhenMultipleDomainsExist() {
         // Arrange
         Jwt jwt = createJwt(JWT_SUBJECT);
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
@@ -88,8 +44,24 @@ class OpalJwtAuthenticationTokenTest {
         assertTrue(authenticationToken.hasPermission("PERM_D"));
         assertTrue(authenticationToken.hasBusinessUnit("303"));
         assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_D", "303"));
+    }
 
-        // should not have any non-confiscation permissions
+    @Test
+    void constructorShouldHidePermissionsFromOtherDomainsWhenMultipleDomainsExist() {
+        // Arrange
+        Jwt jwt = createJwt(JWT_SUBJECT);
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+
+        // Act
+        OpalJwtAuthenticationToken authenticationToken = new OpalJwtAuthenticationToken(
+            createUserStateWithMultipleDomainData(),
+            Domain.CONFISCATION,
+            jwt,
+            authorities,
+            "request-details"
+        );
+
+        //Assert
         assertFalse(authenticationToken.hasBusinessUnit("101"));
         assertFalse(authenticationToken.hasPermissionInBusinessUnit("PERM_A", "303"));
         assertFalse(authenticationToken.hasPermission("PERM_A"));

@@ -171,17 +171,14 @@ class OpalJwtAuthenticationProviderTest {
 
     @Test
     void constructorShouldThrowIllegalArgumentExceptionWhenJwtDecoderIsNull() {
-        // Arrange
-        UserStateClientService localUserStateClientService = userStateClientService;
-        JwtGrantedAuthoritiesConverter localAuthoritiesConverter = jwtGrantedAuthoritiesConverter;
 
         // Act
         IllegalArgumentException exception = assertThrows(
             IllegalArgumentException.class,
             () -> new OpalJwtAuthenticationProvider(
                 null,
-                localUserStateClientService,
-                localAuthoritiesConverter,
+                userStateClientService,
+                jwtGrantedAuthoritiesConverter,
                 Domain.FINES
             )
         );

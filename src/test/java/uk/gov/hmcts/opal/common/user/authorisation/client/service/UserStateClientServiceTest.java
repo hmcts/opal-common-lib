@@ -40,9 +40,6 @@ class UserStateClientServiceTest {
     @Mock
     private UserClient userClient;
 
-    @Spy
-    private UserStateMapper userStateMapper = Mappers.getMapper(UserStateMapper.class);
-
     @Mock
     private StringRedisTemplate redisTemplate;
 
@@ -59,7 +56,7 @@ class UserStateClientServiceTest {
     private Jwt jwt;
 
     @Test
-    void getUserStateByAuthenticationTokenReturnsMappedUserStateWhenCacheMissAndUserServiceReturnsUser() {
+    void getUserStateByAuthenticationToken_returnStateFromServiceWhenCacheMiss() {
         // Arrange
         String subject = "subject-123";
         String tokenValue = "token-abc";
@@ -85,7 +82,7 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticationTokenReturnsMappedUserStateWhenPresentInCache() throws Exception {
+    void getUserStateByAuthenticationToken_returnsStateFromCacheWhenPresent() throws Exception {
         // Arrange
         String subject = "subject-123";
         String cachedUserState = "{\"cached\":true}";
@@ -107,7 +104,7 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticationTokenReturnsEmptyWhenCacheMissAndUserServiceReturnsNotFound() {
+    void getUserStateByAuthenticationToken_returnsEmptyWhenCacheMissAndServiceReturnsNotFound() {
         // Arrange
         String subject = "subject-123";
         String tokenValue = "token-abc";
@@ -128,7 +125,7 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticationTokenFallsBackToUserServiceWhenCacheAccessFails() {
+    void getUserStateByAuthenticationToken_fallsBackToServiceWhenCacheAccessFails() {
         // Arrange
         String subject = "subject-123";
         String tokenValue = "token-abc";
@@ -151,7 +148,7 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticationTokenFallsBackToUserServiceWhenCachedStateCannotBeParsed() throws Exception {
+    void getUserStateByAuthenticationToken_fallsBackToServiceWhenCachedStateCannotBeParsed() throws Exception {
         // Arrange
         String subject = "subject-123";
         String tokenValue = "token-abc";

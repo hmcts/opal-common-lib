@@ -158,10 +158,27 @@ class UserStateMapperTest {
         DomainBusinessUnitUsers mappedDomainUsers = userStateMapper.toDomainBusinessUnitUsers(domainDto);
 
         //Assert
-        assertEquals(2, mappedDomainUsers.getBusinessUnitUsers().size());
-        assertEquals(
-            Set.of((short) 101, (short) 202),
-            mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUser::getBusinessUnitId).collect(toSet())
+        BusinessUnitUser businessUnit101 = mappedDomainUsers.getBusinessUnitUsers().stream()
+            .filter(businessUnitUser -> businessUnitUser.getBusinessUnitId() == (short) 101)
+            .findFirst()
+            .orElseThrow();
+        BusinessUnitUser businessUnit202 = mappedDomainUsers.getBusinessUnitUsers().stream()
+            .filter(businessUnitUser -> businessUnitUser.getBusinessUnitId() == (short) 202)
+            .findFirst()
+            .orElseThrow();
+
+        assertAll("domain business unit mapping",
+            () -> assertEquals(2, mappedDomainUsers.getBusinessUnitUsers().size()),
+            () -> assertEquals(
+                Set.of((short) 101, (short) 202),
+                mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUser::getBusinessUnitId).collect(toSet())
+            ),
+            () -> assertEquals("bu-user-101", businessUnit101.getBusinessUnitUserId()),
+            () -> assertEquals(Set.of(Permission.builder().permissionId(1L).permissionName("PERM_A").build()),
+                businessUnit101.getPermissions()),
+            () -> assertEquals("bu-user-202", businessUnit202.getBusinessUnitUserId()),
+            () -> assertEquals(Set.of(Permission.builder().permissionId(2L).permissionName("PERM_B").build()),
+                businessUnit202.getPermissions())
         );
     }
 

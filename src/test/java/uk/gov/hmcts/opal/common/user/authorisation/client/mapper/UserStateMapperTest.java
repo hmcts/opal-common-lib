@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -151,8 +152,7 @@ class UserStateMapperTest {
         assertEquals(2, mappedDomainUsers.getBusinessUnitUsers().size());
         assertEquals(
             Set.of((short) 101, (short) 202),
-            mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUser::getBusinessUnitId).collect(
-                java.util.stream.Collectors.toSet())
+            mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUser::getBusinessUnitId).collect(toSet())
         );
     }
 

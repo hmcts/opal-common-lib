@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,9 +42,11 @@ class OpalJwtAuthenticationTokenTest {
         );
 
         //Assert
-        assertTrue(authenticationToken.hasPermission("PERM_D"));
-        assertTrue(authenticationToken.hasBusinessUnit("303"));
-        assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_D", "303"));
+        assertAll("confiscation domain data is exposed",
+            () -> assertTrue(authenticationToken.hasPermission("PERM_D")),
+            () -> assertTrue(authenticationToken.hasBusinessUnit("303")),
+            () -> assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_D", "303"))
+        );
     }
 
     @Test
@@ -62,9 +65,11 @@ class OpalJwtAuthenticationTokenTest {
         );
 
         //Assert
-        assertFalse(authenticationToken.hasBusinessUnit("101"));
-        assertFalse(authenticationToken.hasPermissionInBusinessUnit("PERM_A", "303"));
-        assertFalse(authenticationToken.hasPermission("PERM_A"));
+        assertAll("other domain data is hidden",
+            () -> assertFalse(authenticationToken.hasBusinessUnit("101")),
+            () -> assertFalse(authenticationToken.hasPermissionInBusinessUnit("PERM_A", "303")),
+            () -> assertFalse(authenticationToken.hasPermission("PERM_A"))
+        );
     }
 
     @Test
@@ -77,8 +82,10 @@ class OpalJwtAuthenticationTokenTest {
         boolean hasMissingBusinessUnit = authenticationToken.hasBusinessUnit("999");
 
         //Assert
-        assertTrue(hasExistingBusinessUnit);
-        assertFalse(hasMissingBusinessUnit);
+        assertAll("business unit presence checks",
+            () -> assertTrue(hasExistingBusinessUnit),
+            () -> assertFalse(hasMissingBusinessUnit)
+        );
     }
 
     @Test
@@ -106,8 +113,10 @@ class OpalJwtAuthenticationTokenTest {
         boolean hasMissingPermission = authenticationToken.hasPermission("UNKNOWN_PERMISSION");
 
         //Assert
-        assertTrue(hasPermission);
-        assertFalse(hasMissingPermission);
+        assertAll("permission presence checks",
+            () -> assertTrue(hasPermission),
+            () -> assertFalse(hasMissingPermission)
+        );
     }
 
     @Test
@@ -133,8 +142,10 @@ class OpalJwtAuthenticationTokenTest {
         boolean missingBusinessUnit = authenticationToken.hasPermissionInBusinessUnit("PERM_A", "999");
 
         //Assert
-        assertFalse(missingPermissionInExistingBusinessUnit);
-        assertFalse(missingBusinessUnit);
+        assertAll("permission-in-business-unit negative checks",
+            () -> assertFalse(missingPermissionInExistingBusinessUnit),
+            () -> assertFalse(missingBusinessUnit)
+        );
     }
 
     @Test

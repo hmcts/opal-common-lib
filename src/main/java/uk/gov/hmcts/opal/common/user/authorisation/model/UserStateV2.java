@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -35,7 +34,6 @@ public class UserStateV2 implements Serializable {
     String cacheName;
 
     @JsonProperty("domains")
-    @EqualsAndHashCode.Exclude
     Map<Domain, DomainBusinessUnitUsers> domains;
 
     @JsonCreator

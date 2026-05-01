@@ -72,9 +72,13 @@ public class UserStateClientService {
         log.debug(":getUserStateByAuthenticationToken: Fetching user state for subject: {}", tokenSubject);
 
         Optional<UserStateV2Dto> userStateV2Dto = getUserStateFromCache(jwt);
-        if (userStateV2Dto.isEmpty()) {
+        if (userStateV2Dto.isPresent()) {
+            log.debug("User state fetched from cache");
+        } else {
             userStateV2Dto = getUserStateFromUserService(jwt);
+            log.debug("User state fetched from user service");
         }
+
         if (userStateV2Dto.isPresent()) {
             UserStateV2 userState = userStateMapper.toUserStateV2(userStateV2Dto.get());
             return Optional.of(userState);

@@ -7,11 +7,9 @@ import feign.FeignException;
 import feign.Request;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,7 +22,9 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -47,6 +47,9 @@ class UserStateClientServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
+    private UserStateMapper userStateMapper;
+
+    @Mock
     private ValueOperations<String, String> valueOperations;
 
     @InjectMocks
@@ -61,12 +64,14 @@ class UserStateClientServiceTest {
         String subject = "subject-123";
         String tokenValue = "token-abc";
         UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
+        UserStateV2 mappedUserStateV2 = createMappedUserStateV2();
 
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(jwt.getTokenValue()).thenReturn(tokenValue);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(null);
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue)).thenReturn(userStateV2Dto);
+        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -87,11 +92,13 @@ class UserStateClientServiceTest {
         String subject = "subject-123";
         String cachedUserState = "{\"cached\":true}";
         UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
+        UserStateV2 mappedUserStateV2 = createMappedUserStateV2();
 
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(cachedUserState);
         when(objectMapper.readValue(cachedUserState, UserStateV2Dto.class)).thenReturn(userStateV2Dto);
+        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -130,6 +137,7 @@ class UserStateClientServiceTest {
         String subject = "subject-123";
         String tokenValue = "token-abc";
         UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
+        UserStateV2 mappedUserStateV2 = createMappedUserStateV2();
 
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(jwt.getTokenValue()).thenReturn(tokenValue);
@@ -137,6 +145,7 @@ class UserStateClientServiceTest {
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject))
             .thenThrow(new DataAccessException("redis unavailable") { });
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue)).thenReturn(userStateV2Dto);
+        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -154,6 +163,7 @@ class UserStateClientServiceTest {
         String tokenValue = "token-abc";
         String cachedUserState = "{invalid-json}";
         UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
+        UserStateV2 mappedUserStateV2 = createMappedUserStateV2();
 
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(jwt.getTokenValue()).thenReturn(tokenValue);
@@ -162,6 +172,7 @@ class UserStateClientServiceTest {
         when(objectMapper.readValue(cachedUserState, UserStateV2Dto.class))
             .thenThrow(new JsonProcessingException("invalid json") { });
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue)).thenReturn(userStateV2Dto);
+        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -179,7 +190,9 @@ class UserStateClientServiceTest {
             .username("HMCTS User")
             .userId(777L)
             .build();
+        UserState mappedUserState = createMappedUserState();
         when(userClient.getUserStateById(any())).thenReturn(dto);
+        when(userStateMapper.toUserState(dto)).thenReturn(mappedUserState);
 
         // Act
         Optional<UserState> userState = userStateClientService.getUserState(0L);
@@ -211,7 +224,9 @@ class UserStateClientServiceTest {
             .username("HMCTS User")
             .userId(777L)
             .build();
+        UserState mappedUserState = createMappedUserState();
         when(userClient.getUserStateById(any())).thenReturn(dto);
+        when(userStateMapper.toUserState(dto)).thenReturn(mappedUserState);
 
         // Act
         Optional<UserState> userState = userStateClientService.getUserStateByAuthenticatedUser();
@@ -230,6 +245,26 @@ class UserStateClientServiceTest {
             .status("ACTIVE")
             .version(4L)
             .cacheName("user-state-cache")
+            .build();
+    }
+
+    private UserStateV2 createMappedUserStateV2() {
+        return UserStateV2.builder()
+            .userId(777L)
+            .username("HMCTS User")
+            .name("HMCTS User Name")
+            .status("ACTIVE")
+            .version(4L)
+            .cacheName("user-state-cache")
+            .domains(Map.of())
+            .build();
+    }
+
+    private UserState createMappedUserState() {
+        return UserState.builder()
+            .userId(777L)
+            .userName("HMCTS User")
+            .businessUnitUser(Set.of())
             .build();
     }
 }

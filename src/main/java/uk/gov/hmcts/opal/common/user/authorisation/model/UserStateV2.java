@@ -25,7 +25,7 @@ public class UserStateV2 implements Serializable {
     String name;
 
     @JsonProperty("status")
-    String status;
+    UserStatus status;
 
     @JsonProperty("version")
     Long version;
@@ -41,7 +41,7 @@ public class UserStateV2 implements Serializable {
         @JsonProperty("user_id") Long userId,
         @JsonProperty("username") String username,
         @JsonProperty("name") String name,
-        @JsonProperty("status") String status,
+        @JsonProperty("status") UserStatus status,
         @JsonProperty("version") Long version,
         @JsonProperty("cache_name") String cacheName,
         @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains

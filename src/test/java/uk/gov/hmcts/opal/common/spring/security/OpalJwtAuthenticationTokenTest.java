@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.time.Instant;
@@ -234,7 +235,7 @@ class OpalJwtAuthenticationTokenTest {
             .userId(55L)
             .username("test.user")
             .name("Test User")
-            .status("ACTIVE")
+            .status(UserStatus.ACTIVE)
             .version(6L)
             .cacheName("user-state-cache")
             .domains(Map.of(

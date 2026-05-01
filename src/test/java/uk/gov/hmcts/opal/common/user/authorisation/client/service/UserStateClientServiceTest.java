@@ -20,6 +20,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.util.Map;
@@ -81,7 +82,7 @@ class UserStateClientServiceTest {
         assertEquals(777L, userState.get().getUserId());
         assertEquals("HMCTS User", userState.get().getUsername());
         assertEquals("HMCTS User Name", userState.get().getName());
-        assertEquals("ACTIVE", userState.get().getStatus());
+        assertEquals(UserStatus.ACTIVE, userState.get().getStatus());
         assertEquals(4L, userState.get().getVersion());
         assertEquals("user-state-cache", userState.get().getCacheName());
     }
@@ -253,7 +254,7 @@ class UserStateClientServiceTest {
             .userId(777L)
             .username("HMCTS User")
             .name("HMCTS User Name")
-            .status("ACTIVE")
+            .status(UserStatus.ACTIVE)
             .version(4L)
             .cacheName("user-state-cache")
             .domains(Map.of())

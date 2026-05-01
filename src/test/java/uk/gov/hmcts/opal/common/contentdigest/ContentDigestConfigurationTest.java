@@ -4,7 +4,9 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.core.Ordered;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -34,6 +36,7 @@ class ContentDigestConfigurationTest {
             assertNotNull(context.getBean(ContentDigestValidatorInterceptor.class));
             assertNotNull(context.getBean(WebMvcConfigurer.class));
             assertNotNull(context.getBean(RequestCachingFilter.class));
+            assertNotNull(context.getBean(FilterRegistrationBean.class));
             assertNotNull(context.getBean(ContentDigestResponseFilter.class));
 
             ContentDigestProperties properties = context.getBean(ContentDigestProperties.class);
@@ -70,6 +73,18 @@ class ContentDigestConfigurationTest {
             assertThat(properties.getResponse().isEnforced()).isFalse();
             assertThat(properties.getResponse().getAlgorithm()).isEqualTo("SHA-512");
         }
+    }
+
+    @Test
+    void requestCachingFilterRegistration_usesLateFilterOrder() {
+        ContentDigestConfiguration configuration = new ContentDigestConfiguration();
+        RequestCachingFilter filter = new RequestCachingFilter();
+
+        FilterRegistrationBean<RequestCachingFilter> registration =
+            configuration.requestCachingFilterRegistration(filter);
+
+        assertThat(registration.getFilter()).isSameAs(filter);
+        assertThat(registration.getOrder()).isEqualTo(Ordered.LOWEST_PRECEDENCE - 5);
     }
 
     @Test

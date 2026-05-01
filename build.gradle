@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'uk.gov.hmcts'
-version = '0.3.5'
+version = '0.3.6'
 
 java {
   toolchain {
@@ -151,6 +151,7 @@ dependencies {
   implementation 'org.springframework:spring-context'
   implementation 'org.springframework:spring-aop'
   implementation 'org.springframework:spring-web'
+  implementation 'org.springframework:spring-webmvc'
   api 'jakarta.xml.bind:jakarta.xml.bind-api'
   implementation 'org.aspectj:aspectjweaver'
   implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.4'
@@ -192,6 +193,7 @@ dependencies {
 
   testImplementation "org.springframework.boot:spring-boot-starter-test:${springVersion}"
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   testImplementation 'javax.servlet:javax.servlet-api:4.0.1'
 }
 

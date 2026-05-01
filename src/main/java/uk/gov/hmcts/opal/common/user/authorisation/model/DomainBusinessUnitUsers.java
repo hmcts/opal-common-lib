@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -13,7 +12,6 @@ import java.util.List;
 public class DomainBusinessUnitUsers {
 
     @JsonProperty("business_unit_users")
-    @EqualsAndHashCode.Exclude
     List<BusinessUnitUser> businessUnitUsers;
 
     @JsonCreator

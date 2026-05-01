@@ -100,7 +100,7 @@ class OpalJwtAuthenticationTokenTest {
         );
 
         //Assert
-        assertTrue(exception.getMessage().contains("For input string"));
+        assertTrue(exception.getMessage().equals("For input string: \"not-a-number\""));
     }
 
     @Test

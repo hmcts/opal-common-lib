@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.common.spring.security;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
 
+    @Getter
     private final UserStateV2 userState;
     private final Set<String> permissionNames;
     private final Map<Short, Set<String>> businessUnitIdsToPermissionNames;

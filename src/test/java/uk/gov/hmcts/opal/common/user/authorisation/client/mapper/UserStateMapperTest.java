@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.util.List;
@@ -23,6 +24,53 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class UserStateMapperTest {
 
     private final UserStateMapper userStateMapper = Mappers.getMapper(UserStateMapper.class);
+
+    @Test
+    void toUserStateFromUserStateV2ShouldMapTopLevelFields() {
+        // Arrange
+        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
+
+        // Act
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2);
+
+        //Assert
+        assertAll("top-level fields from user state v2",
+            () -> assertEquals(777L, mappedUserState.getUserId()),
+            () -> assertEquals("v2.user", mappedUserState.getUserName())
+        );
+    }
+
+    @Test
+    void toUserStateFromUserStateV2ShouldFlattenBusinessUnitsAcrossDomains() {
+        // Arrange
+        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
+
+        // Act
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2);
+
+        //Assert
+        assertEquals(2, mappedUserState.getBusinessUnitUser().size());
+        assertEquals(
+            Set.of((short) 101, (short) 202),
+            mappedUserState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId).collect(toSet())
+        );
+    }
+
+    @Test
+    void toUserStateFromUserStateV2ShouldMapNullDomainsToEmptyBusinessUnitSet() {
+        // Arrange
+        UserStateV2 userStateV2 = UserStateV2.builder()
+            .userId(777L)
+            .username("v2.user")
+            .domains(null)
+            .build();
+
+        // Act
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2);
+
+        //Assert
+        assertEquals(0, mappedUserState.getBusinessUnitUser().size());
+    }
 
     @Test
     void toUserStateV2ShouldMapTopLevelFields() {
@@ -194,5 +242,43 @@ class UserStateMapperTest {
         //Assert
         assertEquals(9L, mappedPermission.getPermissionId());
         assertEquals("PERM_X", mappedPermission.getPermissionName());
+    }
+
+    private UserStateV2 createUserStateV2ModelWithMultipleDomains() {
+        Permission permA = Permission.builder()
+            .permissionId(1L)
+            .permissionName("PERM_A")
+            .build();
+        Permission permB = Permission.builder()
+            .permissionId(2L)
+            .permissionName("PERM_B")
+            .build();
+
+        BusinessUnitUser businessUnit101 = BusinessUnitUser.builder()
+            .businessUnitUserId("v2-bu-user-101")
+            .businessUnitId((short) 101)
+            .permissions(Set.of(permA))
+            .build();
+        BusinessUnitUser businessUnit202 = BusinessUnitUser.builder()
+            .businessUnitUserId("v2-bu-user-202")
+            .businessUnitId((short) 202)
+            .permissions(Set.of(permB))
+            .build();
+
+        DomainBusinessUnitUsers finesDomainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnit101))
+            .build();
+        DomainBusinessUnitUsers confiscationDomainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnit202))
+            .build();
+
+        return UserStateV2.builder()
+            .userId(777L)
+            .username("v2.user")
+            .domains(Map.of(
+                Domain.FINES, finesDomainBusinessUnitUsers,
+                Domain.CONFISCATION, confiscationDomainBusinessUnitUsers
+            ))
+            .build();
     }
 }

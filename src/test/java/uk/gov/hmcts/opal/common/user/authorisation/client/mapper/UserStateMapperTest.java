@@ -11,6 +11,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.util.List;
@@ -85,7 +86,7 @@ class UserStateMapperTest {
             () -> assertEquals(777L, mappedUserState.getUserId()),
             () -> assertEquals("hmcts.user", mappedUserState.getUsername()),
             () -> assertEquals("HMCTS User", mappedUserState.getName()),
-            () -> assertEquals("ACTIVE", mappedUserState.getStatus()),
+            () -> assertEquals(UserStatus.ACTIVE, mappedUserState.getStatus()),
             () -> assertEquals(5L, mappedUserState.getVersion()),
             () -> assertEquals("user-state-cache", mappedUserState.getCacheName())
         );
@@ -171,7 +172,8 @@ class UserStateMapperTest {
             () -> assertEquals(2, mappedDomainUsers.getBusinessUnitUsers().size()),
             () -> assertEquals(
                 Set.of((short) 101, (short) 202),
-                mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUser::getBusinessUnitId).collect(toSet())
+                mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUser::getBusinessUnitId)
+                    .collect(toSet())
             ),
             () -> assertEquals("bu-user-101", businessUnit101.getBusinessUnitUserId()),
             () -> assertEquals(Set.of(Permission.builder().permissionId(1L).permissionName("PERM_A").build()),

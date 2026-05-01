@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserStateMapperTest {
@@ -23,7 +24,70 @@ class UserStateMapperTest {
     private final UserStateMapper userStateMapper = Mappers.getMapper(UserStateMapper.class);
 
     @Test
-    void toUserStateV2ShouldMapNestedDomainAndBusinessUnitData() {
+    void toUserStateV2ShouldMapTopLevelFields() {
+        // Arrange
+        UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
+
+        // Act
+        UserStateV2 mappedUserState = userStateMapper.toUserStateV2(userStateV2Dto);
+
+        //Assert
+        assertAll("top-level user state fields",
+            () -> assertEquals(777L, mappedUserState.getUserId()),
+            () -> assertEquals("hmcts.user", mappedUserState.getUsername()),
+            () -> assertEquals("HMCTS User", mappedUserState.getName()),
+            () -> assertEquals("ACTIVE", mappedUserState.getStatus()),
+            () -> assertEquals(5L, mappedUserState.getVersion()),
+            () -> assertEquals("user-state-cache", mappedUserState.getCacheName())
+        );
+    }
+
+    @Test
+    void toUserStateV2ShouldMapFinesDomainBusinessUnitData() {
+        // Arrange
+        UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
+
+        // Act
+        UserStateV2 mappedUserState = userStateMapper.toUserStateV2(userStateV2Dto);
+
+        //Assert
+        DomainBusinessUnitUsers finesDomainUsers = mappedUserState.getDomainBusinessUnitUsers(Domain.FINES);
+        assertEquals(1, finesDomainUsers.getBusinessUnitUsers().size());
+        BusinessUnitUser finesBusinessUnitUser = finesDomainUsers.getBusinessUnitUsers().get(0);
+        assertEquals("bu-user-101", finesBusinessUnitUser.getBusinessUnitUserId());
+        assertEquals((short) 101, finesBusinessUnitUser.getBusinessUnitId());
+        assertEquals(
+            Set.of(
+                Permission.builder().permissionId(1L).permissionName("PERM_A").build(),
+                Permission.builder().permissionId(2L).permissionName("PERM_B").build()
+            ),
+            finesBusinessUnitUser.getPermissions()
+        );
+    }
+
+    @Test
+    void toUserStateV2ShouldMapConfiscationDomainBusinessUnitData() {
+        // Arrange
+        UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
+
+        // Act
+        UserStateV2 mappedUserState = userStateMapper.toUserStateV2(userStateV2Dto);
+
+        //Assert
+        DomainBusinessUnitUsers confiscationDomainUsers = mappedUserState.getDomainBusinessUnitUsers(
+            Domain.CONFISCATION
+        );
+        assertEquals(1, confiscationDomainUsers.getBusinessUnitUsers().size());
+        BusinessUnitUser confiscationBusinessUnitUser = confiscationDomainUsers.getBusinessUnitUsers().get(0);
+        assertEquals("bu-user-303", confiscationBusinessUnitUser.getBusinessUnitUserId());
+        assertEquals((short) 303, confiscationBusinessUnitUser.getBusinessUnitId());
+        assertEquals(
+            Set.of(Permission.builder().permissionId(3L).permissionName("PERM_C").build()),
+            confiscationBusinessUnitUser.getPermissions()
+        );
+    }
+
+    private UserStateV2Dto createUserStateV2Dto() {
         // Arrange
         DomainDto finesDomain = DomainDto.builder()
             .businessUnitUsers(List.of(
@@ -48,7 +112,7 @@ class UserStateMapperTest {
             ))
             .build();
 
-        UserStateV2Dto userStateV2Dto = UserStateV2Dto.builder()
+        return UserStateV2Dto.builder()
             .userId(777L)
             .username("hmcts.user")
             .name("HMCTS User")
@@ -60,42 +124,6 @@ class UserStateMapperTest {
                 Domain.CONFISCATION, confiscationDomain
             ))
             .build();
-
-        // Act
-        UserStateV2 mappedUserState = userStateMapper.toUserStateV2(userStateV2Dto);
-
-        //Assert
-        assertEquals(777L, mappedUserState.getUserId());
-        assertEquals("hmcts.user", mappedUserState.getUsername());
-        assertEquals("HMCTS User", mappedUserState.getName());
-        assertEquals("ACTIVE", mappedUserState.getStatus());
-        assertEquals(5L, mappedUserState.getVersion());
-        assertEquals("user-state-cache", mappedUserState.getCacheName());
-
-        DomainBusinessUnitUsers finesDomainUsers = mappedUserState.getDomainBusinessUnitUsers(Domain.FINES);
-        assertEquals(1, finesDomainUsers.getBusinessUnitUsers().size());
-        BusinessUnitUser finesBusinessUnitUser = finesDomainUsers.getBusinessUnitUsers().get(0);
-        assertEquals("bu-user-101", finesBusinessUnitUser.getBusinessUnitUserId());
-        assertEquals((short) 101, finesBusinessUnitUser.getBusinessUnitId());
-        assertEquals(
-            Set.of(
-                Permission.builder().permissionId(1L).permissionName("PERM_A").build(),
-                Permission.builder().permissionId(2L).permissionName("PERM_B").build()
-            ),
-            finesBusinessUnitUser.getPermissions()
-        );
-
-        DomainBusinessUnitUsers confiscationDomainUsers = mappedUserState.getDomainBusinessUnitUsers(
-            Domain.CONFISCATION
-        );
-        assertEquals(1, confiscationDomainUsers.getBusinessUnitUsers().size());
-        BusinessUnitUser confiscationBusinessUnitUser = confiscationDomainUsers.getBusinessUnitUsers().get(0);
-        assertEquals("bu-user-303", confiscationBusinessUnitUser.getBusinessUnitUserId());
-        assertEquals((short) 303, confiscationBusinessUnitUser.getBusinessUnitId());
-        assertEquals(
-            Set.of(Permission.builder().permissionId(3L).permissionName("PERM_C").build()),
-            confiscationBusinessUnitUser.getPermissions()
-        );
     }
 
     @Test

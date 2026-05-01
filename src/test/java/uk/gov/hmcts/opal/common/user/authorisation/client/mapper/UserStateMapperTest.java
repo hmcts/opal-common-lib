@@ -136,45 +136,6 @@ class UserStateMapperTest {
         );
     }
 
-    private UserStateV2Dto createUserStateV2Dto() {
-        // Arrange
-        DomainDto finesDomain = DomainDto.builder()
-            .businessUnitUsers(List.of(
-                new BusinessUnitUserDto(
-                    "bu-user-101",
-                    (short) 101,
-                    List.of(
-                        new PermissionDto(1L, "PERM_A"),
-                        new PermissionDto(2L, "PERM_B")
-                    )
-                )
-            ))
-            .build();
-
-        DomainDto confiscationDomain = DomainDto.builder()
-            .businessUnitUsers(List.of(
-                new BusinessUnitUserDto(
-                    "bu-user-303",
-                    (short) 303,
-                    List.of(new PermissionDto(3L, "PERM_C"))
-                )
-            ))
-            .build();
-
-        return UserStateV2Dto.builder()
-            .userId(777L)
-            .username("hmcts.user")
-            .name("HMCTS User")
-            .status("ACTIVE")
-            .version(5L)
-            .cacheName("user-state-cache")
-            .domains(Map.of(
-                Domain.FINES, finesDomain,
-                Domain.CONFISCATION, confiscationDomain
-            ))
-            .build();
-    }
-
     @Test
     void toDomainBusinessUnitUsersShouldMapBusinessUnitsAndPermissions() {
         // Arrange
@@ -278,6 +239,45 @@ class UserStateMapperTest {
             .domains(Map.of(
                 Domain.FINES, finesDomainBusinessUnitUsers,
                 Domain.CONFISCATION, confiscationDomainBusinessUnitUsers
+            ))
+            .build();
+    }
+
+    private UserStateV2Dto createUserStateV2Dto() {
+        // Arrange
+        DomainDto finesDomain = DomainDto.builder()
+            .businessUnitUsers(List.of(
+                new BusinessUnitUserDto(
+                    "bu-user-101",
+                    (short) 101,
+                    List.of(
+                        new PermissionDto(1L, "PERM_A"),
+                        new PermissionDto(2L, "PERM_B")
+                    )
+                )
+            ))
+            .build();
+
+        DomainDto confiscationDomain = DomainDto.builder()
+            .businessUnitUsers(List.of(
+                new BusinessUnitUserDto(
+                    "bu-user-303",
+                    (short) 303,
+                    List.of(new PermissionDto(3L, "PERM_C"))
+                )
+            ))
+            .build();
+
+        return UserStateV2Dto.builder()
+            .userId(777L)
+            .username("hmcts.user")
+            .name("HMCTS User")
+            .status("ACTIVE")
+            .version(5L)
+            .cacheName("user-state-cache")
+            .domains(Map.of(
+                Domain.FINES, finesDomain,
+                Domain.CONFISCATION, confiscationDomain
             ))
             .build();
     }

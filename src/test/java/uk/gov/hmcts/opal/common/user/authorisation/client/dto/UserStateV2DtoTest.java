@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.common.user.authorisation.client.dto;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 
 import java.math.BigInteger;
 

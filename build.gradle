@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'uk.gov.hmcts'
-version = '0.3.5'
+version = '0.3.6'
 
 java {
   toolchain {
@@ -160,6 +160,7 @@ dependencies {
   implementation 'org.springframework.security:spring-security-oauth2-resource-server'
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+  implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.1', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }

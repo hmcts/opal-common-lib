@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.common.dto.Versioned;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 
 import java.math.BigInteger;
 import java.util.Map;

@@ -14,8 +14,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
@@ -39,7 +37,6 @@ import static org.mockito.Mockito.when;
 class FeatureToggleAspectTest {
 
     private static final String NEW_FEATURE = "NEW_FEATURE";
-    private static final String NEW_FEATURE_PROPERTY = "feature.flags.new-feature.enabled";
     private static final String EXCEPTION = "Feature NEW_FEATURE is not enabled for method myFeatureToggledMethod";
 
     @Autowired
@@ -50,9 +47,6 @@ class FeatureToggleAspectTest {
 
     @MockitoBean
     LaunchDarklyProperties properties;
-
-    @MockitoBean
-    Environment environment;
 
     @MockitoBean
     LDClient ldClient;
@@ -69,7 +63,6 @@ class FeatureToggleAspectTest {
     @BeforeEach
     void setUp() {
         when(featureToggle.feature()).thenReturn(NEW_FEATURE);
-        when(featureToggle.defaultProperty()).thenReturn("");
         when(proceedingJoinPoint.getSignature()).thenReturn(methodSignature);
         when(methodSignature.getName()).thenReturn("myFeatureToggledMethod");
         when(properties.isEnabled()).thenReturn(true);
@@ -115,60 +108,6 @@ class FeatureToggleAspectTest {
         featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
 
         verify(proceedingJoinPoint, never()).proceed();
-        verify(ldClient, never()).boolVariation(org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldProceedToMethodInvocationWhenLaunchDarklyIsDisabledAndDefaultPropertyMatchesExpectedState(Boolean state) {
-        when(featureToggle.value()).thenReturn(state);
-        when(featureToggle.defaultValue()).thenReturn(!state);
-        when(featureToggle.defaultProperty()).thenReturn(NEW_FEATURE_PROPERTY);
-        when(environment.getProperty(NEW_FEATURE_PROPERTY, Boolean.class, !state)).thenReturn(state);
-        when(properties.isEnabled()).thenReturn(false);
-
-        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
-
-        verify(proceedingJoinPoint).proceed();
-        verify(ldClient, never()).boolVariation(org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldNotProceedToMethodInvocationWhenLaunchDarklyIsDisabledAndDefaultPropertyDoesNotMatchExpectedState(
-        Boolean state
-    ) {
-        when(featureToggle.value()).thenReturn(state);
-        when(featureToggle.defaultValue()).thenReturn(state);
-        when(featureToggle.defaultProperty()).thenReturn(NEW_FEATURE_PROPERTY);
-        when(environment.getProperty(NEW_FEATURE_PROPERTY, Boolean.class, state)).thenReturn(!state);
-        when(properties.isEnabled()).thenReturn(false);
-
-        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
-
-        verify(proceedingJoinPoint, never()).proceed();
-        verify(ldClient, never()).boolVariation(org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
-    }
-
-    @SneakyThrows
-    @ParameterizedTest
-    @ValueSource(booleans = {true, false})
-    void shouldFallBackToDefaultValueWhenDefaultPropertyIsMissing(Boolean state) {
-        FeatureToggleAspect aspect = new FeatureToggleAspect(featureToggleApi, properties, new MockEnvironment());
-
-        when(featureToggle.value()).thenReturn(state);
-        when(featureToggle.defaultValue()).thenReturn(state);
-        when(featureToggle.defaultProperty()).thenReturn(NEW_FEATURE_PROPERTY);
-        when(properties.isEnabled()).thenReturn(false);
-
-        aspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
-
-        verify(proceedingJoinPoint).proceed();
         verify(ldClient, never()).boolVariation(org.mockito.ArgumentMatchers.anyString(),
             org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
     }
@@ -221,7 +160,7 @@ class FeatureToggleAspectTest {
 
         MultiArgumentFeatureService target = new MultiArgumentFeatureService();
         AspectJProxyFactory proxyFactory = new AspectJProxyFactory(target);
-        proxyFactory.addAspect(new FeatureToggleAspect(featureToggleApi, properties, new MockEnvironment()));
+        proxyFactory.addAspect(new FeatureToggleAspect(featureToggleApi, properties));
         MultiArgumentFeatureService proxy = proxyFactory.getProxy();
 
         assertThrows(FeatureDisabledException.class, () -> proxy.multiArgumentMethod("alpha", 2));

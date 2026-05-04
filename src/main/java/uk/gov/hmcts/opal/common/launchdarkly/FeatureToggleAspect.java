@@ -5,9 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 
@@ -19,7 +17,6 @@ public class FeatureToggleAspect {
 
     private final FeatureToggleApi featureToggleApi;
     private final LaunchDarklyProperties properties;
-    private final Environment environment;
 
     @Around("execution(* *(..)) && @annotation(featureToggle)")
     public Object checkFeatureEnabled(ProceedingJoinPoint joinPoint, FeatureToggle featureToggle) throws Throwable {
@@ -45,26 +42,11 @@ public class FeatureToggleAspect {
 
     private boolean isFeatureEnabled(FeatureToggle featureToggle) {
         if (!properties.isEnabled()) {
-            return resolveFallbackValue(featureToggle);
+            log.debug("Launch darkly is disabled: using default value fallback {} for feature {}",
+                featureToggle.defaultValue(), featureToggle.feature());
+            return featureToggle.defaultValue();
         }
 
         return featureToggleApi.isFeatureEnabled(featureToggle.feature(), featureToggle.defaultValue());
-    }
-
-    private boolean resolveFallbackValue(FeatureToggle featureToggle) {
-        if (StringUtils.hasText(featureToggle.defaultProperty())) {
-            boolean propertyValue = environment.getProperty(
-                featureToggle.defaultProperty(),
-                Boolean.class,
-                featureToggle.defaultValue()
-            );
-            log.debug("Launch darkly is disabled: using property fallback {}={} for feature {}",
-                featureToggle.defaultProperty(), propertyValue, featureToggle.feature());
-            return propertyValue;
-        }
-
-        log.debug("Launch darkly is disabled: using default value fallback {} for feature {}",
-            featureToggle.defaultValue(), featureToggle.feature());
-        return featureToggle.defaultValue();
     }
 }

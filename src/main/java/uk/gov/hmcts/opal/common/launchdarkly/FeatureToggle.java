@@ -45,6 +45,13 @@ public @interface FeatureToggle {
     boolean defaultValue() default true;
 
     /**
+     * Indicates the Spring property to use as the local fallback when LaunchDarkly is disabled.
+     *
+     * @return String property name
+     */
+    String defaultProperty() default "";
+
+    /**
      * Indicates the default Exception to throw when the feature is not enabled.
      *
      * @return boolean value

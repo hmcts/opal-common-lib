@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,11 +35,12 @@ class FeatureToggleApiTest {
     @Captor
     private ArgumentCaptor<LDContext> ldContextArgumentCaptor;
 
+    private LaunchDarklyProperties launchDarklyProperties;
     private FeatureToggleApi featureToggleApi;
 
     @BeforeEach
     void setUp() {
-        LaunchDarklyProperties launchDarklyProperties = new LaunchDarklyProperties();
+        launchDarklyProperties = new LaunchDarklyProperties();
         launchDarklyProperties.setEnv(FAKE_ENVIRONMENT);
         launchDarklyProperties.setSdkKey(FAKE_KEY);
         launchDarklyProperties.setEnabled(true);
@@ -65,6 +67,15 @@ class FeatureToggleApiTest {
 
         assertThat(featureToggleApi.isFeatureEnabled(FAKE_FEATURE)).isEqualTo(toggleState);
         verifyBoolVariationCalled(FAKE_FEATURE, List.of("timestamp", "environment"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void shouldUseConfiguredDefaultStateWhenLaunchDarklyIsDisabled(Boolean defaultState) {
+        launchDarklyProperties.setEnabled(false);
+        launchDarklyProperties.setDefaultFlagValues(Map.of(FAKE_FEATURE, defaultState));
+
+        assertThat(featureToggleApi.isFeatureEnabled(FAKE_FEATURE)).isEqualTo(defaultState);
     }
 
     @ParameterizedTest

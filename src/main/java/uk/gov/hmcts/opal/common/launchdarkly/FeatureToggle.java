@@ -39,10 +39,23 @@ public @interface FeatureToggle {
 
     /**
      * Indicates the default boolean value of feature toggle in case of failure to fetch the value from launchdarkly.
+     * This value is used when defaultValueProperty is not set or cannot be resolved.
      *
      * @return boolean value
      */
     boolean defaultValue() default true;
+
+    /**
+     * Indicates the property key or placeholder to resolve the default boolean value from.
+     * For example:
+     * <pre>
+     * &#064;FeatureToggle(feature=&quot;release-1b&quot;,
+     *     defaultValueProperty=&quot;launchdarkly.default-flag-values.release-1b&quot;)
+     * </pre>
+     *
+     * @return String property key or placeholder
+     */
+    String defaultValueProperty() default "";
 
     /**
      * Indicates the default Exception to throw when the feature is not enabled.

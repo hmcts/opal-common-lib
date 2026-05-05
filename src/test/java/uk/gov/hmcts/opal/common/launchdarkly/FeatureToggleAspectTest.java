@@ -14,6 +14,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
@@ -33,6 +35,10 @@ import static org.mockito.Mockito.when;
     FeatureToggleAspect.class,
     FeatureToggleApi.class
 })
+@TestPropertySource(properties = {
+    "test.feature-default=true",
+    "test.placeholder-default=false"
+})
 @Isolated
 class FeatureToggleAspectTest {
 
@@ -44,6 +50,9 @@ class FeatureToggleAspectTest {
 
     @Autowired
     FeatureToggleApi featureToggleApi;
+
+    @Autowired
+    Environment environment;
 
     @MockitoBean
     LaunchDarklyProperties properties;
@@ -112,6 +121,36 @@ class FeatureToggleAspectTest {
             org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
     }
 
+    @SneakyThrows
+    @Test
+    void shouldUseConfiguredFeatureDefaultPropertyWhenLaunchDarklyIsDisabled() {
+        when(featureToggle.value()).thenReturn(true);
+        when(featureToggle.defaultValue()).thenReturn(false);
+        when(featureToggle.defaultValueProperty()).thenReturn("test.feature-default");
+        when(properties.isEnabled()).thenReturn(false);
+
+        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
+
+        verify(proceedingJoinPoint).proceed();
+        verify(ldClient, never()).boolVariation(org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
+    }
+
+    @SneakyThrows
+    @Test
+    void shouldResolveDefaultValuePlaceholderWhenLaunchDarklyIsDisabled() {
+        when(featureToggle.value()).thenReturn(false);
+        when(featureToggle.defaultValue()).thenReturn(true);
+        when(featureToggle.defaultValueProperty()).thenReturn("${test.placeholder-default}");
+        when(properties.isEnabled()).thenReturn(false);
+
+        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
+
+        verify(proceedingJoinPoint).proceed();
+        verify(ldClient, never()).boolVariation(org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     void shouldThrowExceptionWhenFeatureToggleIsDisabled(Boolean state) {
@@ -160,7 +199,7 @@ class FeatureToggleAspectTest {
 
         MultiArgumentFeatureService target = new MultiArgumentFeatureService();
         AspectJProxyFactory proxyFactory = new AspectJProxyFactory(target);
-        proxyFactory.addAspect(new FeatureToggleAspect(featureToggleApi, properties));
+        proxyFactory.addAspect(new FeatureToggleAspect(featureToggleApi, properties, environment));
         MultiArgumentFeatureService proxy = proxyFactory.getProxy();
 
         assertThrows(FeatureDisabledException.class, () -> proxy.multiArgumentMethod("alpha", 2));

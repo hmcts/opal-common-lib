@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.common.user.authorisation.client.dto;
+package uk.gov.hmcts.opal.common.user.authorisation.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;

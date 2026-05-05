@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -132,15 +133,23 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
         }
 
         public MessageDigest getMessageDigest() {
-            try {
-                return MessageDigest.getInstance(rfcToJca.get(getAlgorithm()));
-            } catch (Exception exception) {
-                throw new InvalidContentDigestException("Digest validation failed",
-                                                        "Unsupported digest algorithm: " + getAlgorithm()
-                                                            + ". Supported algorithms ("
-                                                            + String.join(",", supportedAlgorithms) + ").",
-                                                        supportedAlgorithms);
+            String jcaAlgorithm = rfcToJca.get(getAlgorithm());
+            if (jcaAlgorithm == null) {
+                throw createUnsupportedDigestAlgorithmException();
             }
+            try {
+                return MessageDigest.getInstance(jcaAlgorithm);
+            } catch (NoSuchAlgorithmException e) {
+                throw createUnsupportedDigestAlgorithmException();
+            }
+        }
+
+        private InvalidContentDigestException createUnsupportedDigestAlgorithmException() {
+            return new InvalidContentDigestException("Digest validation failed",
+                                                     "Unsupported digest algorithm: " + getAlgorithm()
+                                                         + ". Supported algorithms ("
+                                                         + String.join(",", supportedAlgorithms) + ").",
+                                                     supportedAlgorithms);
         }
 
         byte[] decodeSfBinary() {
@@ -151,7 +160,7 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
                     base64Value = base64Value + "===".substring(mod - 1);
                 }
                 return Base64.getDecoder().decode(base64Value);
-            } catch (Exception e) {
+            } catch (IllegalArgumentException e) {
                 throw new InvalidContentDigestException("Digest validation failed",
                                                         "Bad base64 encoding for algorithm: " + getAlgorithm());
             }

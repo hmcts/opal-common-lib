@@ -15,9 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ContentDigestExceptionHandlerTest {
 
+    private final OpalGlobalExceptionHandler handler = new OpalGlobalExceptionHandler();
+
     @Test
     void handleContentDigestException_returnsProblemDetail() {
-        OpalGlobalExceptionHandler handler = new OpalGlobalExceptionHandler();
         InvalidContentDigestException exception = new InvalidContentDigestException(
             "Digest validation failed",
             "Unsupported digest algorithm: sha-256. Supported algorithms (sha-512).",
@@ -38,7 +39,6 @@ class ContentDigestExceptionHandlerTest {
 
     @Test
     void handleContentDigestException_withoutSupportedAlgorithms_returnsProblemDetail() {
-        OpalGlobalExceptionHandler handler = new OpalGlobalExceptionHandler();
         InvalidContentDigestException exception = new InvalidContentDigestException(
             "Digest validation failed",
             "Body hash did not match for algorithm: sha-512");

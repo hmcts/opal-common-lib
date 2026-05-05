@@ -28,10 +28,7 @@ class ContentDigestConfigurationTest {
 
     @Test
     void configurationCreatesReusableBeansWithDefaultProperties() {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            context.register(ContentDigestConfiguration.class);
-            context.refresh();
-
+        try (AnnotationConfigApplicationContext context = createContext()) {
             assertNotNull(context.getBean(ContentDigestProperties.class));
             assertNotNull(context.getBean(ContentDigestValidatorInterceptor.class));
             assertNotNull(context.getBean(WebMvcConfigurer.class));
@@ -50,16 +47,12 @@ class ContentDigestConfigurationTest {
 
     @Test
     void configurationCreatesReusableBeans() {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            TestPropertyValues.of("opal.common.content-digest.request.enforce=true",
-                "opal.common.content-digest.request.auto-generate=false",
-                "opal.common.content-digest.supported-algorithms.sha-512=SHA-512",
-                "opal.common.content-digest.response.enforce=false",
-                "opal.common.content-digest.response.algorithm=SHA-512")
-                .applyTo(context);
-            context.register(ContentDigestConfiguration.class);
-            context.refresh();
-
+        try (AnnotationConfigApplicationContext context = createContext(
+            "opal.common.content-digest.request.enforce=true",
+            "opal.common.content-digest.request.auto-generate=false",
+            "opal.common.content-digest.supported-algorithms.sha-512=SHA-512",
+            "opal.common.content-digest.response.enforce=false",
+            "opal.common.content-digest.response.algorithm=SHA-512")) {
             assertNotNull(context.getBean(ContentDigestProperties.class));
             assertNotNull(context.getBean(ContentDigestValidatorInterceptor.class));
             assertNotNull(context.getBean(WebMvcConfigurer.class));
@@ -110,15 +103,11 @@ class ContentDigestConfigurationTest {
 
     @Test
     void configurationProvidesCachingFilterRequiredByInterceptor() throws Exception {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
-            TestPropertyValues.of("opal.common.content-digest.request.auto-generate=false",
-                "opal.common.content-digest.supported-algorithms.sha-512=SHA-512",
-                "opal.common.content-digest.response.enforce=true",
-                "opal.common.content-digest.response.algorithm=SHA-512")
-                .applyTo(context);
-            context.register(ContentDigestConfiguration.class);
-            context.refresh();
-
+        try (AnnotationConfigApplicationContext context = createContext(
+            "opal.common.content-digest.request.auto-generate=false",
+            "opal.common.content-digest.supported-algorithms.sha-512=SHA-512",
+            "opal.common.content-digest.response.enforce=true",
+            "opal.common.content-digest.response.algorithm=SHA-512")) {
             String body = "request-body";
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.setContent(body.getBytes());
@@ -137,6 +126,14 @@ class ContentDigestConfigurationTest {
 
             context.getBean(RequestCachingFilter.class).doFilter(request, response, filterChain);
         }
+    }
+
+    private static AnnotationConfigApplicationContext createContext(String... properties) {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        TestPropertyValues.of(properties).applyTo(context);
+        context.register(ContentDigestConfiguration.class);
+        context.refresh();
+        return context;
     }
 
     private static String contentDigestHeaderFor(String body) throws Exception {

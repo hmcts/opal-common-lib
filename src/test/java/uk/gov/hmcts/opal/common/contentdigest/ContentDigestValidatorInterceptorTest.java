@@ -429,9 +429,9 @@ class ContentDigestValidatorInterceptorTest {
         @DisplayName("public MessageDigest getMessageDigest()")
         class GetMessageDigest {
 
-            @DisplayName("Should throw exception when algorithm is not supported by JCA")
+            @DisplayName("Should throw exception when algorithm has no JCA mapping")
             @Test
-            void shouldThrowExceptionWhenAlgorithmNotSupportedByJca() {
+            void shouldThrowExceptionWhenAlgorithmHasNoJcaMapping() {
                 ContentDigest contentDigest = createContentDigest("sha-256", VALID_CONTENT_DIGEST_BASE64);
 
                 assertThatThrownBy(contentDigest::getMessageDigest)
@@ -439,6 +439,22 @@ class ContentDigestValidatorInterceptorTest {
                     .hasFieldOrPropertyWithValue("title", "Digest validation failed")
                     .hasFieldOrPropertyWithValue("detail",
                         "Unsupported digest algorithm: sha-256. Supported algorithms (sha-512).")
+                    .hasFieldOrPropertyWithValue("supportedAlgorithms", List.of("sha-512"));
+            }
+
+            @DisplayName("Should throw exception when mapped JCA algorithm is not supported")
+            @Test
+            void shouldThrowExceptionWhenMappedJcaAlgorithmIsNotSupported() {
+                ContentDigestValidatorInterceptor interceptor = new ContentDigestValidatorInterceptor(
+                    getContentDigestProperties(true,
+                                               Map.of("sha-512", "not-a-real-jca-algorithm")));
+                ContentDigest contentDigest = interceptor.new ContentDigest(VALID_CONTENT_DIGEST_HEADER);
+
+                assertThatThrownBy(contentDigest::getMessageDigest)
+                    .isInstanceOf(InvalidContentDigestException.class)
+                    .hasFieldOrPropertyWithValue("title", "Digest validation failed")
+                    .hasFieldOrPropertyWithValue("detail",
+                        "Unsupported digest algorithm: sha-512. Supported algorithms (sha-512).")
                     .hasFieldOrPropertyWithValue("supportedAlgorithms", List.of("sha-512"));
             }
 

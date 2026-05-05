@@ -56,7 +56,7 @@ public class FeatureToggleAspect {
     private boolean resolveDefaultValue(FeatureToggle featureToggle) {
         String defaultValueProperty = featureToggle.defaultValueProperty();
         if (defaultValueProperty == null || defaultValueProperty.isBlank()) {
-            return featureToggle.defaultValue();
+            return false;
         }
 
         String resolvedValue = environment.resolvePlaceholders(defaultValueProperty);
@@ -64,6 +64,6 @@ public class FeatureToggleAspect {
             return Boolean.parseBoolean(resolvedValue);
         }
 
-        return environment.getProperty(defaultValueProperty, Boolean.class, featureToggle.defaultValue());
+        return Boolean.parseBoolean(environment.getProperty(defaultValueProperty, "false"));
     }
 }

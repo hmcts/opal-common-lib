@@ -37,7 +37,9 @@ import static org.mockito.Mockito.when;
 })
 @TestPropertySource(properties = {
     "test.feature-default=true",
-    "test.placeholder-default=false"
+    "test.placeholder-default=false",
+    "test.true-default=true",
+    "test.false-default=false"
 })
 @Isolated
 class FeatureToggleAspectTest {
@@ -92,9 +94,11 @@ class FeatureToggleAspectTest {
     @SneakyThrows
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void shouldProceedToMethodInvocationWhenLaunchDarklyIsDisabledAndDefaultValueMatchesExpectedState(Boolean state) {
+    void shouldProceedToMethodInvocationWhenLaunchDarklyIsDisabledAndPropertyDefaultMatchesExpectedState(
+        Boolean state
+    ) {
         when(featureToggle.value()).thenReturn(state);
-        when(featureToggle.defaultValue()).thenReturn(state);
+        when(featureToggle.defaultValueProperty()).thenReturn("test." + state + "-default");
         when(properties.isEnabled()).thenReturn(false);
 
         featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
@@ -107,11 +111,11 @@ class FeatureToggleAspectTest {
     @SneakyThrows
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void shouldNotProceedToMethodInvocationWhenLaunchDarklyIsDisabledAndDefaultValueDoesNotMatchExpectedState(
+    void shouldNotProceedToMethodInvocationWhenLaunchDarklyIsDisabledAndPropertyDefaultDoesNotMatchExpectedState(
         Boolean state
     ) {
         when(featureToggle.value()).thenReturn(state);
-        when(featureToggle.defaultValue()).thenReturn(!state);
+        when(featureToggle.defaultValueProperty()).thenReturn("test." + !state + "-default");
         when(properties.isEnabled()).thenReturn(false);
 
         featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
@@ -125,7 +129,6 @@ class FeatureToggleAspectTest {
     @Test
     void shouldUseConfiguredFeatureDefaultPropertyWhenLaunchDarklyIsDisabled() {
         when(featureToggle.value()).thenReturn(true);
-        when(featureToggle.defaultValue()).thenReturn(false);
         when(featureToggle.defaultValueProperty()).thenReturn("test.feature-default");
         when(properties.isEnabled()).thenReturn(false);
 
@@ -140,8 +143,20 @@ class FeatureToggleAspectTest {
     @Test
     void shouldResolveDefaultValuePlaceholderWhenLaunchDarklyIsDisabled() {
         when(featureToggle.value()).thenReturn(false);
-        when(featureToggle.defaultValue()).thenReturn(true);
         when(featureToggle.defaultValueProperty()).thenReturn("${test.placeholder-default}");
+        when(properties.isEnabled()).thenReturn(false);
+
+        featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
+
+        verify(proceedingJoinPoint).proceed();
+        verify(ldClient, never()).boolVariation(org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.anyBoolean());
+    }
+
+    @SneakyThrows
+    @Test
+    void shouldDefaultToDisabledWhenLaunchDarklyIsDisabledAndNoDefaultPropertyIsSet() {
+        when(featureToggle.value()).thenReturn(false);
         when(properties.isEnabled()).thenReturn(false);
 
         featureToggleAspect.checkFeatureEnabled(proceedingJoinPoint, featureToggle);
@@ -218,14 +233,14 @@ class FeatureToggleAspectTest {
     static class AnnotatedFeatureService {
 
         @SuppressWarnings("unused")
-        @FeatureToggle(feature = NEW_FEATURE, defaultValue = false)
+        @FeatureToggle(feature = NEW_FEATURE)
         public void defaultExceptionMethod() {
         }
     }
 
     static class MultiArgumentFeatureService {
 
-        @FeatureToggle(feature = NEW_FEATURE, defaultValue = false)
+        @FeatureToggle(feature = NEW_FEATURE)
         public void multiArgumentMethod(String value, Integer version) {
             if (value == null || version == null) {
                 throw new IllegalArgumentException("Test arguments must be non-null");

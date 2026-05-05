@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * The <code>FeatureToggle</code> annotation is used to define the conditional execution of the business method.
  * The condition is defined by the launchdarkly feature toggle.
  * For example:
- * To execute a business method only when feature toggle is enabled (using the default value=true).
+ * To execute a business method only when feature toggle is enabled.
  * <pre>
  * &#064;FeatureToggle(feature=&quot;my-new-feature&quot;)
  * public void businessMethod(Object param);
@@ -38,11 +38,17 @@ public @interface FeatureToggle {
     boolean value() default true;
 
     /**
-     * Indicates the default boolean value of feature toggle in case of failure to fetch the value from launchdarkly.
+     * Indicates the property key or placeholder to resolve the default boolean value from.
+     * If the property is not set, the feature defaults to disabled.
+     * For example:
+     * <pre>
+     * &#064;FeatureToggle(feature=&quot;release-1b&quot;,
+     *     defaultValueProperty=&quot;launchdarkly.default-flag-values.release-1b&quot;)
+     * </pre>
      *
-     * @return boolean value
+     * @return String property key or placeholder
      */
-    boolean defaultValue() default true;
+    String defaultValueProperty() default "";
 
     /**
      * Indicates the default Exception to throw when the feature is not enabled.

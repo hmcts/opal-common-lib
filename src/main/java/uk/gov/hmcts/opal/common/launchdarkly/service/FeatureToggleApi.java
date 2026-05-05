@@ -26,18 +26,24 @@ public class FeatureToggleApi {
     }
 
     public boolean isFeatureEnabled(String feature) {
-        return internalClient.boolVariation(feature, createLdContext().build(), false);
+        return isFeatureEnabled(feature, properties.getDefaultFlagValue(feature, false));
     }
 
     public boolean isFeatureEnabled(String feature, boolean defaultValue) {
+        if (!properties.isEnabled()) {
+            return defaultValue;
+        }
         return internalClient.boolVariation(feature, createLdContext().build(), defaultValue);
     }
 
     public boolean isFeatureEnabled(String feature, LDContext context) {
-        return internalClient.boolVariation(feature, context, false);
+        return isFeatureEnabled(feature, context, properties.getDefaultFlagValue(feature, false));
     }
 
     public boolean isFeatureEnabled(String feature, LDContext context, boolean defaultValue) {
+        if (!properties.isEnabled()) {
+            return defaultValue;
+        }
         return internalClient.boolVariation(feature, context, defaultValue);
     }
 

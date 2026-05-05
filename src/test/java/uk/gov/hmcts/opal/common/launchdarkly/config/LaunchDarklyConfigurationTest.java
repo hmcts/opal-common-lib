@@ -23,6 +23,7 @@ class LaunchDarklyConfigurationTest {
         String[] file = new String[0];
         properties.setSdkKey(key);
         properties.setOfflineMode(offline);
+        properties.setEnabled(true);
         properties.setFile(file);
 
         LDClient client = configuration.ldClient(properties);
@@ -41,6 +42,7 @@ class LaunchDarklyConfigurationTest {
         };
         properties.setSdkKey(key);
         properties.setOfflineMode(offline);
+        properties.setEnabled(true);
         properties.setFile(file);
         LDClient client = configuration.ldClient(properties);
         Assertions.assertEquals(client.isOffline(), offline);
@@ -54,11 +56,23 @@ class LaunchDarklyConfigurationTest {
             Boolean offline = false;
             properties.setSdkKey(key);
             properties.setOfflineMode(offline);
+            properties.setEnabled(true);
             properties.setFile(new String[]{path});
 
             LDClient client = configuration.ldClient(properties);
 
             Assertions.assertEquals(client.isOffline(), offline);
         }
+    }
+
+    @Test
+    void disabledLaunchDarklyUsesOfflineMode() {
+        properties.setSdkKey("sdkkey");
+        properties.setOfflineMode(false);
+        properties.setEnabled(false);
+
+        LDClient client = configuration.ldClient(properties);
+
+        Assertions.assertTrue(client.isOffline());
     }
 }

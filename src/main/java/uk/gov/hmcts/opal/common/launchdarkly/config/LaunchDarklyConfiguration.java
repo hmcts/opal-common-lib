@@ -27,7 +27,9 @@ public class LaunchDarklyConfiguration {
      */
     @Bean
     public LDClient ldClient(LaunchDarklyProperties launchDarklyProperties) {
-        LDConfig.Builder builder = new LDConfig.Builder().offline(launchDarklyProperties.getOfflineMode());
+        boolean offlineMode = Boolean.TRUE.equals(launchDarklyProperties.getOfflineMode())
+            || !launchDarklyProperties.isEnabled();
+        LDConfig.Builder builder = new LDConfig.Builder().offline(offlineMode);
         getExistingFiles(launchDarklyProperties.getFile())
             .map(this::getDataSource)
             .ifPresent(builder::dataSource);

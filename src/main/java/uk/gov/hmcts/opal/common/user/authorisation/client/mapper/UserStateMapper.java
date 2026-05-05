@@ -8,6 +8,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -25,9 +26,9 @@ public interface UserStateMapper {
     @Mapping(source = "businessUnitUsers", target = "businessUnitUser")
     UserState toUserState(UserStateDto userStateDto);
 
-    @Mapping(source = "username", target = "userName")
-    @Mapping(target = "businessUnitUser", expression = "java(flattenBusinessUnitUsers(userStateV2))")
-    UserState toUserState(UserStateV2 userStateV2);
+    @Mapping(source = "userStateV2.username", target = "userName")
+    @Mapping(target = "businessUnitUser", expression = "java(flattenBusinessUnitUsers(userStateV2, domain))")
+    UserState toUserState(UserStateV2 userStateV2, Domain domain);
 
     UserStateV2 toUserStateV2(UserStateV2Dto userStateV2Dto);
 
@@ -37,15 +38,23 @@ public interface UserStateMapper {
 
     Permission toPermission(PermissionDto permissionDto);
 
-    default Set<BusinessUnitUser> flattenBusinessUnitUsers(UserStateV2 userStateV2) {
-        if (userStateV2.getDomains() == null) {
+    default Set<BusinessUnitUser> flattenBusinessUnitUsers(UserStateV2 userStateV2, Domain domain) {
+        if (domain == null || userStateV2.getDomains() == null) {
             return Set.of();
         }
-        return userStateV2.getDomains().values().stream()
+
+        DomainBusinessUnitUsers domainBusinessUnitUsers = userStateV2.getDomains().get(domain);
+        if (domainBusinessUnitUsers == null) {
+            return Set.of();
+        }
+
+        Collection<BusinessUnitUser> businessUnitUsers = domainBusinessUnitUsers.getBusinessUnitUsers();
+        if (businessUnitUsers == null) {
+            return Set.of();
+        }
+
+        return businessUnitUsers.stream()
             .filter(Objects::nonNull)
-            .map(DomainBusinessUnitUsers::getBusinessUnitUsers)
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
             .collect(Collectors.toSet());
     }
 

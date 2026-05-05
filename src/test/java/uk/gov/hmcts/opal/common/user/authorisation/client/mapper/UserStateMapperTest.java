@@ -32,7 +32,7 @@ class UserStateMapperTest {
         UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
 
         // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2);
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.FINES);
 
         //Assert
         assertAll("top-level fields from user state v2",
@@ -42,17 +42,17 @@ class UserStateMapperTest {
     }
 
     @Test
-    void toUserStateFromUserStateV2ShouldFlattenBusinessUnitsAcrossDomains() {
+    void toUserStateFromUserStateV2ShouldOnlyIncludeBusinessUnitsForRequestedDomain() {
         // Arrange
         UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
 
         // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2);
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.FINES);
 
         //Assert
-        assertEquals(2, mappedUserState.getBusinessUnitUser().size());
+        assertEquals(1, mappedUserState.getBusinessUnitUser().size());
         assertEquals(
-            Set.of((short) 101, (short) 202),
+            Set.of((short) 101),
             mappedUserState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId).collect(toSet())
         );
     }
@@ -67,7 +67,31 @@ class UserStateMapperTest {
             .build();
 
         // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2);
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.FINES);
+
+        //Assert
+        assertEquals(0, mappedUserState.getBusinessUnitUser().size());
+    }
+
+    @Test
+    void toUserStateFromUserStateV2ShouldMapUnknownDomainToEmptyBusinessUnitSet() {
+        // Arrange
+        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
+
+        // Act
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.MAINTENANCE);
+
+        //Assert
+        assertEquals(0, mappedUserState.getBusinessUnitUser().size());
+    }
+
+    @Test
+    void toUserStateFromUserStateV2ShouldMapNullDomainToEmptyBusinessUnitSet() {
+        // Arrange
+        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
+
+        // Act
+        UserState mappedUserState = userStateMapper.toUserState(userStateV2, null);
 
         //Assert
         assertEquals(0, mappedUserState.getBusinessUnitUser().size());

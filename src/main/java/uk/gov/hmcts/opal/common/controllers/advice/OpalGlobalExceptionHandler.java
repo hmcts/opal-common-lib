@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import uk.gov.hmcts.opal.common.contentdigest.InvalidContentDigestException;
 import uk.gov.hmcts.opal.common.dto.Versioned;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
@@ -32,6 +33,22 @@ public class OpalGlobalExceptionHandler {
             ex
         );
         return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
+    }
+
+    @ExceptionHandler(InvalidContentDigestException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidContentDigestException(InvalidContentDigestException ex) {
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            ex.getTitle(),
+            ex.getDetail(),
+            "content-digest",
+            false,
+            ex
+        );
+        if (!ex.getSupportedAlgorithms().isEmpty()) {
+            problemDetail.setProperty("supported_algorithms", ex.getSupportedAlgorithms());
+        }
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
 

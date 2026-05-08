@@ -41,7 +41,7 @@ class UserStateV2Test {
     @Test
     void getDomainBusinessUnitUsers_returnsEmptyBusinessUnitUsersWhenDomainIsNull() {
         //Arrange
-        UserStateV2 userStateV2 = createUserStateV2(Map.of());
+        UserStateV2 userStateV2 = createUserStateV2(new HashMap<>());
 
         //Act
         DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(null);
@@ -54,7 +54,7 @@ class UserStateV2Test {
     @Test
     void getDomainBusinessUnitUsers_returnsEmptyBusinessUnitUsersWhenDomainIsMissing() {
         //Arrange
-        UserStateV2 userStateV2 = createUserStateV2(Map.of());
+        UserStateV2 userStateV2 = createUserStateV2(new HashMap<>());
 
         //Act
         DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
@@ -77,6 +77,19 @@ class UserStateV2Test {
         //Assert
         assertThat(result).isNotNull();
         assertThat(result.getBusinessUnitUsers()).isEmpty();
+    }
+
+    @Test
+    void getDomains_returnsEmptyMapWhenDomainsIsNull() {
+        //Arrange
+        UserStateV2 userStateV2 = createUserStateV2(null);
+
+        //Act
+        Map<Domain, DomainBusinessUnitUsers> result = userStateV2.getDomains();
+
+        //Assert
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     private UserStateV2 createUserStateV2(Map<Domain, DomainBusinessUnitUsers> domains) {

@@ -66,7 +66,7 @@ public class UserStateV2 implements Serializable {
     }
 
     public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
-        return (domain != null && domains != null && domains.containsKey(domain) && domains.get(domain) != null)
+        return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null)
             ?
             domains.get(domain) :
             DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();

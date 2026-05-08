@@ -9,6 +9,8 @@ import lombok.NonNull;
 import java.io.Serializable;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 @Builder
 @Data
 public class UserStateV2 implements Serializable {
@@ -56,6 +58,8 @@ public class UserStateV2 implements Serializable {
     }
 
     public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
-        return domains.get(domain);
+        return (domain != null && domains != null && domains.containsKey(domain) && domains.get(domain) != null) ?
+            domains.get(domain) :
+            DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
     }
 }

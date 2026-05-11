@@ -7,7 +7,10 @@ import lombok.Data;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Collections.emptyList;
 
 @Builder
 @Data
@@ -55,7 +58,17 @@ public class UserStateV2 implements Serializable {
         this.domains = domains;
     }
 
+    public Map<Domain, DomainBusinessUnitUsers> getDomains() {
+        if (domains == null) {
+            return new HashMap<>();
+        }
+        return domains;
+    }
+
     public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
-        return domains.get(domain);
+        return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null)
+            ?
+            domains.get(domain) :
+            DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
     }
 }

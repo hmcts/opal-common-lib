@@ -1,23 +1,24 @@
 package uk.gov.hmcts.opal.common.launchdarkly;
 
 import com.launchdarkly.sdk.server.LDClient;
-import org.aspectj.lang.annotation.Around;
-import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import lombok.SneakyThrows;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.aop.aspectj.annotation.AspectJProxyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.opal.common.TestConfig;
 import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.when;
     "test.true-default=true",
     "test.false-default=false"
 })
+@Import(TestConfig.class)
 @Isolated
 class FeatureToggleAspectTest {
 
@@ -52,9 +54,6 @@ class FeatureToggleAspectTest {
 
     @Autowired
     FeatureToggleApi featureToggleApi;
-
-    @Autowired
-    Environment environment;
 
     @MockitoBean
     LaunchDarklyProperties properties;
@@ -214,7 +213,7 @@ class FeatureToggleAspectTest {
 
         MultiArgumentFeatureService target = new MultiArgumentFeatureService();
         AspectJProxyFactory proxyFactory = new AspectJProxyFactory(target);
-        proxyFactory.addAspect(new FeatureToggleAspect(featureToggleApi, properties, environment));
+        proxyFactory.addAspect(new FeatureToggleAspect(featureToggleApi));
         MultiArgumentFeatureService proxy = proxyFactory.getProxy();
 
         assertThrows(FeatureDisabledException.class, () -> proxy.multiArgumentMethod("alpha", 2));

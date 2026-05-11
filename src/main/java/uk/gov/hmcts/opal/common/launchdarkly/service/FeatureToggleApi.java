@@ -3,25 +3,28 @@ package uk.gov.hmcts.opal.common.launchdarkly.service;
 import com.launchdarkly.sdk.ContextBuilder;
 import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
 
 import java.io.IOException;
+import java.time.Clock;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FeatureToggleApi {
 
     private final LDClientInterface internalClient;
-
     private final LaunchDarklyProperties properties;
+    private final Environment environment;
+    private final Clock clock;
 
-    @Autowired
-    public FeatureToggleApi(LDClientInterface internalClient, LaunchDarklyProperties properties) {
-        this.internalClient = internalClient;
-        this.properties = properties;
+    @PostConstruct
+    public void init() {
         Runtime.getRuntime().addShutdownHook(new Thread(this::close));
     }
 
@@ -56,7 +59,7 @@ public class FeatureToggleApi {
 
     public ContextBuilder createLdContext() {
         return LDContext.builder(this.properties.getSdkKey())
-            .set("timestamp", String.valueOf(System.currentTimeMillis()))
+            .set("timestamp", String.valueOf(clock.millis()))
             .set("environment", properties.getEnv());
     }
 
@@ -66,5 +69,35 @@ public class FeatureToggleApi {
         } catch (IOException e) {
             log.error("Error in closing the Launchdarkly client::", e);
         }
+    }
+
+
+    public boolean isFeatureEnabledWithPropertyValueDefault(String feature, String defaultValueProperty) {
+        return isFeatureEnabledWithPropertyValueDefault(feature, defaultValueProperty, false);
+    }
+
+    public boolean isFeatureEnabledWithPropertyValueDefault(String feature, String defaultValueProperty,
+                                                            boolean fallBack) {
+        boolean defaultValue = resolveDefaultValue(defaultValueProperty, fallBack);
+        if (!properties.isEnabled()) {
+            log.debug("Launch darkly is disabled: using default value fallback {} for feature {}",
+                defaultValue, feature);
+            return defaultValue;
+        }
+        return isFeatureEnabled(feature, defaultValue);
+    }
+
+
+    private boolean resolveDefaultValue(String defaultValueProperty, boolean fallBack) {
+        if (defaultValueProperty == null || defaultValueProperty.isBlank()) {
+            return fallBack;
+        }
+
+        String resolvedValue = environment.resolvePlaceholders(defaultValueProperty);
+        if (!resolvedValue.equals(defaultValueProperty)) {
+            return Boolean.parseBoolean(resolvedValue);
+        }
+
+        return Boolean.parseBoolean(environment.getProperty(defaultValueProperty, String.valueOf(fallBack)));
     }
 }

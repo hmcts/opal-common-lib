@@ -12,7 +12,7 @@ class UserStateV2Test {
 
     @Test
     void getDomainBusinessUnitUsers_returnsDomainDataWhenDomainExists() {
-        //Arrange
+        // Arrange
         DomainBusinessUnitUsers finesUsers = DomainBusinessUnitUsers.builder()
             .businessUnitUsers(List.of())
             .build();

@@ -1,15 +1,22 @@
 package uk.gov.hmcts.opal.common.launchdarkly.service;
 
 import com.launchdarkly.sdk.LDContext;
-import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
+import com.launchdarkly.sdk.server.LDClient;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.opal.common.TestConfig;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggleAspect;
 import uk.gov.hmcts.opal.common.launchdarkly.config.LaunchDarklyProperties;
 
 import java.util.List;
@@ -22,29 +29,39 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = {
+    FeatureToggleAspect.class,
+    FeatureToggleApi.class,
+    FeatureToggleApiTest.TestLaunchDarklyProperties.class
+})
+@Import(TestConfig.class)
+@TestPropertySource(properties = {
+    "test.feature-default=true",
+    "test.placeholder-default=false",
+    "test.true-default=true",
+    "test.false-default=false"
+})
+@Isolated
 class FeatureToggleApiTest {
 
     private static final String FAKE_FEATURE = "fake-feature";
     private static final String FAKE_ENVIRONMENT = "fake-env";
     private static final String FAKE_KEY = "fake-key";
 
-    @Mock
-    private LDClientInterface ldClient;
-
-    @Captor
-    private ArgumentCaptor<LDContext> ldContextArgumentCaptor;
-
-    private LaunchDarklyProperties launchDarklyProperties;
+    @Autowired
     private FeatureToggleApi featureToggleApi;
+    @Autowired
+    private LaunchDarklyProperties launchDarklyProperties;
+
+    @MockitoBean
+    private LDClient ldClient;
 
     @BeforeEach
-    void setUp() {
-        launchDarklyProperties = new LaunchDarklyProperties();
+    public void beforeEach() {
         launchDarklyProperties.setEnv(FAKE_ENVIRONMENT);
         launchDarklyProperties.setSdkKey(FAKE_KEY);
         launchDarklyProperties.setEnabled(true);
-        featureToggleApi = new FeatureToggleApi(ldClient, launchDarklyProperties);
     }
 
     @ParameterizedTest
@@ -93,6 +110,7 @@ class FeatureToggleApiTest {
     }
 
     private void verifyBoolVariationCalled(String feature, List<String> customAttributesKeys) {
+        ArgumentCaptor<LDContext> ldContextArgumentCaptor = ArgumentCaptor.forClass(LDContext.class);
         verify(ldClient).boolVariation(eq(feature), ldContextArgumentCaptor.capture(), eq(false));
 
         var capturedLdContext = ldContextArgumentCaptor.getValue();
@@ -114,4 +132,55 @@ class FeatureToggleApiTest {
 
         verify(ldClient).boolVariation(FAKE_FEATURE, ldContext, false);
     }
+
+    @Test
+    void isFeatureEnabledWithPropertyValueDefault_whenLaunchDarklyIsDisabled_shouldUsePropertyValue() {
+        launchDarklyProperties.setEnabled(false);
+        assertThat(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FAKE_FEATURE,
+            "test.true-default"))
+            .isTrue();
+
+        assertThat(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FAKE_FEATURE,
+            "test.false-default"))
+            .isFalse();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void isFeatureEnabledWithPropertyValueDefault_whenLaunchDarklyIsDisabledAndPropertyDoesNotExit_shouldUseFallback(
+        boolean fallbackState) {
+        launchDarklyProperties.setEnabled(false);
+        assertThat(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FAKE_FEATURE,
+            "test.not-found",
+            fallbackState))
+            .isEqualTo(fallbackState);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void isFeatureEnabledWithPropertyValueDefault_whenLaunchDarklyIsEnabled_shouldUseLaunchDarkley(
+        boolean toggleState) {
+        launchDarklyProperties.setEnabled(true);
+
+        givenToggle(FAKE_FEATURE, toggleState);
+
+        assertThat(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FAKE_FEATURE, "test." + (!toggleState) + "-default",
+            !toggleState
+        )).isEqualTo(toggleState);
+
+        verify(ldClient).boolVariation(FAKE_FEATURE, featureToggleApi.createLdContext().build(), !toggleState);
+    }
+
+
+    public static class TestLaunchDarklyProperties extends LaunchDarklyProperties {
+        public TestLaunchDarklyProperties() {
+            super();
+        }
+    }
+
+
 }

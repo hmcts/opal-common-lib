@@ -52,7 +52,7 @@ class OpalGlobalExceptionHandlerTest {
 
     @Test
     void handleMissingRequestHeader_returnsBadRequestProblemDetail() throws Exception {
-       Method m = TestMissingHeaderClass.class.getMethod("testMethod", String.class);
+        Method m = TestMissingHeaderClass.class.getMethod("testMethod", String.class);
 
         MissingRequestHeaderException ex = new MissingRequestHeaderException(
             "Authorization",

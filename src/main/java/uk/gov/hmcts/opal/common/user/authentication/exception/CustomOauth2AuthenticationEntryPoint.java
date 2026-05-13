@@ -5,10 +5,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
@@ -16,7 +18,6 @@ import uk.gov.hmcts.opal.common.dto.ToJsonString;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import static uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService.AUTH_HEADER;
@@ -64,20 +65,18 @@ public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntry
             eventData
         );
 
-        String opalOperationId = LogUtil.getOrCreateOpalOperationId();
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        ProblemDetail problemDetail = OpalProblemDetailFactory.createProblemDetail(
             HttpStatus.UNAUTHORIZED,
-            "You are not authorized to access this resource");
-        problemDetail.setTitle("Unauthorized");
-        problemDetail.setType(URI.create("https://hmcts.gov.uk/problems/unauthorized"));
-        problemDetail.setInstance(URI.create("https://hmcts.gov.uk/problems/instance/" + opalOperationId));
-        problemDetail.setProperty("operation_id", opalOperationId);
-        problemDetail.setProperty("retriable", false);
+            "Unauthorized",
+            "You are not authorized to access this resource",
+            "unauthorized",
+            false,
+            ex,
+            log);
         String problemDetailJson = ToJsonString.OBJECT_MAPPER.writeValueAsString(problemDetail);
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
+        response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 
         try (PrintWriter writer = response.getWriter()) {
             writer.write(problemDetailJson);

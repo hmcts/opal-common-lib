@@ -10,6 +10,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
@@ -67,7 +68,7 @@ class CustomOauth2AuthenticationEntryPointTest {
 
         // Assert
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        verify(response).setContentType("application/json");
+        verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 
         ProblemDetail body = ToJsonString.getObjectMapper().readValue(output.toString(), ProblemDetail.class);
         assertNotNull(body);
@@ -118,7 +119,7 @@ class CustomOauth2AuthenticationEntryPointTest {
 
         // Assert
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        verify(response).setContentType("application/json");
+        verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 
         ProblemDetail body = ToJsonString.getObjectMapper().readValue(output.toString(), ProblemDetail.class);
         assertNotNull(body);

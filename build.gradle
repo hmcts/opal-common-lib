@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'uk.gov.hmcts'
-version = '0.3.10'
+version = '0.3.11'
 
 java {
   toolchain {
@@ -152,6 +152,8 @@ dependencies {
   implementation 'org.springframework:spring-aop'
   implementation 'org.springframework:spring-web'
   implementation 'org.springframework:spring-webmvc'
+  implementation 'org.springframework:spring-orm'
+  implementation 'jakarta.persistence:jakarta.persistence-api'
   api 'jakarta.xml.bind:jakarta.xml.bind-api'
   implementation 'org.aspectj:aspectjweaver'
   implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.13.4'
@@ -166,6 +168,7 @@ dependencies {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
   implementation 'org.hibernate.validator:hibernate-validator:9.1.0.Final'    // CVE-2025-15104 not yet fixed, so suppressed in owasp file
+  compileOnly 'org.hibernate.orm:hibernate-core'
 
   implementation 'com.microsoft.azure:applicationinsights-spring-boot-starter:2.6.4'
   implementation "org.mapstruct:mapstruct:${mapstructVersion}"
@@ -193,6 +196,7 @@ dependencies {
   smokeTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test:${springVersion}"
+  testImplementation 'org.hibernate.orm:hibernate-core'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   testImplementation 'javax.servlet:javax.servlet-api:4.0.1'

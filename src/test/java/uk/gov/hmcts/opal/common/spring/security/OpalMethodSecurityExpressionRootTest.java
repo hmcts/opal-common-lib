@@ -29,4 +29,35 @@ public class OpalMethodSecurityExpressionRootTest {
         verify(token).hasPermission("PERM_123");
         verify(root).getAuthentication();
     }
+
+    @ParameterizedTest
+    @ValueSource(booleans =  {true, false})
+    void hasBusinessUnit(final boolean value) {
+        var token = mock(OpalJwtAuthenticationToken.class);
+        var root = spy(new OpalMethodSecurityExpressionRoot(() -> token, mi));
+
+        doReturn(token).when(root).getAuthentication();
+        doReturn(value).when(token).hasBusinessUnit("UNIT_123");
+
+        assertThat(root.hasBusinessUnit("UNIT_123")).isEqualTo(value);
+
+        verify(token).hasBusinessUnit("UNIT_123");
+        verify(root).getAuthentication();
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(booleans =  {true, false})
+    void hasPermissionInBusinessUnit(final boolean value) {
+        var token = mock(OpalJwtAuthenticationToken.class);
+        var root = spy(new OpalMethodSecurityExpressionRoot(() -> token, mi));
+
+        doReturn(token).when(root).getAuthentication();
+        doReturn(value).when(token).hasPermissionInBusinessUnit("PERM_123", "UNIT_123");
+
+        assertThat(root.hasPermissionInBusinessUnit("PERM_123", "UNIT_123")).isEqualTo(value);
+
+        verify(token).hasPermissionInBusinessUnit("PERM_123", "UNIT_123");
+        verify(root).getAuthentication();
+    }
 }

@@ -3,61 +3,49 @@ package uk.gov.hmcts.opal.common.spring.security;
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class OpalMethodSecurityExpressionRootTest {
-    @Mock
-    private MethodInvocation mi;
+class OpalMethodSecurityExpressionRootTest {
+
+    private static final String PERMISSION = "PERM_123";
+    private static final String BUSINESS_UNIT = "UNIT_123";
+
+    private final MethodInvocation methodInvocation = mock(MethodInvocation.class);
 
     @ParameterizedTest
-    @ValueSource(booleans =  {true, false})
-    void hasPermission(final boolean value) {
+    @ValueSource(booleans = {true, false})
+    void hasPermission_returnsTokenPermissionResult(boolean expectedResult) {
         var token = mock(OpalJwtAuthenticationToken.class);
-        var root = spy(new OpalMethodSecurityExpressionRoot(() -> token, mi));
+        var root = new OpalMethodSecurityExpressionRoot(() -> token, methodInvocation);
 
-        doReturn(token).when(root).getAuthentication();
-        doReturn(value).when(token).hasPermission("PERM_123");
-
-        assertThat(root.hasPermission("PERM_123")).isEqualTo(value);
-
-        verify(token).hasPermission("PERM_123");
-        verify(root).getAuthentication();
+        when(token.hasPermission(PERMISSION)).thenReturn(expectedResult);
+        assertThat(root.hasPermission(PERMISSION)).isEqualTo(expectedResult);
+        verify(token).hasPermission(PERMISSION);
     }
 
     @ParameterizedTest
-    @ValueSource(booleans =  {true, false})
-    void hasBusinessUnit(final boolean value) {
+    @ValueSource(booleans = {true, false})
+    void hasBusinessUnit_returnsTokenBusinessUnitResult(boolean expectedResult) {
         var token = mock(OpalJwtAuthenticationToken.class);
-        var root = spy(new OpalMethodSecurityExpressionRoot(() -> token, mi));
+        var root = new OpalMethodSecurityExpressionRoot(() -> token, methodInvocation);
 
-        doReturn(token).when(root).getAuthentication();
-        doReturn(value).when(token).hasBusinessUnit("UNIT_123");
-
-        assertThat(root.hasBusinessUnit("UNIT_123")).isEqualTo(value);
-
-        verify(token).hasBusinessUnit("UNIT_123");
-        verify(root).getAuthentication();
+        when(token.hasBusinessUnit(BUSINESS_UNIT)).thenReturn(expectedResult);
+        assertThat(root.hasBusinessUnit(BUSINESS_UNIT)).isEqualTo(expectedResult);
+        verify(token).hasBusinessUnit(BUSINESS_UNIT);
     }
 
-
     @ParameterizedTest
-    @ValueSource(booleans =  {true, false})
-    void hasPermissionInBusinessUnit(final boolean value) {
+    @ValueSource(booleans = {true, false})
+    void hasPermissionInBusinessUnit_returnsTokenBusinessUnitPermissionResult(boolean expectedResult) {
         var token = mock(OpalJwtAuthenticationToken.class);
-        var root = spy(new OpalMethodSecurityExpressionRoot(() -> token, mi));
+        var root = new OpalMethodSecurityExpressionRoot(() -> token, methodInvocation);
 
-        doReturn(token).when(root).getAuthentication();
-        doReturn(value).when(token).hasPermissionInBusinessUnit("PERM_123", "UNIT_123");
-
-        assertThat(root.hasPermissionInBusinessUnit("PERM_123", "UNIT_123")).isEqualTo(value);
-
-        verify(token).hasPermissionInBusinessUnit("PERM_123", "UNIT_123");
-        verify(root).getAuthentication();
+        when(token.hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT)).thenReturn(expectedResult);
+        assertThat(root.hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT)).isEqualTo(expectedResult);
+        verify(token).hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT);
     }
 }

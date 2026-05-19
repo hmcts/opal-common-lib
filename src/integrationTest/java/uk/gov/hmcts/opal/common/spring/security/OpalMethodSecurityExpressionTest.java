@@ -8,14 +8,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Service;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -23,6 +28,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
@@ -51,7 +57,6 @@ class OpalMethodSecurityExpressionTest {
     private static final short TARGET_BUSINESS_UNIT_ID = 101;
     private static final short MISSING_BUSINESS_UNIT_ID = 303;
     private static final String TEST_PERMISSION = "TEST_PERM";
-    private static final String OTHER_PERMISSION = "OTHER_PERM";
 
     @Autowired
     private MockMvc mockMvc;
@@ -70,13 +75,13 @@ class OpalMethodSecurityExpressionTest {
     void hasPermission_deniesWhenPermissionMissing() throws Exception {
         mockMvc.perform(get("/test/permission")
                             .with(authentication(opalAuthentication(
-                                businessUnit(TARGET_BUSINESS_UNIT_ID, OTHER_PERMISSION)
+                                businessUnit(TARGET_BUSINESS_UNIT_ID)
                             ))))
             .andExpect(status().isForbidden());
     }
 
     @Test
-    void hasBusinessUnit_allowsWhenBusinessUnitExistsWithoutPermission() throws Exception {
+    void hasBusinessUnit_allowsWhenBusinessUnitExists() throws Exception {
         mockMvc.perform(get("/test/business-units/{businessUnitId}", TARGET_BUSINESS_UNIT_ID)
                             .with(authentication(opalAuthentication(
                                 businessUnit(TARGET_BUSINESS_UNIT_ID)
@@ -108,19 +113,14 @@ class OpalMethodSecurityExpressionTest {
     void hasPermissionInBusinessUnit_deniesWhenPermissionMissingFromRequestedBusinessUnit() throws Exception {
         mockMvc.perform(get("/test/business-units/{businessUnitId}/permission", TARGET_BUSINESS_UNIT_ID)
                             .with(authentication(opalAuthentication(
-                                businessUnit(TARGET_BUSINESS_UNIT_ID, OTHER_PERMISSION)
+                                businessUnit(TARGET_BUSINESS_UNIT_ID)
                             ))))
             .andExpect(status().isForbidden());
     }
 
     private OpalJwtAuthenticationToken opalAuthentication(BusinessUnitUser... businessUnitUsers) {
         return new OpalJwtAuthenticationToken(
-            userStateWithBusinessUnits(businessUnitUsers),
-            Domain.FINES,
-            jwt(),
-            List.of(new SimpleGrantedAuthority("ROLE_USER")),
-            "details"
-        );
+            userStateWithBusinessUnits(businessUnitUsers), Domain.FINES, jwt(), List.of(), "details");
     }
 
     private UserStateV2 userStateWithBusinessUnits(BusinessUnitUser... businessUnitUsers) {
@@ -171,9 +171,14 @@ class OpalMethodSecurityExpressionTest {
     @EnableMethodSecurity
     @Import({TestController.class})
     static class TestConfig {
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+        private UserStateClientService userStateClientService;
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver
+        ) throws Exception {
             return http
                 .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -183,6 +188,9 @@ class OpalMethodSecurityExpressionTest {
                     .permitAll()
                     .anyRequest()
                     .authenticated())
+                .oauth2ResourceServer(oauth2 ->
+                    oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver)
+                )
                 .build();
         }
 
@@ -194,6 +202,44 @@ class OpalMethodSecurityExpressionTest {
         @Bean
         static OpalMethodSecurityExpressionHandler opalMethodSecurityExpressionHandler() {
             return new OpalMethodSecurityExpressionHandler();
+        }
+
+        @Bean
+        NimbusJwtDecoder jwtDecoder() {
+            var decoder = NimbusJwtDecoder.withJwkSetUri("setUri").jwsAlgorithm(SignatureAlgorithm.RS256).build();
+            var validator = JwtValidators.createDefaultWithIssuer("issuer");
+
+            decoder.setJwtValidator(validator);
+
+            return decoder;
+        }
+
+        @Bean
+        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter() {
+            return new JwtGrantedAuthoritiesConverter();
+        }
+
+        @Bean
+        OpalJwtAuthenticationProvider opalJwtAuthenticationProvider(
+            NimbusJwtDecoder jwtDecoder,
+            JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter
+        ) {
+            return new OpalJwtAuthenticationProvider(
+                jwtDecoder,
+                userStateClientService,
+                jwtGrantedAuthoritiesConverter,
+                Domain.FINES
+            );
+        }
+
+        @Bean
+        JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver(
+            OpalJwtAuthenticationProvider opalJwtAuthenticationProvider
+        ) {
+            AuthenticationManager manager = opalJwtAuthenticationProvider::authenticate;
+            Map<String, AuthenticationManager> managers = Map.of("issuer", manager);
+
+            return new JwtIssuerAuthenticationManagerResolver(managers::get);
         }
     }
 

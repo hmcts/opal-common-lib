@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.common.spring.security;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.aopalliance.intercept.MethodInvocation;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
@@ -11,12 +13,19 @@ import java.util.function.Supplier;
 public class OpalMethodSecurityExpressionRoot extends SecurityExpressionRoot<MethodInvocation>
     implements MethodSecurityExpressionOperations {
 
+    @Getter
+    @Setter
     private Object filterObject;
+
+    @Getter
+    @Setter
     private Object returnObject;
+
     private Object target;
 
-    public OpalMethodSecurityExpressionRoot(Supplier<? extends Authentication> authentication,
-                                            MethodInvocation mi) {
+    public OpalMethodSecurityExpressionRoot(
+        Supplier<? extends Authentication> authentication,
+        MethodInvocation mi) {
         super(authentication, mi);
     }
 
@@ -40,26 +49,6 @@ public class OpalMethodSecurityExpressionRoot extends SecurityExpressionRoot<Met
         }
 
         throw new IllegalStateException("Authentication object is not of type OpalJwtAuthenticationToken");
-    }
-
-    @Override
-    public void setFilterObject(@Nullable Object filterObject) {
-        this.filterObject = filterObject;
-    }
-
-    @Override
-    public @Nullable Object getFilterObject() {
-        return this.filterObject;
-    }
-
-    @Override
-    public void setReturnObject(@Nullable Object returnObject) {
-        this.returnObject = returnObject;
-    }
-
-    @Override
-    public @Nullable Object getReturnObject() {
-        return this.returnObject;
     }
 
     @Override

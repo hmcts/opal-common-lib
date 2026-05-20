@@ -4,19 +4,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 
-import java.net.URI;
 import java.util.Map;
 
 @Slf4j(topic = "opal.CommonGlobalExceptionHandler")
@@ -57,20 +55,15 @@ public class CommonGlobalExceptionHandler {
             eventData
         );
 
-        String opalOperationId = LogUtil.getOrCreateOpalOperationId();
-
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+        ProblemDetail problemDetail = OpalProblemDetailFactory.createProblemDetail(
             HttpStatus.FORBIDDEN,
-            "You do not have permission to access this resource");
-        problemDetail.setTitle("Forbidden");
-        problemDetail.setType(URI.create("https://hmcts.gov.uk/problems/forbidden"));
-        problemDetail.setInstance(URI.create("https://hmcts.gov.uk/problems/instance/" + opalOperationId));
-        problemDetail.setProperty("operation_id", opalOperationId);
-        problemDetail.setProperty("retriable", false);
+            "Forbidden",
+            "You do not have permission to access this resource",
+            "forbidden",
+            false,
+            ex,
+            log);
 
-        BodyBuilder builder = ResponseEntity
-                                .status(HttpStatus.FORBIDDEN)
-                                .contentType(MediaType.APPLICATION_PROBLEM_JSON);
-        return builder.body(problemDetail);
+        return OpalProblemDetailFactory.responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 }

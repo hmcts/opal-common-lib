@@ -34,6 +34,8 @@ class ContentDigestExceptionHandlerTest {
             "Unsupported digest algorithm: sha-256. Supported algorithms (sha-512).",
             response.getBody().getDetail()
         );
+        assertNotNull(response.getBody().getProperties().get("operation_id"));
+        assertEquals(false, response.getBody().getProperties().get("retriable"));
         assertEquals(List.of("sha-512"), response.getBody().getProperties().get("supported_algorithms"));
     }
 
@@ -50,6 +52,8 @@ class ContentDigestExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals("Digest validation failed", response.getBody().getTitle());
         assertEquals("Body hash did not match for algorithm: sha-512", response.getBody().getDetail());
+        assertNotNull(response.getBody().getProperties().get("operation_id"));
+        assertEquals(false, response.getBody().getProperties().get("retriable"));
         assertNull(response.getBody().getProperties().get("supported_algorithms"));
     }
 }

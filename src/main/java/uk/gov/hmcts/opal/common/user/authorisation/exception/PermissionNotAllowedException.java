@@ -4,6 +4,7 @@ import lombok.Getter;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 @Getter
 public class PermissionNotAllowedException extends RuntimeException {
@@ -11,16 +12,23 @@ public class PermissionNotAllowedException extends RuntimeException {
     private final PermissionDescriptor[] permission;
     private final Short businessUnitId;
 
-    public PermissionNotAllowedException(PermissionDescriptor... value) {
-        super(Arrays.toString(value) + " permission(s) are not enabled for the user.");
+    protected PermissionNotAllowedException(String message, Short businessUnitId, PermissionDescriptor... value) {
+        super(message);
         this.permission = value;
-        this.businessUnitId = null;
+        this.businessUnitId = businessUnitId;
+    }
+
+    public PermissionNotAllowedException(PermissionDescriptor... value) {
+        this(Arrays.toString(value) + " permission(s) are not enabled for the user.", null, value);
     }
 
     public PermissionNotAllowedException(Short businessUnitId, PermissionDescriptor... value) {
-        super(Arrays.toString(value)
-            + " permission(s) are not enabled for the user in business unit: " + businessUnitId);
-        this.permission = value;
-        this.businessUnitId = businessUnitId;
+        this(Arrays.toString(value) + " permission(s) are not enabled for the user in business unit: "
+            + businessUnitId, businessUnitId, value);
+    }
+
+    public PermissionNotAllowedException(Collection<Short> businessUnitIds, PermissionDescriptor... value) {
+        this(Arrays.toString(value) + " permission(s) are not enabled for the user in business units: "
+            + businessUnitIds, null, value);
     }
 }

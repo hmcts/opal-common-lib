@@ -1,57 +1,28 @@
 package uk.gov.hmcts.opal.common.spring.security;
 
+import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.stereotype.Service;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.common.spring.security.OpalAuthenticationTestUtil.businessUnit;
+import static uk.gov.hmcts.opal.common.spring.security.OpalAuthenticationTestUtil.opalAuthentication;
 
-@SpringBootTest
-@SpringJUnitConfig(classes = OpalMethodSecurityExpressionTest.TestConfig.class)
+@SpringBootTest(classes = OpalMethodSecurityIntegrationConfiguration.class)
+@ActiveProfiles("integration")
 @AutoConfigureMockMvc
-@SuppressWarnings({"SpringJavaInjectionPointsAutowiringInspection"})
+@Import({ OpalMethodSecurityIntegrationConfiguration.class })
 class OpalMethodSecurityExpressionTest {
 
     private static final short TARGET_BUSINESS_UNIT_ID = 101;
@@ -118,171 +89,29 @@ class OpalMethodSecurityExpressionTest {
             .andExpect(status().isForbidden());
     }
 
-    private OpalJwtAuthenticationToken opalAuthentication(BusinessUnitUser... businessUnitUsers) {
-        return new OpalJwtAuthenticationToken(
-            userStateWithBusinessUnits(businessUnitUsers), Domain.FINES, jwt(), List.of(), "details");
+    @Test
+    void noAuth_noAuthenticationTokenProvided() throws Exception {
+        var exc = assertThrows(
+            ServletException.class,
+            () -> mockMvc.perform(get("/test/permission")));
+
+        assertThat(exc)
+            .hasRootCauseInstanceOf(IllegalStateException.class)
+            .hasRootCauseMessage("Authentication object is not of type OpalJwtAuthenticationToken");
     }
 
-    private UserStateV2 userStateWithBusinessUnits(BusinessUnitUser... businessUnitUsers) {
-        DomainBusinessUnitUsers finesUsers = DomainBusinessUnitUsers.builder()
-            .businessUnitUsers(List.of(businessUnitUsers))
-            .build();
+    @Test
+    void noAuth_throwsWhenAuthenticationIsNotOpalToken() {
+        var nonOpalAuthentication = new TestingAuthenticationToken("user", "password");
 
-        return UserStateV2.builder()
-            .userId(1L)
-            .username("test.user")
-            .name("Test User")
-            .status(UserStatus.ACTIVE)
-            .version(1L)
-            .cacheName("test-user-state")
-            .domains(Map.of(Domain.FINES, finesUsers))
-            .build();
-    }
-
-    private BusinessUnitUser businessUnit(short businessUnitId, String... permissionNames) {
-        return BusinessUnitUser.builder()
-            .businessUnitUserId("business-unit-user-" + businessUnitId)
-            .businessUnitId(businessUnitId)
-            .permissions(permissions(permissionNames))
-            .build();
-    }
-
-    private Set<Permission> permissions(String... permissionNames) {
-        return Arrays.stream(permissionNames)
-            .map(permissionName -> Permission.builder()
-                .permissionId((long)permissionName.hashCode())
-                .permissionName(permissionName)
-                .build())
-            .collect(Collectors.toSet());
-    }
-
-    private Jwt jwt() {
-        return new Jwt(
-            "token-value",
-            Instant.parse("2026-01-01T00:00:00Z"),
-            Instant.parse("2026-01-01T01:00:00Z"),
-            Map.of("alg", "none"),
-            Map.of(JwtClaimNames.SUB, "test-subject")
+        ServletException exception = assertThrows(
+            ServletException.class,
+            () -> mockMvc.perform(get("/test/permission")
+                                      .with(authentication(nonOpalAuthentication)))
         );
-    }
 
-    @Configuration
-    @EnableWebSecurity
-    @EnableMethodSecurity
-    @Import({TestController.class})
-    static class TestConfig {
-
-        private UserStateClientService userStateClientService;
-
-        @Bean
-        public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver
-        ) throws Exception {
-            return http
-                .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/test/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
-                .oauth2ResourceServer(oauth2 ->
-                    oauth2.authenticationManagerResolver(jwtIssuerAuthenticationManagerResolver)
-                )
-                .build();
-        }
-
-        @Bean
-        static TestService testService() {
-            return new TestService();
-        }
-
-        @Bean
-        static OpalMethodSecurityExpressionHandler opalMethodSecurityExpressionHandler() {
-            return new OpalMethodSecurityExpressionHandler();
-        }
-
-        @Bean
-        NimbusJwtDecoder jwtDecoder() {
-            var decoder = NimbusJwtDecoder.withJwkSetUri("setUri").jwsAlgorithm(SignatureAlgorithm.RS256).build();
-            var validator = JwtValidators.createDefaultWithIssuer("issuer");
-
-            decoder.setJwtValidator(validator);
-
-            return decoder;
-        }
-
-        @Bean
-        JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter() {
-            return new JwtGrantedAuthoritiesConverter();
-        }
-
-        @Bean
-        OpalJwtAuthenticationProvider opalJwtAuthenticationProvider(
-            NimbusJwtDecoder jwtDecoder,
-            JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter
-        ) {
-            return new OpalJwtAuthenticationProvider(
-                jwtDecoder,
-                userStateClientService,
-                jwtGrantedAuthoritiesConverter,
-                Domain.FINES
-            );
-        }
-
-        @Bean
-        JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver(
-            OpalJwtAuthenticationProvider opalJwtAuthenticationProvider
-        ) {
-            AuthenticationManager manager = opalJwtAuthenticationProvider::authenticate;
-            Map<String, AuthenticationManager> managers = Map.of("issuer", manager);
-
-            return new JwtIssuerAuthenticationManagerResolver(managers::get);
-        }
-    }
-
-    @RestController
-    static class TestController {
-
-        private final TestService testService;
-
-        TestController(TestService testService) {
-            this.testService = testService;
-        }
-
-        @GetMapping("/test/permission")
-        public String getPermissionProtected() {
-            return testService.requiresPermission();
-        }
-
-        @GetMapping("/test/business-units/{businessUnitId}")
-        public String getBusinessUnitProtected(@PathVariable String businessUnitId) {
-            return testService.requiresBusinessUnit(businessUnitId);
-        }
-
-        @GetMapping("/test/business-units/{businessUnitId}/permission")
-        public String getBusinessUnitPermissionProtected(@PathVariable String businessUnitId) {
-            return testService.requiresPermissionInBusinessUnit(businessUnitId);
-        }
-    }
-
-    @Service
-    static class TestService {
-        @PreAuthorize("hasPermission('TEST_PERM')")
-        public String requiresPermission() {
-            return "ok";
-        }
-
-        @PreAuthorize("hasBusinessUnit(#businessUnitId)")
-        public String requiresBusinessUnit(String businessUnitId) {
-            return "ok " + businessUnitId;
-        }
-
-        @PreAuthorize("hasPermissionInBusinessUnit('TEST_PERM', #businessUnitId)")
-        public String requiresPermissionInBusinessUnit(String businessUnitId) {
-            return "ok " + businessUnitId;
-        }
+        assertThat(exception)
+            .hasRootCauseInstanceOf(IllegalStateException.class)
+            .hasRootCauseMessage("Authentication object is not of type OpalJwtAuthenticationToken");
     }
 }

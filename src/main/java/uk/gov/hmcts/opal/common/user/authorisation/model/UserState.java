@@ -26,6 +26,9 @@ public class UserState {
     @NonNull
     String userName;
 
+    @JsonProperty("name")
+    String name;
+
     @JsonProperty("business_unit_user")
     @EqualsAndHashCode.Exclude
     Set<BusinessUnitUser> businessUnitUser;
@@ -34,10 +37,12 @@ public class UserState {
     public UserState(
         @JsonProperty("user_id") Long userId,
         @JsonProperty("user_name") String userName,
-        @JsonProperty("business_unit_user") Set<BusinessUnitUser> businessUnitUser
-    ) {
+        @JsonProperty("name") String name,
+        @JsonProperty("business_unit_user") Set<BusinessUnitUser> businessUnitUser) {
+
         this.userId = userId;
         this.userName = userName;
+        this.name = name;
         this.businessUnitUser = businessUnitUser;
     }
 
@@ -119,7 +124,7 @@ public class UserState {
             Optional.of(new DeveloperBusinessUnitUser());
 
         public DeveloperUserState() {
-            super(0L, "Developer_User", Collections.emptySet());
+            super(0L, "Developer_User", "Developer User", Collections.emptySet());
         }
 
         @Override

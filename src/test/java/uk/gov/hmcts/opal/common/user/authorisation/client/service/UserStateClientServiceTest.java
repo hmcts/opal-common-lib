@@ -81,7 +81,7 @@ class UserStateClientServiceTest {
         assertTrue(userState.isPresent());
         assertEquals(777L, userState.get().getUserId());
         assertEquals("HMCTS User", userState.get().getUsername());
-        assertEquals("HMCTS User Name", userState.get().getName());
+        assertEquals("Pedro Display Name", userState.get().getName());
         assertEquals(UserStatus.ACTIVE, userState.get().getStatus());
         assertEquals(4L, userState.get().getVersion());
         assertEquals("user-state-cache", userState.get().getCacheName());
@@ -189,6 +189,7 @@ class UserStateClientServiceTest {
         // Arrange
         UserStateDto dto = UserStateDto.builder()
             .username("HMCTS User")
+            .name("Pedro Display Name")
             .userId(777L)
             .build();
         UserState mappedUserState = createMappedUserState();
@@ -201,6 +202,7 @@ class UserStateClientServiceTest {
         //Assert
         assertTrue(userState.isPresent());
         assertEquals("HMCTS User", userState.get().getUserName());
+        assertEquals("Pedro Display Name", userState.get().getName());
         assertEquals(777L, userState.get().getUserId());
     }
 
@@ -223,6 +225,7 @@ class UserStateClientServiceTest {
         // Arrange
         UserStateDto dto = UserStateDto.builder()
             .username("HMCTS User")
+            .name("Pedro Display Name")
             .userId(777L)
             .build();
         UserState mappedUserState = createMappedUserState();
@@ -235,6 +238,7 @@ class UserStateClientServiceTest {
         //Assert
         assertTrue(userState.isPresent());
         assertEquals("HMCTS User", userState.get().getUserName());
+        assertEquals("Pedro Display Name", userState.get().getName());
         assertEquals(777L, userState.get().getUserId());
     }
 
@@ -242,7 +246,7 @@ class UserStateClientServiceTest {
         return UserStateV2Dto.builder()
             .userId(777L)
             .username("HMCTS User")
-            .name("HMCTS User Name")
+            .name("Pedro Display Name")
             .status("ACTIVE")
             .version(4L)
             .cacheName("user-state-cache")
@@ -253,7 +257,7 @@ class UserStateClientServiceTest {
         return UserStateV2.builder()
             .userId(777L)
             .username("HMCTS User")
-            .name("HMCTS User Name")
+            .name("Pedro Display Name")
             .status(UserStatus.ACTIVE)
             .version(4L)
             .cacheName("user-state-cache")
@@ -265,6 +269,7 @@ class UserStateClientServiceTest {
         return UserState.builder()
             .userId(777L)
             .userName("HMCTS User")
+            .name("Pedro Display Name")
             .businessUnitUser(Set.of())
             .build();
     }

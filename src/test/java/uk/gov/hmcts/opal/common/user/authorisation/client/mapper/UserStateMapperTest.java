@@ -37,7 +37,8 @@ class UserStateMapperTest {
         //Assert
         assertAll("top-level fields from user state v2",
             () -> assertEquals(777L, mappedUserState.getUserId()),
-            () -> assertEquals("v2.user", mappedUserState.getUserName())
+            () -> assertEquals("v2.user", mappedUserState.getUserName()),
+            () -> assertEquals("V2 User", mappedUserState.getName())
         );
     }
 
@@ -63,6 +64,7 @@ class UserStateMapperTest {
         UserStateV2 userStateV2 = UserStateV2.builder()
             .userId(777L)
             .username("v2.user")
+            .name("V2 User")
             .domains(null)
             .build();
 
@@ -279,6 +281,7 @@ class UserStateMapperTest {
         return UserStateV2.builder()
             .userId(777L)
             .username("v2.user")
+            .name("V2 User")
             .domains(Map.of(
                 Domain.FINES, finesDomainBusinessUnitUsers,
                 Domain.CONFISCATION, confiscationDomainBusinessUnitUsers

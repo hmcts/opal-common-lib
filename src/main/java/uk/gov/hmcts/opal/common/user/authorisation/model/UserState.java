@@ -100,6 +100,10 @@ public class UserState {
             .findFirst();
     }
 
+    public String getDisplayName() {
+        return name != null && !name.isBlank() ? name : userName;
+    }
+
     public static interface UserBusinessUnits {
         boolean containsBusinessUnit(Short businessUnitId);
     }

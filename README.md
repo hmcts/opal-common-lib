@@ -1,7 +1,7 @@
 # opal-commonlib
 
 Shared Opal components for authentication, authorisation, and other cross-cutting concerns.
-This module builds a reusable Java library—there is no runnable Spring Boot application here.
+This module builds a reusable Java library—there is no runnable Spring Boot application here. 
 
 ## Build & Test
 

@@ -8,7 +8,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class Permission {
+public class Permission implements PermissionDescriptor {
 
     @JsonProperty("permission_id")
     @NonNull
@@ -27,5 +27,15 @@ public class Permission {
 
     boolean matchesPermissions(PermissionDescriptor candidate) {
         return candidate.getId() == permissionId;
+    }
+
+    @Override
+    public long getId() {
+        return permissionId;
+    }
+
+    @Override
+    public String getDescription() {
+        return permissionName;
     }
 }

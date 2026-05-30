@@ -16,6 +16,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Deprecated//Use UserStateDTOV2
 public class UserStateDto implements Versioned, ToJsonString {
 
     @JsonProperty("user_id")

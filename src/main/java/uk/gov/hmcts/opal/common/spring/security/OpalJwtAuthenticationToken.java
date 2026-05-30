@@ -9,15 +9,15 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
@@ -35,25 +35,27 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         setDetails(details);
         this.userState = userState;
 
-        Function<Permission, String> toPermissionNameString = permission ->
-            permission.getPermissionName()
-                .toUpperCase()
-                .replace(" ", "_");
 
         DomainBusinessUnitUsers domainBusinessUnitUsers = userState.getDomainBusinessUnitUsers(domain);
 
         this.permissionNames = domainBusinessUnitUsers.getBusinessUnitUsers().stream()
             .flatMap(buUser -> buUser.getPermissions().stream())
-            .map(toPermissionNameString)
+            .map(this::toPermissionNameString)
             .collect(Collectors.toSet());
 
         this.businessUnitIdsToPermissionNames = domainBusinessUnitUsers.getBusinessUnitUsers().stream()
             .collect(Collectors.toMap(
                 BusinessUnitUser::getBusinessUnitId,
                 buUser -> buUser.getPermissions().stream()
-                    .map(toPermissionNameString)
+                    .map(this::toPermissionNameString)
                     .collect(Collectors.toSet())
             ));
+    }
+
+    public String toPermissionNameString(PermissionDescriptor permissionDescriptor) {
+        return permissionDescriptor.getDescription()
+            .toUpperCase()
+            .replace(" ", "_");
     }
 
     public Long getUserId() {
@@ -80,21 +82,50 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return userState.getCacheName();
     }
 
-    public boolean hasBusinessUnit(String businessUnitId) {
+    public boolean hasBusinessUnit(short businessUnitId) {
         return businessUnitIdsToPermissionNames
-            .containsKey(Short.parseShort(businessUnitId));
+            .containsKey(businessUnitId);
     }
 
     public boolean hasPermission(String permission) {
         return permissionNames.contains(permission);
     }
 
-    public boolean hasPermissionInBusinessUnit(String permission, String businessUnitId) {
+    //TODO TEST
+    public boolean hasPermission(PermissionDescriptor permission) {
+        return hasPermission(toPermissionNameString(permission));
+    }
+
+    //TODO TEST
+    public boolean hasAtLeastOneOfPermission(String... permissions) {
+        return Arrays.stream(permissions).anyMatch(this::hasPermission);
+    }
+
+    //TODO TEST
+    public boolean hasAtLeastOneOfPermission(PermissionDescriptor... permissions) {
+        return Arrays.stream(permissions).anyMatch(this::hasPermission);
+    }
+
+
+    public boolean hasPermissionInBusinessUnit(String permission, Short businessUnitId) {
         List<String> permissionsInBusinessUnit = businessUnitIdsToPermissionNames
-            .getOrDefault(Short.parseShort(businessUnitId), Set.of())
+            .getOrDefault(businessUnitId, Set.of())
             .stream()
             .toList();
         return permissionsInBusinessUnit.contains(permission);
     }
 
+    //TODO TEST
+    public boolean hasPermissionInBusinessUnit(PermissionDescriptor permission, Short businessUnitId) {
+        return hasPermissionInBusinessUnit(toPermissionNameString(permission), businessUnitId);
+    }
+
+    //TODO TEST
+    public boolean hasAtLeastOneOfPermissionInBusinessUnit(Short businessUnitId, PermissionDescriptor... permissions) {
+        return Arrays.stream(permissions).anyMatch(p -> hasPermissionInBusinessUnit(p, businessUnitId));
+    }
+    //TODO TEST
+    public boolean hasAtLeastOneOfPermissionInBusinessUnit(Short businessUnitId, String... permissions) {
+        return Arrays.stream(permissions).anyMatch(p -> hasPermissionInBusinessUnit(p, businessUnitId));
+    }
 }

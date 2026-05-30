@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 class OpalMethodSecurityExpressionRootTest {
 
     private static final String PERMISSION = "PERM_123";
-    private static final String BUSINESS_UNIT = "UNIT_123";
+    private static final String BUSINESS_UNIT = "123";
 
     private final MethodInvocation methodInvocation = mock(MethodInvocation.class);
 
@@ -36,9 +36,9 @@ class OpalMethodSecurityExpressionRootTest {
         var token = mock(OpalJwtAuthenticationToken.class);
         var root = new OpalMethodSecurityExpressionRoot(() -> token, methodInvocation);
 
-        when(token.hasBusinessUnit(BUSINESS_UNIT)).thenReturn(expectedResult);
+        when(token.hasBusinessUnit((short) 123)).thenReturn(expectedResult);
         assertThat(root.hasBusinessUnit(BUSINESS_UNIT)).isEqualTo(expectedResult);
-        verify(token).hasBusinessUnit(BUSINESS_UNIT);
+        verify(token).hasBusinessUnit((short) 123);
     }
 
     @ParameterizedTest
@@ -47,9 +47,9 @@ class OpalMethodSecurityExpressionRootTest {
         var token = mock(OpalJwtAuthenticationToken.class);
         var root = new OpalMethodSecurityExpressionRoot(() -> token, methodInvocation);
 
-        when(token.hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT)).thenReturn(expectedResult);
-        assertThat(root.hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT)).isEqualTo(expectedResult);
-        verify(token).hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT);
+        when(token.hasPermissionInBusinessUnit(PERMISSION, (short) 123)).thenReturn(expectedResult);
+        assertThat(root.hasPermissionInBusinessUnit(PERMISSION, (short) 123)).isEqualTo(expectedResult);
+        verify(token).hasPermissionInBusinessUnit(PERMISSION, (short) 123);
     }
 
     @Test
@@ -74,7 +74,7 @@ class OpalMethodSecurityExpressionRootTest {
     void hasPermissionInBusinessUnit_throwsWhenAuthenticationIsNull() {
         var root = new OpalMethodSecurityExpressionRoot(() -> null, methodInvocation);
 
-        assertThatThrownBy(() -> root.hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT))
+        assertThatThrownBy(() -> root.hasPermissionInBusinessUnit(PERMISSION, (short) 123))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Authentication object cannot be null");
     }
@@ -110,7 +110,7 @@ class OpalMethodSecurityExpressionRootTest {
             methodInvocation
         );
 
-        assertThatThrownBy(() -> root.hasPermissionInBusinessUnit(PERMISSION, BUSINESS_UNIT))
+        assertThatThrownBy(() -> root.hasPermissionInBusinessUnit(PERMISSION, (short) 123))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Authentication object is not of type OpalJwtAuthenticationToken");
     }

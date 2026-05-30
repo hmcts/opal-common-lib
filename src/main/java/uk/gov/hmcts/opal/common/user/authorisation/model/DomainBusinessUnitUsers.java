@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Optional;
 
 @Builder
 @Data
@@ -17,5 +18,12 @@ public class DomainBusinessUnitUsers {
     @JsonCreator
     public DomainBusinessUnitUsers(@JsonProperty("business_unit_users") List<BusinessUnitUser> businessUnitUsers) {
         this.businessUnitUsers = businessUnitUsers;
+    }
+
+    //TODO test
+    public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(short businessUnitId) {
+        return businessUnitUsers.stream()
+            .filter(r -> r.matchesBusinessUnitId(businessUnitId))
+            .findFirst();
     }
 }

@@ -7,7 +7,8 @@ import lombok.Getter;
 public enum Domain {
     FINES(1, "fines"),
     CONFISCATION(2, "confiscation"),
-    MAINTENANCE(3, "maintenance");
+    MAINTENANCE(3, "maintenance"),
+    USER(4, "user");
 
     private final Integer databaseId;
     private final String displayName;

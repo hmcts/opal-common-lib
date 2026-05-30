@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Builder
 @Data
+@Deprecated//Use UserStateV2
 public class UserState {
 
     @JsonProperty("user_id")

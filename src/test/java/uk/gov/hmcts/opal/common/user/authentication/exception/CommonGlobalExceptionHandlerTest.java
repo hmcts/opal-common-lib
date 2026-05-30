@@ -17,10 +17,9 @@ import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,8 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CommonGlobalExceptionHandlerTest {
@@ -56,10 +55,9 @@ class CommonGlobalExceptionHandlerTest {
             logUtilMock.when(LogUtil::getRequestTimestamp).thenReturn(localDateTime);
             logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opalOperationId);
 
-            UserState userState = UserState.builder()
+            UserStateV2 userState = UserStateV2.builder()
                 .userId(123L)
-                .userName("test-user")
-                .businessUnitUser(Collections.emptySet())
+                .username("test-user")
                 .build();
 
             Short businessUnitId = 42;

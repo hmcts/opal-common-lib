@@ -9,8 +9,8 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -45,8 +45,8 @@ class OpalJwtAuthenticationTokenTest {
         //Assert
         assertAll("confiscation domain data is exposed",
             () -> assertTrue(authenticationToken.hasPermission("PERM_D")),
-            () -> assertTrue(authenticationToken.hasBusinessUnit("303")),
-            () -> assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_D", "303"))
+            () -> assertTrue(authenticationToken.hasBusinessUnit((short) 303)),
+            () -> assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_D", (short) 303))
         );
     }
 
@@ -67,8 +67,8 @@ class OpalJwtAuthenticationTokenTest {
 
         //Assert
         assertAll("other domain data is hidden",
-            () -> assertFalse(authenticationToken.hasBusinessUnit("101")),
-            () -> assertFalse(authenticationToken.hasPermissionInBusinessUnit("PERM_A", "303")),
+            () -> assertFalse(authenticationToken.hasBusinessUnit((short) 101)),
+            () -> assertFalse(authenticationToken.hasPermissionInBusinessUnit("PERM_A", (short) 303)),
             () -> assertFalse(authenticationToken.hasPermission("PERM_A"))
         );
     }
@@ -79,29 +79,14 @@ class OpalJwtAuthenticationTokenTest {
         OpalJwtAuthenticationToken authenticationToken = createToken();
 
         // Act
-        boolean hasExistingBusinessUnit = authenticationToken.hasBusinessUnit("101");
-        boolean hasMissingBusinessUnit = authenticationToken.hasBusinessUnit("999");
+        boolean hasExistingBusinessUnit = authenticationToken.hasBusinessUnit((short) 101);
+        boolean hasMissingBusinessUnit = authenticationToken.hasBusinessUnit((short) 999);
 
         //Assert
         assertAll("business unit presence checks",
             () -> assertTrue(hasExistingBusinessUnit),
             () -> assertFalse(hasMissingBusinessUnit)
         );
-    }
-
-    @Test
-    void hasBusinessUnitShouldThrowWhenBusinessUnitIdIsNotNumeric() {
-        // Arrange
-        OpalJwtAuthenticationToken authenticationToken = createToken();
-
-        // Act
-        NumberFormatException exception = assertThrows(
-            NumberFormatException.class,
-            () -> authenticationToken.hasBusinessUnit("not-a-number")
-        );
-
-        //Assert
-        assertTrue(exception.getMessage().equals("For input string: \"not-a-number\""));
     }
 
     @Test
@@ -126,7 +111,7 @@ class OpalJwtAuthenticationTokenTest {
         OpalJwtAuthenticationToken authenticationToken = createToken();
 
         // Act
-        boolean hasPermissionInBusinessUnit = authenticationToken.hasPermissionInBusinessUnit("PERM_B", "101");
+        boolean hasPermissionInBusinessUnit = authenticationToken.hasPermissionInBusinessUnit("PERM_B", (short) 101);
 
         //Assert
         assertTrue(hasPermissionInBusinessUnit);
@@ -139,29 +124,14 @@ class OpalJwtAuthenticationTokenTest {
 
         // Act
         boolean missingPermissionInExistingBusinessUnit =
-            authenticationToken.hasPermissionInBusinessUnit("PERM_C", "101");
-        boolean missingBusinessUnit = authenticationToken.hasPermissionInBusinessUnit("PERM_A", "999");
+            authenticationToken.hasPermissionInBusinessUnit("PERM_C", (short) 101);
+        boolean missingBusinessUnit = authenticationToken.hasPermissionInBusinessUnit("PERM_A", (short) 999);
 
         //Assert
         assertAll("permission-in-business-unit negative checks",
             () -> assertFalse(missingPermissionInExistingBusinessUnit),
             () -> assertFalse(missingBusinessUnit)
         );
-    }
-
-    @Test
-    void hasPermissionInBusinessUnitShouldThrowWhenBusinessUnitIdIsNotNumeric() {
-        // Arrange
-        OpalJwtAuthenticationToken authenticationToken = createToken();
-
-        // Act
-        NumberFormatException exception = assertThrows(
-            NumberFormatException.class,
-            () -> authenticationToken.hasPermissionInBusinessUnit("PERM_A", "invalid-id")
-        );
-
-        //Assert
-        assertTrue(exception.getMessage().contains("For input string"));
     }
 
     private OpalJwtAuthenticationToken createToken() {

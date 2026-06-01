@@ -45,7 +45,7 @@ class DomainBusinessUnitUsersTest {
             ).getBusinessUnitUserForBusinessUnit((short) 3);
 
         assertTrue(result.isEmpty());
-        verify(businessUnitUser1).matchesBusinessUnitId((short) 2);
-        verify(businessUnitUser2).matchesBusinessUnitId((short) 2);
+        verify(businessUnitUser1).matchesBusinessUnitId((short) 3);
+        verify(businessUnitUser2).matchesBusinessUnitId((short) 3);
     }
 }

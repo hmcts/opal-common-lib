@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public class CommonGlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex,
                                                                              HttpServletRequest request) {
 
-        UserState userState = userStateClientService.getUserStateByAuthenticatedUser().orElse(null);
+        UserStateV2 userState = userStateClientService.getUserStateByAuthenticatedUser().orElse(null);
         String userId = userState != null ? String.valueOf(userState.getUserId()) : UNKNOWN;
 
         Short businessUnitId = ex.getBusinessUnitId();

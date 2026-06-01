@@ -34,10 +34,10 @@ public class OpalMethodSecurityExpressionRoot extends SecurityExpressionRoot<Met
     }
 
     public boolean hasBusinessUnit(String businessUnitId) {
-        return getAuthToken().hasBusinessUnit(businessUnitId);
+        return getAuthToken().hasBusinessUnit(Short.parseShort(businessUnitId));
     }
 
-    public boolean hasPermissionInBusinessUnit(String permission, String businessUnitId) {
+    public boolean hasPermissionInBusinessUnit(String permission, Short businessUnitId) {
         return getAuthToken().hasPermissionInBusinessUnit(permission, businessUnitId);
     }
 

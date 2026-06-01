@@ -18,18 +18,18 @@ public class OpalMethodSecurityExpressionHandlerTest {
         var auth = mock(OpalJwtAuthenticationToken.class);
         var invocation = new SimpleMethodInvocation(target, method, "101");
 
-        when(auth.hasBusinessUnit("101")).thenReturn(true);
+        when(auth.hasBusinessUnit((short) 101)).thenReturn(true);
 
         var context = handler.createEvaluationContext(() -> auth, invocation);
         var root = context.getRootObject().getValue();
 
         assertThat(root).isInstanceOf(OpalMethodSecurityExpressionRoot.class);
-        assertThat(((OpalMethodSecurityExpressionRoot)root).getThis()).isSameAs(target);
+        assertThat(((OpalMethodSecurityExpressionRoot) root).getThis()).isSameAs(target);
 
         var parser = new SpelExpressionParser();
 
         assertThat(parser.parseExpression("hasBusinessUnit(#businessUnitId)")
-                       .getValue(context, boolean.class)).isTrue();
+            .getValue(context, boolean.class)).isTrue();
     }
 
     static class SecuredService {

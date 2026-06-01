@@ -91,17 +91,14 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return permissionNames.contains(permission);
     }
 
-    //TODO TEST
     public boolean hasPermission(PermissionDescriptor permission) {
         return hasPermission(toPermissionNameString(permission));
     }
 
-    //TODO TEST
     public boolean hasAtLeastOneOfPermission(String... permissions) {
         return Arrays.stream(permissions).anyMatch(this::hasPermission);
     }
 
-    //TODO TEST
     public boolean hasAtLeastOneOfPermission(PermissionDescriptor... permissions) {
         return Arrays.stream(permissions).anyMatch(this::hasPermission);
     }
@@ -115,16 +112,14 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return permissionsInBusinessUnit.contains(permission);
     }
 
-    //TODO TEST
     public boolean hasPermissionInBusinessUnit(PermissionDescriptor permission, Short businessUnitId) {
         return hasPermissionInBusinessUnit(toPermissionNameString(permission), businessUnitId);
     }
 
-    //TODO TEST
     public boolean hasAtLeastOneOfPermissionInBusinessUnit(Short businessUnitId, PermissionDescriptor... permissions) {
         return Arrays.stream(permissions).anyMatch(p -> hasPermissionInBusinessUnit(p, businessUnitId));
     }
-    //TODO TEST
+
     public boolean hasAtLeastOneOfPermissionInBusinessUnit(Short businessUnitId, String... permissions) {
         return Arrays.stream(permissions).anyMatch(p -> hasPermissionInBusinessUnit(p, businessUnitId));
     }

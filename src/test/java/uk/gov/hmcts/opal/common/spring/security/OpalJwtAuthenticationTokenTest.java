@@ -9,6 +9,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
@@ -20,7 +21,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpalJwtAuthenticationTokenTest {
@@ -213,5 +213,191 @@ class OpalJwtAuthenticationTokenTest {
                 Domain.CONFISCATION, confiscationDomainBusinessUnitUsers
             ))
             .build();
+    }
+
+    @Test
+    void hasPermission_PermissionDescriptor_shouldReturnTheCorrectStatus() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean hasPermission = authenticationToken.hasPermission(TestPermissionDescriptor.PERM_A);
+        boolean hasMissingPermission = authenticationToken.hasPermission(TestPermissionDescriptor.PERM_NOT_USED_A);
+
+        //Assert
+        assertAll("permission presence checks",
+            () -> assertTrue(hasPermission),
+            () -> assertFalse(hasMissingPermission)
+        );
+    }
+
+    @Test
+    void hasAtLeastOneOfPermission_PermissionDescriptor_shouldReturnTheCorrectStatus() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+        // Act
+        boolean hasPermission = authenticationToken.hasAtLeastOneOfPermission(
+            TestPermissionDescriptor.PERM_A,
+            TestPermissionDescriptor.PERM_NOT_USED_A);
+
+        boolean hasMissingPermission = authenticationToken.hasAtLeastOneOfPermission(
+            TestPermissionDescriptor.PERM_NOT_USED_A,
+            TestPermissionDescriptor.PERM_NOT_USED_B);
+
+        //Assert
+        assertAll("permission presence checks",
+            () -> assertTrue(hasPermission),
+            () -> assertFalse(hasMissingPermission)
+        );
+    }
+
+    @Test
+    void hasAtLeastOneOfPermission_String_shouldReturnTheCorrectStatus() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+        // Act
+        boolean hasPermission = authenticationToken.hasAtLeastOneOfPermission(
+            "PERM_A",
+            "PERM_NOT_USED_A");
+
+        boolean hasMissingPermission = authenticationToken.hasAtLeastOneOfPermission(
+            "PERM_NOT_USED_A",
+            "PERM_NOT_USED_B");
+
+        //Assert
+        assertAll("permission presence checks",
+            () -> assertTrue(hasPermission),
+            () -> assertFalse(hasMissingPermission)
+        );
+    }
+
+
+    @Test
+    void hasPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnTrueWhenPermissionExists() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean hasPermissionInBusinessUnit =
+            authenticationToken.hasPermissionInBusinessUnit(TestPermissionDescriptor.PERM_B,
+                (short) 101);
+
+        //Assert
+        assertTrue(hasPermissionInBusinessUnit);
+    }
+
+    @Test
+    void hasPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean missingPermissionInExistingBusinessUnit =
+            authenticationToken.hasPermissionInBusinessUnit(TestPermissionDescriptor.PERM_C, (short) 101);
+        boolean missingBusinessUnit =
+            authenticationToken.hasPermissionInBusinessUnit(TestPermissionDescriptor.PERM_A, (short) 999);
+
+        //Assert
+        assertAll("permission-in-business-unit negative checks",
+            () -> assertFalse(missingPermissionInExistingBusinessUnit),
+            () -> assertFalse(missingBusinessUnit)
+        );
+    }
+
+
+    @Test
+    void hasAtLeastOneOfPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnTrueWhenPermissionExists() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean hasPermissionInBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit(
+                (short) 101,
+                TestPermissionDescriptor.PERM_B,
+                TestPermissionDescriptor.PERM_NOT_USED_A);
+        //Assert
+        assertTrue(hasPermissionInBusinessUnit);
+    }
+
+    @Test
+    //This throws because of the method name but this is required to outline what the test is doing
+    @SuppressWarnings("LineLength")
+    void hasAtLeastOneOfPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean missingPermissionInExistingBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit((short) 101,
+                TestPermissionDescriptor.PERM_C,
+                TestPermissionDescriptor.PERM_NOT_USED_A);
+        boolean missingBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit((short) 999,
+                TestPermissionDescriptor.PERM_A,
+                TestPermissionDescriptor.PERM_NOT_USED_A);
+
+        //Assert
+        assertAll("permission-in-business-unit negative checks",
+            () -> assertFalse(missingPermissionInExistingBusinessUnit),
+            () -> assertFalse(missingBusinessUnit)
+        );
+    }
+
+
+
+    @Test
+    void hasAtLeastOneOfPermissionInBusinessUnit_String_ShouldReturnTrueWhenPermissionExists() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean hasPermissionInBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit(
+                (short) 101,
+                "PERM_B",
+                "PERM_NOT_USED_A");
+        //Assert
+        assertTrue(hasPermissionInBusinessUnit);
+    }
+
+    @Test
+    void hasAtLeastOneOfPermissionInBusinessUnit_String_ShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean missingPermissionInExistingBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit((short) 101,
+                "PERM_C",
+                "PERM_NOT_USED_A");
+        boolean missingBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit((short) 999,
+                "PERM_A",
+                "PERM_NOT_USED_A");
+
+        //Assert
+        assertAll("permission-in-business-unit negative checks",
+            () -> assertFalse(missingPermissionInExistingBusinessUnit),
+            () -> assertFalse(missingBusinessUnit)
+        );
+    }
+
+    enum TestPermissionDescriptor implements PermissionDescriptor {
+        PERM_A,
+        PERM_B,
+        PERM_C,
+        PERM_NOT_USED_A,
+        PERM_NOT_USED_B;
+
+        @Override
+        public long getId() {
+            return ordinal();
+        }
+
+        @Override
+        public String getDescription() {
+            return name();
+        }
     }
 }

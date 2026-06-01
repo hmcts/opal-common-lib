@@ -20,7 +20,6 @@ public class DomainBusinessUnitUsers {
         this.businessUnitUsers = businessUnitUsers;
     }
 
-    //TODO test
     public Optional<BusinessUnitUser> getBusinessUnitUserForBusinessUnit(short businessUnitId) {
         return businessUnitUsers.stream()
             .filter(r -> r.matchesBusinessUnitId(businessUnitId))

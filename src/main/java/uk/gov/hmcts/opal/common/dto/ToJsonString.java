@@ -1,18 +1,20 @@
 package uk.gov.hmcts.opal.common.dto;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
-
-import java.util.Optional;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.JsonRuntimeException;
+
+import java.util.Optional;
+
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 
 public interface ToJsonString {
 
     ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+        .setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
         .disable(WRITE_DATES_AS_TIMESTAMPS)
         .registerModule(new JavaTimeModule());
 

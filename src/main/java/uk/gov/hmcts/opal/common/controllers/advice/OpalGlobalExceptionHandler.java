@@ -57,14 +57,14 @@ public class OpalGlobalExceptionHandler {
     @ExceptionHandler(FeatureDisabledException.class)
     public ResponseEntity<ProblemDetail> handleFeatureDisabledException(FeatureDisabledException ex) {
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.METHOD_NOT_ALLOWED,
+            HttpStatus.SERVICE_UNAVAILABLE,
             "Feature Disabled",
             "The requested feature is not currently available",
             "feature-disabled",
             false,
             ex
         );
-        return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
     @ExceptionHandler(InvalidContentDigestException.class)

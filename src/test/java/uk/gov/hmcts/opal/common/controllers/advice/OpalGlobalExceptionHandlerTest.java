@@ -33,6 +33,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
 
 import java.lang.reflect.Method;
@@ -49,6 +50,14 @@ import static org.mockito.Mockito.mock;
 class OpalGlobalExceptionHandlerTest {
 
     private final OpalGlobalExceptionHandler handler = new OpalGlobalExceptionHandler();
+
+    @Test
+    void handleFeatureDisabled_returnsServiceUnavailableProblemDetail() {
+        ResponseEntity<ProblemDetail> response = handler.handleFeatureDisabledException(
+            new FeatureDisabledException("disabled"));
+
+        assertProblem(response, HttpStatus.SERVICE_UNAVAILABLE, "Feature Disabled", "feature-disabled", false);
+    }
 
     @Test
     void handleMissingRequestHeader_returnsBadRequestProblemDetail() throws Exception {

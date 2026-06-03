@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.common.user.authentication.exception;
 
-import jakarta.servlet.ServletException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +42,7 @@ class CustomAuthenticationExceptionsTest {
     }
 
     @Test
-    void commenceShouldReturnUnauthorizedProblemDetail() throws IOException, ServletException {
+    void commenceShouldReturnUnauthorizedProblemDetail() throws IOException {
         AuthenticationException authException = mock(AuthenticationException.class);
 
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
@@ -64,7 +64,7 @@ class CustomAuthenticationExceptionsTest {
     }
 
     @Test
-    void handleShouldReturnForbiddenProblemDetail() throws IOException, ServletException {
+    void handleShouldReturnForbiddenProblemDetail() throws IOException {
         AccessDeniedException accessDeniedException = mock(AccessDeniedException.class);
 
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
@@ -82,6 +82,61 @@ class CustomAuthenticationExceptionsTest {
         assertEquals("Forbidden", body.getTitle());
         assertEquals("https://hmcts.gov.uk/problems/forbidden", body.getType().toString());
         assertEquals("op-forbidden", body.getProperties().get("operation_id"));
+        assertEquals(false, body.getProperties().get("retriable"));
+    }
+
+    @Test
+    void commenceShouldReturnNotFoundWhenEntityNotFoundIsInCauseChain() throws IOException {
+        EntityNotFoundException entityNotFoundException = new EntityNotFoundException("User record not found");
+        AuthenticationException authException = new AuthenticationException(
+            "Authentication failed",
+            new RuntimeException(entityNotFoundException)
+        ) {
+        };
+
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-auth-404");
+
+            customAuthenticationExceptions.commence(request, response, authException);
+        }
+
+        verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
+        verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+        ProblemDetail body = ToJsonString.getObjectMapper().readValue(output.toString(), ProblemDetail.class);
+        assertNotNull(body);
+        assertEquals(HttpStatus.NOT_FOUND.value(), body.getStatus());
+        assertEquals("Entity Not Found", body.getTitle());
+        assertEquals("https://hmcts.gov.uk/problems/entity-not-found", body.getType().toString());
+        assertEquals("User record not found", body.getProperties().get("reason"));
+        assertEquals("op-auth-404", body.getProperties().get("operation_id"));
+        assertEquals(false, body.getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleShouldReturnNotFoundWhenEntityNotFoundIsInCauseChain() throws IOException {
+        EntityNotFoundException entityNotFoundException = new EntityNotFoundException("Permission target not found");
+        AccessDeniedException accessDeniedException = new AccessDeniedException(
+            "Access denied",
+            new RuntimeException(entityNotFoundException)
+        );
+
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-forbidden-404");
+
+            customAuthenticationExceptions.handle(request, response, accessDeniedException);
+        }
+
+        verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
+        verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+        ProblemDetail body = ToJsonString.getObjectMapper().readValue(output.toString(), ProblemDetail.class);
+        assertNotNull(body);
+        assertEquals(HttpStatus.NOT_FOUND.value(), body.getStatus());
+        assertEquals("Entity Not Found", body.getTitle());
+        assertEquals("https://hmcts.gov.uk/problems/entity-not-found", body.getType().toString());
+        assertEquals("Permission target not found", body.getProperties().get("reason"));
+        assertEquals("op-forbidden-404", body.getProperties().get("operation_id"));
         assertEquals(false, body.getProperties().get("retriable"));
     }
 }

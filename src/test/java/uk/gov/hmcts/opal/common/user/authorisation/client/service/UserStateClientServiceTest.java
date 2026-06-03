@@ -16,16 +16,20 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.oauth2.jwt.Jwt;
 import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -182,6 +186,73 @@ class UserStateClientServiceTest {
         verify(userClient).getUserStateByIdWithAuthToken("Bearer " + tokenValue);
     }
 
+    @Test
+    void getUserState_returnsUserWhenPresent() {
+        // Arrange
+        UserStateDto dto = UserStateDto.builder()
+            .username("HMCTS User")
+            .userId(777L)
+            .build();
+        UserState mappedUserState = createMappedUserState();
+        when(userClient.getUserStateById(any())).thenReturn(dto);
+        when(userStateMapper.toUserState(dto)).thenReturn(mappedUserState);
+
+        // Act
+        Optional<UserState> userState = userStateClientService.getUserState(0L);
+
+        //Assert
+        assertTrue(userState.isPresent());
+        assertEquals("HMCTS User", userState.get().getUserName());
+        assertEquals(777L, userState.get().getUserId());
+    }
+
+    @Test
+    void getUserState_returnsEmptyWhenNotFound() {
+        // Arrange
+        Request request = Mockito.mock(Request.class);
+        when(userClient.getUserStateById(any()))
+            .thenThrow(new FeignException.NotFound("not found", request, null, null));
+
+        // Act
+        Optional<UserState> userState = userStateClientService.getUserState(0L);
+
+        //Assert
+        assertTrue(userState.isEmpty());
+    }
+
+    @Test
+    void getUserStateV1ByAuthenticatedUser_returnsUserWhenPresent() {
+        // Arrange
+        UserStateDto dto = UserStateDto.builder()
+            .username("HMCTS User")
+            .userId(777L)
+            .build();
+        UserState mappedUserState = createMappedUserState();
+        when(userClient.getUserStateById(any())).thenReturn(dto);
+        when(userStateMapper.toUserState(dto)).thenReturn(mappedUserState);
+
+        // Act
+        Optional<UserState> userState = userStateClientService.getUserStateV1ByAuthenticatedUser();
+
+        //Assert
+        assertTrue(userState.isPresent());
+        assertEquals("HMCTS User", userState.get().getUserName());
+        assertEquals(777L, userState.get().getUserId());
+    }
+
+    @Test
+    void getUserStateV1ByAuthenticatedUser_returnsEmptyWhenNotFound() {
+        // Arrange
+        Request request = Mockito.mock(Request.class);
+        when(userClient.getUserStateById(any()))
+            .thenThrow(new FeignException.NotFound("not found", request, null, null));
+
+        // Act
+        Optional<UserState> userState = userStateClientService.getUserStateV1ByAuthenticatedUser();
+
+        //Assert
+        assertTrue(userState.isEmpty());
+    }
 
     private UserStateV2Dto createUserStateV2Dto() {
         return UserStateV2Dto.builder()
@@ -203,6 +274,14 @@ class UserStateClientServiceTest {
             .version(4L)
             .cacheName("user-state-cache")
             .domains(Map.of())
+            .build();
+    }
+
+    private UserState createMappedUserState() {
+        return UserState.builder()
+            .userId(777L)
+            .userName("HMCTS User")
+            .businessUnitUser(Set.of())
             .build();
     }
 }

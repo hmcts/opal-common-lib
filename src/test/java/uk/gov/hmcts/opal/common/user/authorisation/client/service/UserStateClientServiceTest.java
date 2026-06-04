@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.common.user.authorisation.client.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWTClaimNames;
 import feign.FeignException;
 import feign.Request;
@@ -168,7 +168,7 @@ class UserStateClientServiceTest {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(cachedUserState);
         when(objectMapper.readValue(cachedUserState, UserStateV2Dto.class))
-            .thenThrow(new JsonProcessingException("invalid json") {
+            .thenThrow(new JacksonException("invalid json") {
             });
         when(userClient.getUserStateByIdWithAuthToken("Bearer " + tokenValue)).thenReturn(userStateV2Dto);
         when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);

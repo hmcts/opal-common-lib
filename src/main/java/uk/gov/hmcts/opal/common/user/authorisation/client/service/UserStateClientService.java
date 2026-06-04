@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.common.user.authorisation.client.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWTClaimNames;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
@@ -92,7 +92,7 @@ public class UserStateClientService {
 
         try {
             return Optional.of(objectMapper.readValue(cachedUserState, UserStateV2Dto.class));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn(":getUserState: could not parse user state from cache: {}", tokenSubject);
             return Optional.empty();
         }

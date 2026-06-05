@@ -130,7 +130,6 @@ repositories {
 }
 
 ext {
-  jacksonVersion = "2.22.0"
   lombokVersion = "1.18.46"
   mapstructVersion = "1.6.3"
   springVersion = "4.0.6"
@@ -140,9 +139,10 @@ ext['snakeyaml.version'] = '2.0'
 
 dependencyManagement {
   imports {
-    mavenBom "com.fasterxml.jackson:jackson-bom:${jacksonVersion}"
+    mavenBom "com.fasterxml.jackson:jackson-bom:2.22.0"
     mavenBom 'org.springframework.boot:spring-boot-dependencies:4.0.6'
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
+    mavenBom "io.netty:netty-bom:4.2.15.Final"
   }
 }
 

@@ -7,5 +7,5 @@ def product = "opal"
 def component = "common-lib"
 
 withPipeline(type, product, component) {
-
+    nonServiceApp()
 }

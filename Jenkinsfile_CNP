@@ -1,0 +1,11 @@
+#!groovy
+
+@Library("Infrastructure")
+
+def type = "java"
+def product = "opal"
+def component = "common-lob"
+
+withPipeline(type, product, component) {
+
+}

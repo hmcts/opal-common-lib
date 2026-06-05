@@ -4,7 +4,7 @@
 
 def type = "java"
 def product = "opal"
-def component = "common-lob"
+def component = "common-lib"
 
 withPipeline(type, product, component) {
 

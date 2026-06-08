@@ -33,7 +33,7 @@ public class ToJsonStringTest {
     }
 
     @Test
-    void objectToPrettyJson_shouldProduceSnakeCase() {
+    void toPrettyJson_shouldProduceSnakeCase() {
         var testDto = new TestDto("Harry", "Smith", 25);
 
         String json = testDto.toPrettyJson();

@@ -1,20 +1,23 @@
 package uk.gov.hmcts.opal.common.dto;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.JsonRuntimeException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ToJsonStringTest {
 
-    private record TestDto(String firstName, String surname, int numberOfFailedLoginAttempts) {}
+    private record TestDto(String firstName, String surname, int numberOfFailedLoginAttempts) implements ToJsonString{}
+
 
     @Test
     void objectToJson_shouldProduceSnakeCase() {
         var testDto = new TestDto("Harry", "Smith", 25);
 
-        String json = ToJsonString.objectToJson(testDto);
+        String json = testDto.toJson();
 
         assertThat(json).isEqualToIgnoringNewLines("""
                                                        {
@@ -29,25 +32,12 @@ public class ToJsonStringTest {
     void objectToPrettyJson_shouldProduceSnakeCase() {
         var testDto = new TestDto("Harry", "Smith", 25);
 
-        String json = ToJsonString.objectToPrettyJson(testDto);
+        String json = testDto.toPrettyJson();
 
         assertAll(
             () -> assertTrue(json.contains("first_name")),
             () -> assertTrue(json.contains("surname")),
             () -> assertTrue(json.contains("number_of_failed_login_attempts"))
-        );
-    }
-
-    @Test
-    void objectToPrettyJsonsString_shouldProduceSnakeCase() {
-        var testDto = new TestDto("Harry", "Smith", 25);
-
-        String json = ToJsonString.objectToPrettyJson(testDto);
-
-        assertAll(
-            () -> json.contains("first_name"),
-            () -> json.contains("surname"),
-            () -> json.contains("number_of_failed_login_attempts")
         );
     }
 
@@ -60,8 +50,8 @@ public class ToJsonStringTest {
         String json = ToJsonString.toPrettyJson(sourceJson);
 
         assertAll(
-            () -> json.contains("propOne"),
-            () -> json.contains("propTwo")
+            () -> assertTrue(json.contains("propOne")),
+            () -> assertTrue(json.contains("propTwo"))
         );
     }
 
@@ -78,4 +68,52 @@ public class ToJsonStringTest {
 
         assertThat(json).isEqualTo("null");
     }
+
+    @Test
+    void toClassInstance_readsSnakeCase() {
+        String json = """
+            {
+                "first_name":"Sarah",
+                "surname":"Blackwell",
+                "number_of_failed_login_attempts":2
+            }
+            """;
+
+        TestDto object = ToJsonString.toClassInstance(json, TestDto.class);
+
+        assertNotNull(object);
+        assertAll(
+            () -> assertEquals("Sarah", object.firstName),
+            () -> assertEquals("Blackwell", object.surname),
+            () -> assertEquals(2, object.numberOfFailedLoginAttempts)
+        );
+    }
+
+    @Test
+    void toClassInstance_invalidJson_throwsRuntimeException() {
+        String invalidJson = """
+            {
+                "first_name":"Sarah",
+                "surname":"Blackwell",
+                "number_of_failed_login_attempts":2,
+                foo-bar
+            }
+            """;
+
+        assertThrows(JsonRuntimeException.class, () -> ToJsonString.toClassInstance(invalidJson, TestDto.class));
+    }
+
+    @Test
+    void toJsonNode_shouldProduceNodeWithSnakeCaseProperties() throws JsonProcessingException {
+        var testDto = new TestDto("Ben", "Jones", 0);
+
+        JsonNode jsonNode = testDto.toJsonNode();
+
+        assertAll(
+            () -> assertEquals("Ben", jsonNode.findValue("first_name").asText()),
+            () -> assertEquals("Jones", jsonNode.findValue("surname").asText()),
+            () -> assertEquals(0, jsonNode.findValue("number_of_failed_login_attempts").asInt())
+        );
+    }
 }
+

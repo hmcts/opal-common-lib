@@ -3,7 +3,7 @@ plugins {
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'com.github.ben-manes.versions' version '0.54.0'
-  id 'org.sonarqube' version '7.3.0.8198'
+  id 'org.sonarqube' version '7.3.1.8318'
   id 'maven-publish'
   /*
     Applies analysis tools including checkstyle and OWASP Dependency checker.
@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'uk.gov.hmcts'
-version = '0.3.15'
+version = '0.3.17'
 
 java {
   toolchain {
@@ -130,7 +130,7 @@ repositories {
 }
 
 ext {
-  jacksonVersion = "2.21.3"
+  jacksonVersion = "3.1.1"
   lombokVersion = "1.18.46"
   mapstructVersion = "1.6.3"
   springVersion = "4.0.6"
@@ -140,7 +140,7 @@ ext['snakeyaml.version'] = '2.0'
 
 dependencyManagement {
   imports {
-    mavenBom "com.fasterxml.jackson:jackson-bom:${jacksonVersion}"
+    mavenBom "tools.jackson:jackson-bom:${jacksonVersion}"
     mavenBom 'org.springframework.boot:spring-boot-dependencies:4.0.6'
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
   }
@@ -163,8 +163,7 @@ dependencies {
   implementation 'org.springframework.security:spring-security-oauth2-jose'
   implementation 'org.springframework.security:spring-security-oauth2-resource-server'
   implementation "org.springframework.boot:spring-boot-starter-security"
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
-  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+  implementation 'tools.jackson.core:jackson-databind'
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.1', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'

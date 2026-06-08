@@ -1,16 +1,20 @@
 package uk.gov.hmcts.opal.common.dto;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.JsonRuntimeException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ToJsonStringTest {
 
-    private record TestDto(String firstName, String surname, int numberOfFailedLoginAttempts) implements ToJsonString{}
+    private record TestDto(String firstName, String surname, int numberOfFailedLoginAttempts) implements ToJsonString {
+    }
 
 
     @Test
@@ -20,12 +24,12 @@ public class ToJsonStringTest {
         String json = testDto.toJson();
 
         assertThat(json).isEqualToIgnoringNewLines("""
-                                                       {
-                                                       "first_name":"Harry",
-                                                       "surname":"Smith",
-                                                       "number_of_failed_login_attempts":25
-                                                       }
-                                                       """);
+            {
+            "first_name":"Harry",
+            "surname":"Smith",
+            "number_of_failed_login_attempts":25
+            }
+            """);
     }
 
     @Test
@@ -104,7 +108,7 @@ public class ToJsonStringTest {
     }
 
     @Test
-    void toJsonNode_shouldProduceNodeWithSnakeCaseProperties() throws JsonProcessingException {
+    void toJsonNode_shouldProduceNodeWithSnakeCaseProperties() {
         var testDto = new TestDto("Ben", "Jones", 0);
 
         JsonNode jsonNode = testDto.toJsonNode();

@@ -1,11 +1,11 @@
 #!groovy
 
-@Library("Infrastructure")
+@Library("Infrastructure@added-java-lib-support")
 
 def type = "java"
 def product = "opal"
-def component = "common-lib"
+def component = "logging-service-integration-lib"
 
 withPipeline(type, product, component) {
-    nonServiceApp()
+    nonDeployableApp()
 }

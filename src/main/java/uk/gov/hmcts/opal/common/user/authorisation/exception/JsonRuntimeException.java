@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.common.user.authorisation.exception;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 public class JsonRuntimeException extends RuntimeException {
-    public JsonRuntimeException(JsonProcessingException e) {
+    public JsonRuntimeException(JacksonException e) {
         super(e);
     }
 }

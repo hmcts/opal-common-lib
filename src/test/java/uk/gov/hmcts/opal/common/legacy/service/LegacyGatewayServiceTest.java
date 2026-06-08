@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 import org.xml.sax.SAXParseException;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
@@ -163,7 +164,7 @@ class LegacyGatewayServiceTest {
             () -> gatewayService.postParamsToGateway("testAction", TestDto.class, new BrokenMapImplementation<>())
         );
 
-        assertTrue(thrown.getMessage().contains("JsonMappingException"));
+        assertInstanceOf(JacksonException.class, thrown.getCause());
     }
 
     @Test

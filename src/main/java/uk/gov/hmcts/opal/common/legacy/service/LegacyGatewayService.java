@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.common.legacy.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -109,7 +109,7 @@ public class LegacyGatewayService implements GatewayService {
                 ToJsonString.getObjectMapper().writeValueAsString(requestParams),
                 null
             );
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

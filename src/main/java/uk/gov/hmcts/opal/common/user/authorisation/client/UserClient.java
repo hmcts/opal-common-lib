@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.common.user.authorisation.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.hmcts.opal.common.user.authentication.model.SecurityToken;
 import uk.gov.hmcts.opal.common.user.authorisation.client.config.UserTokenRelayConfig;
@@ -24,9 +25,10 @@ public interface UserClient {
     @GetMapping("/testing-support/token/user")
     SecurityToken getTestUserToken(@RequestHeader(value = X_USER_EMAIL) String userEmail);
 
-    @GetMapping("/v2/users/0/state")
-    UserStateV2Dto getUserStateByIdWithAuthToken(@RequestHeader(AUTHORIZATION) String bearerAuth);
+    @GetMapping("/v2/users/{userId}/state")
+    UserStateV2Dto getUserStateByIdWithAuthToken(@PathVariable Long userId,
+                                                 @RequestHeader(AUTHORIZATION) String bearerAuth);
 
-    @GetMapping("/v2/users/0/state")
-    UserStateV2Dto getUserState();
+    @GetMapping("/v2/users/{userId}/state")
+    UserStateV2Dto getUserState(@PathVariable Long userId);
 }

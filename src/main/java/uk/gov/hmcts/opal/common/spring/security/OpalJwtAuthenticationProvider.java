@@ -14,6 +14,8 @@ import org.springframework.security.oauth2.server.resource.InvalidBearerTokenExc
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.util.Assert;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
+import uk.gov.hmcts.opal.common.user.authentication.exception.DownstreamAuthenticationServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -22,6 +24,8 @@ import java.util.Collection;
 
 @Slf4j
 public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
+    public static final String AUTHENTICATION_USER_SERVICE_DISABLED_DETAIL =
+        "Authentication was not possible because the required user-service endpoint is disabled.";
 
     private final JwtGrantedAuthoritiesConverter jwtGrantedAuthoritiesConverter;
     private final JwtDecoder jwtDecoder;
@@ -63,8 +67,16 @@ public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
         }
         Collection<GrantedAuthority> authorities = jwtGrantedAuthoritiesConverter.convert(jwt);
 
-        UserStateV2 userState = userStateClientService.getUserStateByAuthenticationToken(jwt)
-            .orElseThrow(() -> new InvalidBearerTokenException("User state not found for authenticated user"));
+        UserStateV2 userState;
+        try {
+            userState = userStateClientService.getUserStateByAuthenticationToken(jwt)
+                .orElseThrow(() -> new InvalidBearerTokenException("User state not found for authenticated user"));
+        } catch (DownstreamServiceUnavailableException failed) {
+            throw new DownstreamAuthenticationServiceUnavailableException(
+                AUTHENTICATION_USER_SERVICE_DISABLED_DETAIL,
+                failed
+            );
+        }
 
         return new OpalJwtAuthenticationToken(userState, domain, jwt, authorities, bearer.getDetails());
     }

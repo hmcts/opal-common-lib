@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
@@ -90,6 +91,57 @@ class CommonGlobalExceptionHandlerTest {
                 eq("Authentication"),
                 eq(localDateTime),
                 argThat(eventData -> "123".equals(eventData.get("UserIdentifier"))
+                    && ((String)eventData.get("Permission")).contains("READ_CASE")
+                    && ((String)eventData.get("Permission")).contains(String.valueOf(businessUnitId))
+                    && "/api/cases/1".equals(eventData.get("Resource"))));
+
+        }
+    }
+
+    @Test
+    void testHandlePermissionNotAllowedExceptionWhenUserStateLookupUnavailable() {
+
+        // Arrange
+        HttpServletRequest request = mock(HttpServletRequest.class);
+
+        LocalDateTime localDateTime = LocalDateTime.of(2025, 4, 1, 10, 0, 0, 0);
+        String opalOperationId = "op-id";
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getRequestTimestamp).thenReturn(localDateTime);
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opalOperationId);
+
+            Short businessUnitId = 42;
+
+            PermissionNotAllowedException exception =
+                new PermissionNotAllowedException(businessUnitId, TestPermission.READ_CASE);
+
+            when(userStateClientService.getUserStateByAuthenticatedUser()).thenThrow(
+                new DownstreamServiceUnavailableException("The required user-service endpoint is disabled.")
+            );
+            when(request.getPathInfo()).thenReturn("/api/cases/1");
+
+            // Act
+            ResponseEntity<ProblemDetail> response = handler.handlePermissionNotAllowedException(exception, request);
+
+            // Assert
+            assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+            assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+            ProblemDetail body = response.getBody();
+            assertNotNull(body);
+            assertEquals(HttpStatus.FORBIDDEN.value(), body.getStatus());
+            assertEquals("Forbidden", body.getTitle());
+            assertEquals("You do not have permission to access this resource", body.getDetail());
+            assertEquals("https://hmcts.gov.uk/problems/forbidden", body.getType().toString());
+            assertEquals("op-id", body.getProperties().get("operation_id"));
+            assertEquals(false, body.getProperties().get("retriable"));
+
+            verify(securityEventLoggingService).logEvent(
+                eq("Authorisation Access Control"),
+                eq("Failure"),
+                eq((short) 42),
+                eq("Authentication"),
+                eq(localDateTime),
+                argThat(eventData -> CommonGlobalExceptionHandler.UNKNOWN.equals(eventData.get("UserIdentifier"))
                     && ((String)eventData.get("Permission")).contains("READ_CASE")
                     && ((String)eventData.get("Permission")).contains(String.valueOf(businessUnitId))
                     && "/api/cases/1".equals(eventData.get("Resource"))));

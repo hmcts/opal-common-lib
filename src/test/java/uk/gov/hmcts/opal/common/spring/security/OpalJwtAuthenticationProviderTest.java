@@ -17,6 +17,8 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.resource.InvalidBearerTokenException;
 import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
+import uk.gov.hmcts.opal.common.user.authentication.exception.DownstreamAuthenticationServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
@@ -157,6 +159,31 @@ class OpalJwtAuthenticationProviderTest {
         verify(jwtDecoder).decode(rawToken);
         verify(jwtGrantedAuthoritiesConverter).convert(jwt);
         verify(userStateClientService).getUserStateByAuthenticationToken(jwt);
+    }
+
+    @Test
+    void authenticateShouldTranslateDownstreamServiceUnavailableIntoAuthenticationException() {
+        String rawToken = "feature-disabled-user-state-token";
+        BearerTokenAuthenticationToken bearerToken = new BearerTokenAuthenticationToken(rawToken);
+        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_USER");
+        List<GrantedAuthority> authorities = List.of(authority);
+        DownstreamServiceUnavailableException downstreamFailure =
+            new DownstreamServiceUnavailableException("The required user-service endpoint is disabled.");
+
+        when(jwtDecoder.decode(rawToken)).thenReturn(jwt);
+        when(jwtGrantedAuthoritiesConverter.convert(jwt)).thenReturn(authorities);
+        when(userStateClientService.getUserStateByAuthenticationToken(jwt)).thenThrow(downstreamFailure);
+
+        DownstreamAuthenticationServiceUnavailableException exception = assertThrows(
+            DownstreamAuthenticationServiceUnavailableException.class,
+            () -> finesAuthProvider.authenticate(bearerToken)
+        );
+
+        assertEquals(
+            OpalJwtAuthenticationProvider.AUTHENTICATION_USER_SERVICE_DISABLED_DETAIL,
+            exception.getMessage()
+        );
+        assertSame(downstreamFailure, exception.getCause());
     }
 
     @Test

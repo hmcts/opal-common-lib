@@ -32,7 +32,9 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.AuthenticationError;
 
 import java.lang.reflect.Method;
@@ -69,6 +71,14 @@ class OpalGlobalExceptionHandlerTest {
             new AccessDeniedException("nope"));
 
         assertProblem(response, HttpStatus.FORBIDDEN, "Forbidden", "forbidden", false);
+    }
+
+    @Test
+    void handleFeatureDisabled_returnsNotFoundProblemDetail() {
+        ResponseEntity<ProblemDetail> response = handler.handleFeatureDisabledException(
+            new FeatureDisabledException("disabled"));
+
+        assertProblem(response, HttpStatus.NOT_FOUND, "Feature Disabled", "feature-disabled", false);
     }
 
     @Test
@@ -183,6 +193,19 @@ class OpalGlobalExceptionHandlerTest {
                       HttpStatus.SERVICE_UNAVAILABLE, "Downstream Service Error", "downstream-service-error", true);
         assertProblem(handler.handleFeignException(buildFeignException(404, "Not Found")),
                       HttpStatus.NOT_FOUND, "Downstream Service Error", "downstream-service-error", false);
+    }
+
+    @Test
+    void handleDownstreamServiceUnavailable_returnsServiceUnavailableProblemDetail() {
+        assertProblem(
+            handler.handleDownstreamServiceUnavailableException(
+                new DownstreamServiceUnavailableException("The required user-service endpoint is disabled.")
+            ),
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Service Unavailable",
+            "downstream-service-unavailable",
+            false
+        );
     }
 
     @Test

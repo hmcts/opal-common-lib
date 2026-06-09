@@ -33,6 +33,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import uk.gov.hmcts.opal.common.contentdigest.InvalidContentDigestException;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.exception.OpalApiException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 
@@ -57,14 +58,14 @@ public class OpalGlobalExceptionHandler {
     @ExceptionHandler(FeatureDisabledException.class)
     public ResponseEntity<ProblemDetail> handleFeatureDisabledException(FeatureDisabledException ex) {
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.METHOD_NOT_ALLOWED,
+            HttpStatus.NOT_FOUND,
             "Feature Disabled",
             "The requested feature is not currently available",
             "feature-disabled",
             false,
             ex
         );
-        return responseWithProblemDetail(HttpStatus.METHOD_NOT_ALLOWED, problemDetail);
+        return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
 
     @ExceptionHandler(InvalidContentDigestException.class)
@@ -460,6 +461,21 @@ public class OpalGlobalExceptionHandler {
             ex
         );
         return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
+    }
+
+    @ExceptionHandler(DownstreamServiceUnavailableException.class)
+    public ResponseEntity<ProblemDetail> handleDownstreamServiceUnavailableException(
+        DownstreamServiceUnavailableException ex) {
+
+        ProblemDetail problemDetail = createProblemDetail(
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Service Unavailable",
+            ex.getMessage(),
+            "downstream-service-unavailable",
+            false,
+            ex
+        );
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
     @ExceptionHandler(FeignException.class)

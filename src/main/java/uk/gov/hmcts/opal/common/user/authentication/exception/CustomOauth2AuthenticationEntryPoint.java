@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.common.dto.ToJsonString;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import static uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService.AUTH_HEADER;
@@ -65,17 +66,30 @@ public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntry
             eventData
         );
 
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        String title = "Unauthorized";
+        String detail = "You are not authorized to access this resource";
+        String type = "unauthorized";
+        boolean retriable = false;
+
+        if (ex instanceof DownstreamAuthenticationServiceUnavailableException) {
+            status = HttpStatus.SERVICE_UNAVAILABLE;
+            title = "Service Unavailable";
+            detail = ex.getMessage();
+            type = "downstream-service-unavailable";
+        }
+
         ProblemDetail problemDetail = OpalProblemDetailFactory.createProblemDetail(
-            HttpStatus.UNAUTHORIZED,
-            "Unauthorized",
-            "You are not authorized to access this resource",
-            "unauthorized",
-            false,
+            status,
+            title,
+            detail,
+            type,
+            retriable,
             ex,
             log);
-        String problemDetailJson = ToJsonString.OBJECT_MAPPER.writeValueAsString(problemDetail);
+        String problemDetailJson = ToJsonString.OBJECT_MAPPER.writeValueAsString(toResponseBody(problemDetail));
 
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 
         try (PrintWriter writer = response.getWriter()) {
@@ -91,5 +105,16 @@ public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntry
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private Map<String, Object> toResponseBody(ProblemDetail problemDetail) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("type", Optional.ofNullable(problemDetail.getType()).map(Object::toString).orElse(null));
+        body.put("title", problemDetail.getTitle());
+        body.put("status", problemDetail.getStatus());
+        body.put("detail", problemDetail.getDetail());
+        body.put("instance", Optional.ofNullable(problemDetail.getInstance()).map(Object::toString).orElse(null));
+        body.putAll(problemDetail.getProperties());
+        return body;
     }
 }

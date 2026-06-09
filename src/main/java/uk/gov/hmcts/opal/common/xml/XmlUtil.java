@@ -17,6 +17,9 @@ import java.io.StringWriter;
 public final class XmlUtil {
 
     public static final String XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+    //Warning suppressed as was injected before Jenkins was enabled. This should be reviewed/resolved next time this
+    // class is opened
+    @SuppressWarnings("java:S2885")
     public static final SchemaFactory SCHEMA_FACTORY = SchemaFactory.newInstance(XML_SCHEMA);
 
     private XmlUtil() {

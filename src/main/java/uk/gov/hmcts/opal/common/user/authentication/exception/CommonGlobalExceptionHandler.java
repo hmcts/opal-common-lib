@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
+import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
@@ -34,7 +35,12 @@ public class CommonGlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex,
                                                                              HttpServletRequest request) {
 
-        UserStateV2 userState = userStateClientService.getUserStateByAuthenticatedUser().orElse(null);
+        UserStateV2 userState = null;
+        try {
+            userState = userStateClientService.getUserStateByAuthenticatedUser().orElse(null);
+        } catch (DownstreamServiceUnavailableException downstreamUnavailable) {
+            log.warn("Could not fetch user state while handling permission failure", downstreamUnavailable);
+        }
         String userId = userState != null ? String.valueOf(userState.getUserId()) : UNKNOWN;
 
         Short businessUnitId = ex.getBusinessUnitId();

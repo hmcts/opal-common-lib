@@ -1,7 +1,9 @@
 package uk.gov.hmcts.opal.common.user.authentication.exception;
 
+import tools.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,7 +13,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.AuthenticationException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
@@ -22,8 +23,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -70,16 +69,15 @@ class CustomOauth2AuthenticationEntryPointTest {
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 
-        ProblemDetail body = ToJsonString.getObjectMapper().readValue(output.toString(), ProblemDetail.class);
-        assertNotNull(body);
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), body.getStatus());
-        assertEquals("Unauthorized", body.getTitle());
-        assertEquals("You are not authorized to access this resource", body.getDetail());
-        assertEquals("https://hmcts.gov.uk/problems/unauthorized", body.getType().toString());
-        assertEquals("op-123", body.getProperties().get("operation_id"));
-        assertEquals(false, body.getProperties().get("retriable"));
-        assertEquals(401, body.getStatus());
-        assertEquals("Unauthorized", body.getTitle());
+        JsonNode body = ToJsonString.getObjectMapper().readTree(output.toString());
+        Assertions.assertNotNull(body);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED.value(), body.get("status").asInt());
+        Assertions.assertEquals("Unauthorized", body.get("title").asText());
+        Assertions.assertEquals("You are not authorized to access this resource", body.get("detail").asText());
+        Assertions.assertEquals("https://hmcts.gov.uk/problems/unauthorized", body.get("type").asText());
+        Assertions.assertEquals("op-123", body.get("operation_id").asText());
+        Assertions.assertFalse(body.get("retriable").asBoolean());
+        Assertions.assertEquals("Unauthorized", body.get("title").asText());
 
         verify(securityEventLoggingService).logEvent(
             eq("Authorisation Access Control"),
@@ -121,16 +119,15 @@ class CustomOauth2AuthenticationEntryPointTest {
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
 
-        ProblemDetail body = ToJsonString.getObjectMapper().readValue(output.toString(), ProblemDetail.class);
-        assertNotNull(body);
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), body.getStatus());
-        assertEquals("Unauthorized", body.getTitle());
-        assertEquals("You are not authorized to access this resource", body.getDetail());
-        assertEquals("https://hmcts.gov.uk/problems/unauthorized", body.getType().toString());
-        assertEquals("op-456", body.getProperties().get("operation_id"));
-        assertEquals(false, body.getProperties().get("retriable"));
-        assertEquals(401, body.getStatus());
-        assertEquals("Unauthorized", body.getTitle());
+        JsonNode body = ToJsonString.getObjectMapper().readTree(output.toString());
+        Assertions.assertNotNull(body);
+        Assertions.assertEquals(HttpStatus.UNAUTHORIZED.value(), body.get("status").asInt());
+        Assertions.assertEquals("Unauthorized", body.get("title").asText());
+        Assertions.assertEquals("You are not authorized to access this resource", body.get("detail").asText());
+        Assertions.assertEquals("https://hmcts.gov.uk/problems/unauthorized", body.get("type").asText());
+        Assertions.assertEquals("op-456", body.get("operation_id").asText());
+        Assertions.assertFalse(body.get("retriable").asBoolean());
+        Assertions.assertEquals("Unauthorized", body.get("title").asText());
 
         verify(securityEventLoggingService).logEvent(
             eq("Authorisation Access Control"),
@@ -141,5 +138,41 @@ class CustomOauth2AuthenticationEntryPointTest {
             argThat(eventData -> "192.168.1.10".equals(eventData.get("UserIdentifier"))
                 && "err_message".equals(eventData.get("Details"))
                 && "/test/fallback".equals(eventData.get("Resource"))));
+    }
+
+    @Test
+    void commenceShouldReturnServiceUnavailableProblemDetailForDisabledUserServiceEndpoint() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        DownstreamAuthenticationServiceUnavailableException authenticationException =
+            new DownstreamAuthenticationServiceUnavailableException(
+                "Authentication was not possible because the required user-service endpoint is disabled."
+            );
+
+        StringWriter output = new StringWriter();
+        when(response.getWriter()).thenReturn(new PrintWriter(output));
+        when(request.getHeader(AccessTokenService.AUTH_HEADER)).thenReturn("Bearer token-value");
+        when(tokenService.extractOid("Bearer token-value")).thenReturn("oid-123");
+        when(request.getRequestURI()).thenReturn("/test/disabled-user-service");
+
+        LocalDateTime timestamp = LocalDateTime.of(2026, 1, 3, 10, 0);
+        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
+            logUtilMock.when(LogUtil::getRequestTimestamp).thenReturn(timestamp);
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-789");
+
+            entryPoint.commence(request, response, authenticationException);
+        }
+
+        verify(response).setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+        verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+        JsonNode body = ToJsonString.getObjectMapper().readTree(output.toString());
+        Assertions.assertNotNull(body);
+        Assertions.assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), body.get("status").asInt());
+        Assertions.assertEquals("Service Unavailable", body.get("title").asText());
+        Assertions.assertEquals(authenticationException.getMessage(), body.get("detail").asText());
+        Assertions.assertEquals("https://hmcts.gov.uk/problems/downstream-service-unavailable", body.get("type").asText());
+        Assertions.assertEquals("op-789", body.get("operation_id").asText());
+        Assertions.assertEquals(false, body.get("retriable").asBoolean());
     }
 }

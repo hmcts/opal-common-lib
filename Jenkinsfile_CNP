@@ -1,6 +1,6 @@
 #!groovy
 
-@Library("Infrastructure")
+@Library("Infrastructure@releaseOnMerge")
 
 def type = "java"
 def product = "opal"
@@ -8,4 +8,5 @@ def component = "logging-service-integration-lib"
 
 withPipeline(type, product, component) {
     nonDeployableApp()
+    releaseOnMerge()
 }

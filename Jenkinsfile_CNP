@@ -1,6 +1,6 @@
 #!groovy
 
-@Library("Infrastructure@releaseOnMerge")
+@Library("Infrastructure")
 
 def type = "java"
 def product = "opal"

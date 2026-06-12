@@ -141,8 +141,8 @@ ext['snakeyaml.version'] = '2.0'
 dependencyManagement {
   imports {
     mavenBom "tools.jackson:jackson-bom:3.2.0"
-    mavenBom 'org.springframework.boot:spring-boot-dependencies:4.0.6'
-    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.1'
+    mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.0'
+    mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.2'
     mavenBom "io.netty:netty-bom:4.2.15.Final"
   }
 }
@@ -166,7 +166,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-security"
   implementation 'tools.jackson.core:jackson-databind'
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.1', {
+  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.2', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
   implementation 'org.hibernate.validator:hibernate-validator:9.1.0.Final'    // CVE-2025-15104 not yet fixed, so suppressed in owasp file

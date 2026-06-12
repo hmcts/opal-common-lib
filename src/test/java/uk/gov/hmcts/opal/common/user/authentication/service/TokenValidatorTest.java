@@ -93,8 +93,7 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt.serialize(),
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertTrue(validationResult.valid());
         assertNull(validationResult.reason());
@@ -116,8 +115,7 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt.serialize(),
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
         assertEquals("JWT missing required claims: [emails]", validationResult.reason());
@@ -139,8 +137,7 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt.serialize(),
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
         assertEquals("JWT missing required claims: [sub]", validationResult.reason());
@@ -162,8 +159,7 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt.serialize(),
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
         assertEquals("JWT missing required claims: [iat]", validationResult.reason());
@@ -185,11 +181,10 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt.serialize(),
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
-        assertEquals("JWT audience rejected: [INVALID AUDIENCE VALUE]", validationResult.reason());
+        assertEquals("JWT aud claim rejected", validationResult.reason());
     }
 
     @Test
@@ -209,14 +204,10 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt.serialize(),
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
-        assertEquals(
-            "JWT iss claim has value INVALID ISSUER VALUE, must be VALID ISSUER VALUE",
-            validationResult.reason()
-        );
+        assertEquals("JWT iss claim value rejected", validationResult.reason());
     }
 
     @Test
@@ -236,8 +227,7 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt.serialize(),
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
         assertEquals("Expired JWT", validationResult.reason());
@@ -264,8 +254,7 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwtWithMangledSignature,
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
         assertEquals("Signed JWT rejected: Invalid signature", validationResult.reason());
@@ -278,14 +267,10 @@ class TokenValidatorTest {
         JwtValidationResult validationResult = tokenValidator.validate(
             jwt,
             authenticationProviderConfiguration,
-            authenticationConfiguration
-        );
+            authenticationConfiguration);
 
         assertFalse(validationResult.valid());
-        assertEquals(
-            "Invalid JWT serialization: Missing dot delimiter(s)",
-            validationResult.reason()
-        );
+        assertEquals("Invalid JWT serialization: Missing dot delimiter(s)", validationResult.reason());
     }
 
     @SneakyThrows(NoSuchAlgorithmException.class)

@@ -38,9 +38,6 @@ public class UserStateClientService {
     private final ObjectMapper objectMapper;
 
 
-    @Cacheable(value = "userState",
-        key = "T(org.springframework.security.core.context.SecurityContextHolder)"
-            + ".getContext()?.getAuthentication()?.getName() ?: 'anonymous'")
     public Optional<UserStateV2> getUserStateByAuthenticatedUser() {
         log.info(":getUserState: Fetching user state for specific userId: 0");
 

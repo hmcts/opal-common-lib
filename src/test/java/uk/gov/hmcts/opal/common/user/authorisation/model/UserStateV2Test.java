@@ -65,7 +65,7 @@ class UserStateV2Test {
     }
 
     @Nested
-    class IsBusinessUnitPermittedForCurrentUser {
+    class IsBusinessUnitPermitted {
 
         @Test
         void whenBusinessUnitIdIsNull_returnsFalse_sadPath() {
@@ -73,7 +73,7 @@ class UserStateV2Test {
                 FINES, createDomainBusinessUnitUsers(createBusinessUnitUser("bu-1", (short) 10, VIEW_CASE))
             ));
 
-            boolean result = userStateV2.isBusinessUnitPermittedForCurrentUser(null, FINES);
+            boolean result = userStateV2.isBusinessUnitPermitted(null, FINES);
 
             assertThat(result).isFalse();
         }
@@ -87,7 +87,7 @@ class UserStateV2Test {
                 )
             ));
 
-            boolean result = userStateV2.isBusinessUnitPermittedForCurrentUser((short) 20, FINES);
+            boolean result = userStateV2.isBusinessUnitPermitted((short) 20, FINES);
 
             assertThat(result).isTrue();
         }
@@ -99,7 +99,7 @@ class UserStateV2Test {
                 USER, createDomainBusinessUnitUsers(createBusinessUnitUser("bu-2", (short) 20, EDIT_CASE))
             ));
 
-            boolean result = userStateV2.isBusinessUnitPermittedForCurrentUser((short) 20, FINES);
+            boolean result = userStateV2.isBusinessUnitPermitted((short) 20, FINES);
 
             assertThat(result).isFalse();
         }
@@ -142,32 +142,6 @@ class UserStateV2Test {
             boolean result = userStateV2.checkAnyBusinessUnitUserHasPermission(EDIT_CASE, FINES);
 
             assertThat(result).isFalse();
-        }
-    }
-
-    @Nested
-    class GetAllBusinessUnitUsersForCurrentUserForDomain {
-
-        @ParameterizedTest
-        @MethodSource("uk.gov.hmcts.opal.common.user.authorisation.model"
-            + ".UserStateV2TestData#emptyBusinessUnitUserStates")
-        void whenDomainHasNoUsers_returnsEmptyList_sadPath(UserStateV2 userStateV2) {
-            List<BusinessUnitUser> result = userStateV2.getAllBusinessUnitUsersForCurrentUserForDomain(FINES);
-
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        void whenDomainHasUsers_returnsBusinessUnitUsers_happyPath() {
-            BusinessUnitUser firstUser = createBusinessUnitUser("bu-1", (short) 10, VIEW_CASE);
-            BusinessUnitUser secondUser = createBusinessUnitUser("bu-2", (short) 20, EDIT_CASE);
-            UserStateV2 userStateV2 = createUserStateV2(Map.of(
-                FINES, createDomainBusinessUnitUsers(firstUser, secondUser)
-            ));
-
-            List<BusinessUnitUser> result = userStateV2.getAllBusinessUnitUsersForCurrentUserForDomain(FINES);
-
-            assertThat(result).containsExactly(firstUser, secondUser);
         }
     }
 

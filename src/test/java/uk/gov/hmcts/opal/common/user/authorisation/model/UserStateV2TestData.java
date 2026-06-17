@@ -61,14 +61,6 @@ public final class UserStateV2TestData {
         );
     }
 
-    public static Stream<UserStateV2> emptyBusinessUnitUserStates() {
-        return Stream.of(
-            createUserStateV2(Map.of(FINES, DomainBusinessUnitUsers.builder().businessUnitUsers(null).build())),
-            createUserStateV2(Map.of(FINES, createDomainBusinessUnitUsers())),
-            createUserStateV2(new HashMap<>())
-        );
-    }
-
     public static Stream<List<Long>> emptyBusinessUnitIdFilters() {
         return Stream.of(null, List.of());
     }

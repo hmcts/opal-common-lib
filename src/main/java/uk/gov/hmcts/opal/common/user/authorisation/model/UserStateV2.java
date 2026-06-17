@@ -72,12 +72,12 @@ public class UserStateV2 implements Serializable {
             DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
     }
 
-    public boolean isBusinessUnitPermittedForCurrentUser(Short businessUnitId, Domain domain) {
+    public boolean isBusinessUnitPermitted(Short businessUnitId, Domain domain) {
         if (businessUnitId == null) {
             return false;
         }
 
-        return getAllBusinessUnitUsersForCurrentUserForDomain(domain).stream()
+        return getDomainBusinessUnitUsers(domain).getBusinessUnitUsers().stream()
             .map(BusinessUnitUser::getBusinessUnitId)
             .anyMatch(id -> id.equals(businessUnitId));
     }
@@ -88,25 +88,12 @@ public class UserStateV2 implements Serializable {
             .anyMatch(buUser -> buUser.getPermissions().contains(permission));
     }
 
-    public List<BusinessUnitUser> getAllBusinessUnitUsersForCurrentUserForDomain(Domain domain) {
-
-        DomainBusinessUnitUsers domainBusinessUnitUsers = getDomainBusinessUnitUsers(domain);
-
-        if (domainBusinessUnitUsers == null
-            || domainBusinessUnitUsers.getBusinessUnitUsers() == null
-            || domainBusinessUnitUsers.getBusinessUnitUsers().isEmpty()) {
-            return List.of();
-        }
-
-        return domainBusinessUnitUsers.getBusinessUnitUsers();
-    }
-
     public List<BusinessUnitUser> getBusinessUnitUsersForBusinessUnitIds(List<Long> businessUnitIds, Domain domain) {
         if (businessUnitIds == null || businessUnitIds.isEmpty()) {
             return List.of();
         }
 
-        return getAllBusinessUnitUsersForCurrentUserForDomain(domain).stream()
+        return getDomainBusinessUnitUsers(domain).getBusinessUnitUsers().stream()
             .filter(buUser -> businessUnitIds.contains(buUser.getBusinessUnitId().longValue()))
             .toList();
     }

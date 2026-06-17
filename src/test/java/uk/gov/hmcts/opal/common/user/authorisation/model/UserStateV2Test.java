@@ -146,13 +146,13 @@ class UserStateV2Test {
     }
 
     @Nested
-    class GetAllBusinessUnitUsersForCurrentUser {
+    class GetAllBusinessUnitUsersForCurrentUserForDomain {
 
         @ParameterizedTest
         @MethodSource("uk.gov.hmcts.opal.common.user.authorisation.model"
             + ".UserStateV2TestData#emptyBusinessUnitUserStates")
         void whenDomainHasNoUsers_returnsEmptyList_sadPath(UserStateV2 userStateV2) {
-            List<BusinessUnitUser> result = userStateV2.getAllBusinessUnitUsersForCurrentUser(FINES);
+            List<BusinessUnitUser> result = userStateV2.getAllBusinessUnitUsersForCurrentUserForDomain(FINES);
 
             assertThat(result).isEmpty();
         }
@@ -165,7 +165,7 @@ class UserStateV2Test {
                 FINES, createDomainBusinessUnitUsers(firstUser, secondUser)
             ));
 
-            List<BusinessUnitUser> result = userStateV2.getAllBusinessUnitUsersForCurrentUser(FINES);
+            List<BusinessUnitUser> result = userStateV2.getAllBusinessUnitUsersForCurrentUserForDomain(FINES);
 
             assertThat(result).containsExactly(firstUser, secondUser);
         }

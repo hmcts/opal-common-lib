@@ -77,7 +77,7 @@ public class UserStateV2 implements Serializable {
             return false;
         }
 
-        return getAllBusinessUnitUsersForCurrentUser(domain).stream()
+        return getAllBusinessUnitUsersForCurrentUserForDomain(domain).stream()
             .map(BusinessUnitUser::getBusinessUnitId)
             .anyMatch(id -> id.equals(businessUnitId));
     }
@@ -88,7 +88,7 @@ public class UserStateV2 implements Serializable {
             .anyMatch(buUser -> buUser.getPermissions().contains(permission));
     }
 
-    public List<BusinessUnitUser> getAllBusinessUnitUsersForCurrentUser(Domain domain) {
+    public List<BusinessUnitUser> getAllBusinessUnitUsersForCurrentUserForDomain(Domain domain) {
 
         DomainBusinessUnitUsers domainBusinessUnitUsers = getDomainBusinessUnitUsers(domain);
 
@@ -106,7 +106,7 @@ public class UserStateV2 implements Serializable {
             return List.of();
         }
 
-        return getAllBusinessUnitUsersForCurrentUser(domain).stream()
+        return getAllBusinessUnitUsersForCurrentUserForDomain(domain).stream()
             .filter(buUser -> businessUnitIds.contains(buUser.getBusinessUnitId().longValue()))
             .toList();
     }

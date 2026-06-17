@@ -1,17 +1,16 @@
 package uk.gov.hmcts.opal.common.user.authorisation.client.service;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWTClaimNames;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
@@ -38,9 +37,6 @@ public class UserStateClientService {
     private final ObjectMapper objectMapper;
 
 
-    @Cacheable(value = "userState",
-        key = "T(org.springframework.security.core.context.SecurityContextHolder)"
-            + ".getContext()?.getAuthentication()?.getName() ?: 'anonymous'")
     public Optional<UserStateV2> getUserStateByAuthenticatedUser() {
         log.info(":getUserState: Fetching user state for specific userId: 0");
 
@@ -124,9 +120,9 @@ public class UserStateClientService {
             return handleUserServiceLookupException(
                 e,
                 String.format(":getUserStateFromUserService: User not found in User Service for subject: %s",
-                              tokenSubject),
+                    tokenSubject),
                 String.format(":getUserStateFromUserService: User service endpoint is disabled for subject: %s",
-                              tokenSubject)
+                    tokenSubject)
             );
         }
     }

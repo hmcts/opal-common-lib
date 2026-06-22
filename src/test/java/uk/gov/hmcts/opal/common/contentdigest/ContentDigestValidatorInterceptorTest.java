@@ -224,7 +224,7 @@ class ContentDigestValidatorInterceptorTest {
             ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
                 getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
             CachedBodyHttpServletRequest request = getEmptyRequest(null);
-
+            doReturn(false).when(interceptor).shouldSkipValidation(request);
             assertThatThrownBy(() -> interceptor.preHandle(request, null, null))
                 .isInstanceOf(InvalidContentDigestException.class)
                 .hasFieldOrPropertyWithValue("title", "Missing/Blank Content-Digest header")
@@ -250,7 +250,7 @@ class ContentDigestValidatorInterceptorTest {
             ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
                 getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
             CachedBodyHttpServletRequest request = getEmptyRequest(VALID_CONTENT_DIGEST_HEADER);
-
+            doReturn(false).when(interceptor).shouldSkipValidation(request);
             assertThatThrownBy(() -> interceptor.preHandle(request, null, null))
                 .isInstanceOf(InvalidContentDigestException.class)
                 .hasFieldOrPropertyWithValue("title", "Digest validation failed")

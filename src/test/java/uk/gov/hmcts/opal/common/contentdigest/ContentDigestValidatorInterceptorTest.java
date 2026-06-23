@@ -1,24 +1,31 @@
 package uk.gov.hmcts.opal.common.contentdigest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import feign.Request.HttpMethod;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import org.apache.tomcat.util.http.Method;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.opal.common.contentdigest.ContentDigestValidatorInterceptor.ContentDigest;
-
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("ContentDigestValidatorInterceptor")
@@ -37,13 +44,13 @@ class ContentDigestValidatorInterceptorTest {
     private static final String VALID_CONTENT_FOR_DIGEST = "request-body";
 
     private ContentDigestProperties getContentDigestProperties(boolean responseEnforce,
-                                                               Map<String, String> supportedAlgorithms) {
+        Map<String, String> supportedAlgorithms) {
         return getContentDigestProperties(false, responseEnforce, supportedAlgorithms);
     }
 
     private ContentDigestProperties getContentDigestProperties(boolean requestEnforce,
-                                                               boolean responseEnforce,
-                                                               Map<String, String> supportedAlgorithms) {
+        boolean responseEnforce,
+        Map<String, String> supportedAlgorithms) {
         ContentDigestProperties.Request request = new ContentDigestProperties.Request(requestEnforce, false);
         ContentDigestProperties.Response response = new ContentDigestProperties.Response(responseEnforce, "SHA-512");
         return new ContentDigestProperties(supportedAlgorithms, request, response);
@@ -51,7 +58,7 @@ class ContentDigestValidatorInterceptorTest {
 
     private ContentDigestValidatorInterceptor getValidContentDigestValidatorInterceptor() {
         return new ContentDigestValidatorInterceptor(getContentDigestProperties(true,
-                                                                                VALID_SUPPORTED_ALGORITHMS));
+            VALID_SUPPORTED_ALGORITHMS));
     }
 
     @DisplayName("Constructor initialization")
@@ -63,11 +70,11 @@ class ContentDigestValidatorInterceptorTest {
 
         assertThat(interceptor.isEnforce()).isTrue();
         assertThat(interceptor.getRfcToJca()).containsExactlyInAnyOrderEntriesOf(Map.of("sha-256", "SHA-256",
-                                                                                        "sha-512", "SHA-512"));
+            "sha-512", "SHA-512"));
         assertThat(interceptor.getSupportedAlgorithms()).containsExactly("sha-256", "sha-512");
 
         interceptor = new ContentDigestValidatorInterceptor(getContentDigestProperties(false,
-                                                                                       VALID_SUPPORTED_ALGORITHMS));
+            VALID_SUPPORTED_ALGORITHMS));
 
         assertThat(interceptor.isEnforce()).isFalse();
         assertThat(interceptor.getRfcToJca()).containsExactlyInAnyOrderEntriesOf(VALID_SUPPORTED_ALGORITHMS);
@@ -143,7 +150,7 @@ class ContentDigestValidatorInterceptorTest {
                 .isInstanceOf(InvalidContentDigestException.class)
                 .hasFieldOrPropertyWithValue("title", "Missing/Blank Content-Digest header")
                 .hasFieldOrPropertyWithValue("detail",
-                                             "The Content-Digest header must be provided with a non blank value.");
+                    "The Content-Digest header must be provided with a non blank value.");
         }
     }
 
@@ -155,6 +162,7 @@ class ContentDigestValidatorInterceptorTest {
             CachedBodyHttpServletRequest request = mock(CachedBodyHttpServletRequest.class);
             lenient().doReturn(VALID_CONTENT_DIGEST_HEADER)
                 .when(request).getHeader("Content-Digest");
+            lenient().doReturn(Method.POST).when(request).getMethod();
             lenient().doReturn(VALID_CONTENT_FOR_DIGEST.getBytes()).when(request).getCachedBody();
             return request;
         }
@@ -202,12 +210,12 @@ class ContentDigestValidatorInterceptorTest {
             ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
                 getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
             HttpServletRequest request = mock(HttpServletRequest.class);
-
+            doReturn(false).when(interceptor).shouldSkipValidation(request);
             assertThatThrownBy(() -> interceptor.preHandle(request, null, null))
                 .isInstanceOf(InvalidContentDigestException.class)
                 .hasFieldOrPropertyWithValue("title", "Content-Digest configuration error")
                 .hasFieldOrPropertyWithValue("detail",
-                                             "Request body was not cached before Content-Digest validation.");
+                    "Request body was not cached before Content-Digest validation.");
         }
 
         @DisplayName("Should reject empty body when enforcement is enabled and Content-Digest header is missing")
@@ -216,12 +224,12 @@ class ContentDigestValidatorInterceptorTest {
             ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
                 getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
             CachedBodyHttpServletRequest request = getEmptyRequest(null);
-
+            doReturn(false).when(interceptor).shouldSkipValidation(request);
             assertThatThrownBy(() -> interceptor.preHandle(request, null, null))
                 .isInstanceOf(InvalidContentDigestException.class)
                 .hasFieldOrPropertyWithValue("title", "Missing/Blank Content-Digest header")
                 .hasFieldOrPropertyWithValue("detail",
-                                             "The Content-Digest header must be provided with a non blank value.");
+                    "The Content-Digest header must be provided with a non blank value.");
         }
 
         @DisplayName("Should pass validation for empty body when enforcement is enabled and Content-Digest is valid")
@@ -242,7 +250,7 @@ class ContentDigestValidatorInterceptorTest {
             ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
                 getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
             CachedBodyHttpServletRequest request = getEmptyRequest(VALID_CONTENT_DIGEST_HEADER);
-
+            doReturn(false).when(interceptor).shouldSkipValidation(request);
             assertThatThrownBy(() -> interceptor.preHandle(request, null, null))
                 .isInstanceOf(InvalidContentDigestException.class)
                 .hasFieldOrPropertyWithValue("title", "Digest validation failed")
@@ -296,19 +304,45 @@ class ContentDigestValidatorInterceptorTest {
                 .hasFieldOrPropertyWithValue("title", "Digest validation failed")
                 .hasFieldOrPropertyWithValue("detail", "Body hash did not match for algorithm: sha-512");
         }
+    }
 
-        @DisplayName("Should fail validation when enforcement is disabled and Content-Digest is invalid")
-        @Test
-        void shouldFailValidationWhenEnforcementIsDisabledAndContentDigestIsInvalid() {
+    @Nested
+    @DisplayName("shouldSkipValidation")
+    class ShouldSkipValidation {
+
+        @ValueSource(strings = {"GET", "HEAD", "DELETE", "CONNECT", "OPTIONS", "TRACE"})
+        @ParameterizedTest
+        void shouldSkipValidation_whenNotPostPutOrPatch_andEnforceIsEnabled(String method) {
+            ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
+                getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
+
+            CachedBodyHttpServletRequest request = mock(CachedBodyHttpServletRequest.class);
+            lenient().doReturn(method).when(request).getMethod();
+            assertTrue(interceptor.shouldSkipValidation(request));
+        }
+
+        @ValueSource(strings = {"POST", "PUT", "PATCH"})
+        @ParameterizedTest
+        void shouldNotSkipValidation_whenNotPostPutOrPatch_andEnforceIsEnabled(HttpMethod method) {
+            ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
+                getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
+
+            CachedBodyHttpServletRequest request = mock(CachedBodyHttpServletRequest.class);
+            lenient().doReturn(method.name()).when(request).getMethod();
+            assertFalse(interceptor.shouldSkipValidation(request));
+        }
+
+        @ValueSource(strings = {"POST", "PUT", "PATCH"})
+        @ParameterizedTest
+        void shouldNotSkipValidation_whenNotPostPutOrPatch_andEnforceIsDisabled_butTheContentDigestHeaderIsAdded(
+            HttpMethod method) {
             ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
                 getContentDigestProperties(false, VALID_SUPPORTED_ALGORITHMS)));
-            CachedBodyHttpServletRequest request = getValidRequest();
-            lenient().doReturn("some-value-invalid".getBytes()).when(request).getCachedBody();
 
-            assertThatThrownBy(() -> interceptor.preHandle(request, null, null))
-                .isInstanceOf(InvalidContentDigestException.class)
-                .hasFieldOrPropertyWithValue("title", "Digest validation failed")
-                .hasFieldOrPropertyWithValue("detail", "Body hash did not match for algorithm: sha-512");
+            CachedBodyHttpServletRequest request = mock(CachedBodyHttpServletRequest.class);
+            when(request.getHeader("Content-Digest")).thenReturn("some content");
+            lenient().doReturn(method.name()).when(request).getMethod();
+            assertFalse(interceptor.shouldSkipValidation(request));
         }
     }
 
@@ -447,7 +481,7 @@ class ContentDigestValidatorInterceptorTest {
             void shouldThrowExceptionWhenMappedJcaAlgorithmIsNotSupported() {
                 ContentDigestValidatorInterceptor interceptor = new ContentDigestValidatorInterceptor(
                     getContentDigestProperties(true,
-                                               Map.of("sha-512", "not-a-real-jca-algorithm")));
+                        Map.of("sha-512", "not-a-real-jca-algorithm")));
                 ContentDigest contentDigest = interceptor.new ContentDigest(VALID_CONTENT_DIGEST_HEADER);
 
                 assertThatThrownBy(contentDigest::getMessageDigest)

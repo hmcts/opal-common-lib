@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -23,9 +24,9 @@ import java.io.PrintWriter;
 public class CustomAuthenticationExceptions implements AuthenticationEntryPoint, AccessDeniedHandler {
 
     @Override
-    public void commence(HttpServletRequest request,
-                         HttpServletResponse response,
-                         AuthenticationException authException) throws IOException {
+    public void commence(@NonNull HttpServletRequest request,
+                         @NonNull HttpServletResponse response,
+                         @NonNull AuthenticationException authException) throws IOException {
         if (checkForNotFound(response, authException)) {
             return;
         }
@@ -36,7 +37,8 @@ public class CustomAuthenticationExceptions implements AuthenticationEntryPoint,
             "unauthorized",
             false,
             authException,
-            log
+            log,
+            response.getHeader("operation_id")
         );
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -62,7 +64,8 @@ public class CustomAuthenticationExceptions implements AuthenticationEntryPoint,
             "forbidden",
             false,
             accessDeniedException,
-            log
+            log,
+            response.getHeader("operation_id")
         );
 
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
@@ -90,7 +93,8 @@ public class CustomAuthenticationExceptions implements AuthenticationEntryPoint,
             "entity-not-found",
             false,
             entityNotFoundException,
-            log
+            log,
+            response.getHeader("operation_id")
         );
         problemDetail.setProperty("reason", entityNotFoundException.getMessage());
 

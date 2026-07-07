@@ -86,7 +86,9 @@ public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntry
             type,
             retriable,
             ex,
-            log);
+            log,
+            response.getHeader("operation_id")
+        );
         String problemDetailJson = ToJsonString.OBJECT_MAPPER.writeValueAsString(toResponseBody(problemDetail));
 
         response.setStatus(status.value());

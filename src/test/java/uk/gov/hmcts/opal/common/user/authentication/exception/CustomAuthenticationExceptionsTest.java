@@ -5,15 +5,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
-import uk.gov.hmcts.opal.common.logging.LogUtil;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -43,13 +40,10 @@ class CustomAuthenticationExceptionsTest {
 
     @Test
     void commenceShouldReturnUnauthorizedProblemDetail() throws IOException {
+        when(response.getHeader("operation_id")).thenReturn("op-auth");
+
         AuthenticationException authException = mock(AuthenticationException.class);
-
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-auth");
-
-            customAuthenticationExceptions.commence(request, response, authException);
-        }
+        customAuthenticationExceptions.commence(request, response, authException);
 
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
@@ -65,13 +59,10 @@ class CustomAuthenticationExceptionsTest {
 
     @Test
     void handleShouldReturnForbiddenProblemDetail() throws IOException {
+        when(response.getHeader("operation_id")).thenReturn("op-forbidden");
+
         AccessDeniedException accessDeniedException = mock(AccessDeniedException.class);
-
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-forbidden");
-
-            customAuthenticationExceptions.handle(request, response, accessDeniedException);
-        }
+        customAuthenticationExceptions.handle(request, response, accessDeniedException);
 
         verify(response).setStatus(HttpServletResponse.SC_FORBIDDEN);
         verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
@@ -87,18 +78,15 @@ class CustomAuthenticationExceptionsTest {
 
     @Test
     void commenceShouldReturnNotFoundWhenEntityNotFoundIsInCauseChain() throws IOException {
+        when(response.getHeader("operation_id")).thenReturn("op-auth-404");
+
         EntityNotFoundException entityNotFoundException = new EntityNotFoundException("User record not found");
         AuthenticationException authException = new AuthenticationException(
             "Authentication failed",
             new RuntimeException(entityNotFoundException)
         ) {
         };
-
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-auth-404");
-
-            customAuthenticationExceptions.commence(request, response, authException);
-        }
+        customAuthenticationExceptions.commence(request, response, authException);
 
         verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
         verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
@@ -115,17 +103,14 @@ class CustomAuthenticationExceptionsTest {
 
     @Test
     void handleShouldReturnNotFoundWhenEntityNotFoundIsInCauseChain() throws IOException {
+        when(response.getHeader("operation_id")).thenReturn("op-forbidden-404");
         EntityNotFoundException entityNotFoundException = new EntityNotFoundException("Permission target not found");
         AccessDeniedException accessDeniedException = new AccessDeniedException(
             "Access denied",
             new RuntimeException(entityNotFoundException)
         );
 
-        try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
-            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-forbidden-404");
-
-            customAuthenticationExceptions.handle(request, response, accessDeniedException);
-        }
+        customAuthenticationExceptions.handle(request, response, accessDeniedException);
 
         verify(response).setStatus(HttpServletResponse.SC_NOT_FOUND);
         verify(response).setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);

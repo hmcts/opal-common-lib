@@ -6,7 +6,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
-import uk.gov.hmcts.opal.common.logging.LogUtil;
 
 import java.net.URI;
 
@@ -17,8 +16,7 @@ public final class OpalProblemDetailFactory {
 
     public static ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
                                                     String typeUri, boolean retry, Throwable exception,
-                                                    Logger log) {
-        String opalOperationId = LogUtil.getOrCreateOpalOperationId();
+                                                    Logger log, String opalOperationId) {
         log.error("Error ID {}:", opalOperationId, exception);
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);

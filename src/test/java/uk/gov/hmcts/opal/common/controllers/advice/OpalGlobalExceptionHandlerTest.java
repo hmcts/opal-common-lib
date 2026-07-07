@@ -9,6 +9,7 @@ import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
 import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.access.AccessDeniedException;
@@ -52,6 +54,14 @@ class OpalGlobalExceptionHandlerTest {
 
     private final OpalGlobalExceptionHandler handler = new OpalGlobalExceptionHandler();
 
+    private MockHttpServletResponse httpServletResponse;
+
+    @BeforeEach
+    void setUp() {
+        httpServletResponse = new MockHttpServletResponse();
+        httpServletResponse.setHeader("operation_id", "12345");
+    }
+
     @Test
     void handleMissingRequestHeader_returnsBadRequestProblemDetail() throws Exception {
         Method m = TestMissingHeaderClass.class.getMethod("testMethod", String.class);
@@ -60,7 +70,8 @@ class OpalGlobalExceptionHandlerTest {
             "Authorization",
             new org.springframework.core.MethodParameter(m, 0));
 
-        ResponseEntity<ProblemDetail> response = handler.handleMissingRequestHeaderException(ex);
+        ResponseEntity<ProblemDetail> response = handler
+            .handleMissingRequestHeaderException(ex, httpServletResponse);
 
         assertProblem(response, HttpStatus.BAD_REQUEST, "Missing Required Header", "missing-header", false);
     }
@@ -68,7 +79,7 @@ class OpalGlobalExceptionHandlerTest {
     @Test
     void handleAccessDenied_returnsForbiddenProblemDetail() {
         ResponseEntity<ProblemDetail> response = handler.handleAccessDeniedException(
-            new AccessDeniedException("nope"));
+            new AccessDeniedException("nope"), httpServletResponse);
 
         assertProblem(response, HttpStatus.FORBIDDEN, "Forbidden", "forbidden", false);
     }
@@ -76,7 +87,7 @@ class OpalGlobalExceptionHandlerTest {
     @Test
     void handleFeatureDisabled_returnsNotFoundProblemDetail() {
         ResponseEntity<ProblemDetail> response = handler.handleFeatureDisabledException(
-            new FeatureDisabledException("disabled"));
+            new FeatureDisabledException("disabled"), httpServletResponse);
 
         assertProblem(response, HttpStatus.NOT_FOUND, "Feature Disabled", "feature-disabled", false);
     }
@@ -84,7 +95,7 @@ class OpalGlobalExceptionHandlerTest {
     @Test
     void handleCommonRequestErrors_areNonRetriable() throws Exception {
         ResponseEntity<ProblemDetail> notAcceptable = handler.handleHttpMediaTypeNotAcceptableException(
-            new HttpMediaTypeNotAcceptableException("nope"));
+            new HttpMediaTypeNotAcceptableException("nope"), httpServletResponse);
         assertProblem(notAcceptable, HttpStatus.NOT_ACCEPTABLE, "Not Acceptable", "not-acceptable", false);
 
         Method method = OpalGlobalExceptionHandlerTest.class.getMethod("sampleMethod", Integer.class);
@@ -94,53 +105,119 @@ class OpalGlobalExceptionHandlerTest {
             "sample",
             new org.springframework.core.MethodParameter(method, 0),
             new NumberFormatException("bad"));
-        assertProblem(handler.handleMethodArgumentTypeMismatchException(typeMismatch), HttpStatus.NOT_ACCEPTABLE,
-                      "Not Acceptable", "type-mismatch", false);
+        assertProblem(
+            handler.handleMethodArgumentTypeMismatchException(typeMismatch, httpServletResponse),
+            HttpStatus.NOT_ACCEPTABLE,
+            "Not Acceptable",
+            "type-mismatch",
+            false
+        );
 
         HttpInputMessage inputMessage = mock(HttpInputMessage.class);
-        assertProblem(handler.handleHttpMessageNotReadableException(new HttpMessageNotReadableException("bad",
-                                                                                                        inputMessage)),
-                      HttpStatus.BAD_REQUEST, "Bad Request", "message-not-readable", false);
-        assertProblem(handler.handleHttpMediaTypeNotSupportedException(new HttpMediaTypeNotSupportedException("bad")),
-                      HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type", "unsupported-media-type", false);
+        assertProblem(
+            handler.handleHttpMessageNotReadableException(
+                new HttpMessageNotReadableException("bad", inputMessage),
+                httpServletResponse
+            ),
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
+            "message-not-readable",
+            false
+        );
+
+        assertProblem(
+            handler.handleHttpMediaTypeNotSupportedException(
+                new HttpMediaTypeNotSupportedException("bad"),
+                httpServletResponse
+            ),
+            HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+            "Unsupported Media Type",
+            "unsupported-media-type",
+            false
+        );
     }
 
     @Test
     void handlePersistenceLookupErrors_returnExpectedProblemDetails() throws Exception {
-        assertProblem(handler.handleEntityNotFoundException(new EntityNotFoundException("missing")),
-                      HttpStatus.NOT_FOUND, "Entity Not Found", "entity-not-found", false);
-        assertProblem(handler.handleNoSuchElementException(new NoSuchElementException("missing")),
-                      HttpStatus.NOT_FOUND, "No Value Present", "no-such-element", false);
-        assertProblem(handler.handleServletExceptions(new NoResourceFoundException(HttpMethod.GET, "/x", "missing")),
-                      HttpStatus.NOT_FOUND, "Not Found", "resource-not-found", false);
+        assertProblem(
+            handler.handleEntityNotFoundException(
+                new EntityNotFoundException("missing"),
+                httpServletResponse
+            ),
+            HttpStatus.NOT_FOUND,
+            "Entity Not Found",
+            "entity-not-found",
+            false
+        );
+
+        assertProblem(
+            handler.handleNoSuchElementException(
+                new NoSuchElementException("missing"),
+                httpServletResponse
+            ),
+            HttpStatus.NOT_FOUND,
+            "No Value Present",
+            "no-such-element", false);
+
+        assertProblem(
+            handler.handleServletExceptions(
+                new NoResourceFoundException(HttpMethod.GET, "/x", "missing"),
+                httpServletResponse
+            ),
+            HttpStatus.NOT_FOUND,
+            "Not Found",
+            "resource-not-found",
+            false
+        );
     }
 
     @Test
     void handleTimeoutAndTransientDatabaseErrors_areRetriable() {
-        assertProblem(handler.handleServletExceptions(new QueryTimeoutException("timeout", null, null)),
-                      HttpStatus.REQUEST_TIMEOUT, "Request Timeout", "query-timeout", true);
-        assertProblem(handler.handleSqlException(new SQLException("connect", "08001")),
+        assertProblem(
+            handler.handleServletExceptions(
+                new QueryTimeoutException("timeout", null, null),
+                httpServletResponse
+            ),
+            HttpStatus.REQUEST_TIMEOUT,
+            "Request Timeout",
+            "query-timeout",
+            true
+        );
+        assertProblem(handler.handleSqlException(new SQLException("connect", "08001"), httpServletResponse),
                       HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "database-unavailable", true);
-        assertProblem(handler.handleDataAccessResourceFailureException(new DataAccessResourceFailureException("down")),
-                      HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "database-unavailable", true);
+        assertProblem(
+            handler.handleDataAccessResourceFailureException(
+                new DataAccessResourceFailureException("down"),
+                httpServletResponse
+            ),
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Service Unavailable",
+            "database-unavailable",
+            true
+        );
 
         TransactionSystemException transaction = new TransactionSystemException(
             "tx",
             new SQLException("deadlock", "40P01"));
-        assertProblem(handler.handleServletExceptions(transaction), HttpStatus.INTERNAL_SERVER_ERROR,
-                      "Transaction Error", "transaction-error", true);
+        assertProblem(
+            handler.handleServletExceptions(transaction, httpServletResponse),
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Transaction Error",
+            "transaction-error",
+            true
+        );
 
         JpaSystemException jpa = new JpaSystemException(new RuntimeException(new SQLException("serial", "40001")));
-        assertProblem(handler.handleJpaSystemException(jpa), HttpStatus.INTERNAL_SERVER_ERROR,
+        assertProblem(handler.handleJpaSystemException(jpa, httpServletResponse), HttpStatus.INTERNAL_SERVER_ERROR,
                       OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR, "jpa-system-error", true);
     }
 
     @Test
     void handleNonTransientDatabaseErrors_areNotRetriable() {
-        assertProblem(handler.handleSqlException(new SQLException("syntax", "42601")),
+        assertProblem(handler.handleSqlException(new SQLException("syntax", "42601"), httpServletResponse),
                       HttpStatus.INTERNAL_SERVER_ERROR, OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR,
                       "database-error", false);
-        assertProblem(handler.handleServletExceptions(new PersistenceException("oops")),
+        assertProblem(handler.handleServletExceptions(new PersistenceException("oops"), httpServletResponse),
                       HttpStatus.INTERNAL_SERVER_ERROR, OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR,
                       "servlet-error", false);
     }
@@ -148,7 +225,8 @@ class OpalGlobalExceptionHandlerTest {
     @Test
     void handleOrmAndConflictErrors_includeContextAndNoRetry() {
         PropertyValueException property = new PropertyValueException("missing", "Entity", "name");
-        ResponseEntity<ProblemDetail> propertyResponse = handler.handlePropertyValueException(property);
+        ResponseEntity<ProblemDetail> propertyResponse = handler
+            .handlePropertyValueException(property, httpServletResponse);
         assertProblem(propertyResponse, HttpStatus.INTERNAL_SERVER_ERROR, "Property Value Error",
                       "property-value-error", false);
         assertEquals("Entity", propertyResponse.getBody().getProperties().get("entity"));
@@ -157,7 +235,8 @@ class OpalGlobalExceptionHandlerTest {
         ObjectOptimisticLockingFailureException optimisticLock = new ObjectOptimisticLockingFailureException(
             String.class,
             "123");
-        ResponseEntity<ProblemDetail> conflict = handler.handleObjectOptimisticLockingFailureException(optimisticLock);
+        ResponseEntity<ProblemDetail> conflict = handler
+            .handleObjectOptimisticLockingFailureException(optimisticLock, httpServletResponse);
         assertProblem(conflict, HttpStatus.CONFLICT, "Conflict", "optimistic-locking", false);
         assertEquals(String.class.getName(), conflict.getBody().getProperties().get("resourceType"));
         assertEquals("123", conflict.getBody().getProperties().get("resourceId"));
@@ -172,7 +251,7 @@ class OpalGlobalExceptionHandlerTest {
             "constraint-name");
 
         ResponseEntity<ProblemDetail> response = handler.handleDataIntegrityViolationException(
-            new DataIntegrityViolationException("bad", constraint));
+            new DataIntegrityViolationException("bad", constraint), httpServletResponse);
 
         assertProblem(response, HttpStatus.CONFLICT, "Conflict", "resource-conflict", false);
         assertEquals("constraint-name", response.getBody().getProperties().get("constraintViolated"));
@@ -186,12 +265,22 @@ class OpalGlobalExceptionHandlerTest {
             HttpHeaders.EMPTY,
             null,
             null);
-        assertProblem(handler.handleHttpServerErrorException(http503), HttpStatus.INTERNAL_SERVER_ERROR,
-                      "Downstream Server Error", "http-server-error", true);
+        assertProblem(
+            handler.handleHttpServerErrorException(http503, httpServletResponse),
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Downstream Server Error",
+            "http-server-error",
+            true
+        );
 
-        assertProblem(handler.handleFeignException(buildFeignException(503, "Service Unavailable")),
-                      HttpStatus.SERVICE_UNAVAILABLE, "Downstream Service Error", "downstream-service-error", true);
-        assertProblem(handler.handleFeignException(buildFeignException(404, "Not Found")),
+        assertProblem(
+            handler.handleFeignException(buildFeignException(503, "Service Unavailable"), httpServletResponse),
+            HttpStatus.SERVICE_UNAVAILABLE,
+            "Downstream Service Error",
+            "downstream-service-error",
+            true
+        );
+        assertProblem(handler.handleFeignException(buildFeignException(404, "Not Found"), httpServletResponse),
                       HttpStatus.NOT_FOUND, "Downstream Service Error", "downstream-service-error", false);
     }
 
@@ -199,7 +288,8 @@ class OpalGlobalExceptionHandlerTest {
     void handleDownstreamServiceUnavailable_returnsServiceUnavailableProblemDetail() {
         assertProblem(
             handler.handleDownstreamServiceUnavailableException(
-                new DownstreamServiceUnavailableException("The required user-service endpoint is disabled.")
+                new DownstreamServiceUnavailableException("The required user-service endpoint is disabled."),
+                httpServletResponse
             ),
             HttpStatus.SERVICE_UNAVAILABLE,
             "Service Unavailable",
@@ -211,10 +301,10 @@ class OpalGlobalExceptionHandlerTest {
     @Test
     void handleResponseStatusException_returnsProblemJsonWithRetryFlag() {
         assertProblem(handler.handleResponseStatusException(
-            new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "down")),
+            new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "down"), httpServletResponse),
                       HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "response-status", true);
         assertProblem(handler.handleResponseStatusException(
-            new ResponseStatusException(HttpStatus.BAD_REQUEST, "bad")),
+            new ResponseStatusException(HttpStatus.BAD_REQUEST, "bad"), httpServletResponse),
                       HttpStatus.BAD_REQUEST, "Bad Request", "response-status", false);
     }
 
@@ -223,7 +313,7 @@ class OpalGlobalExceptionHandlerTest {
         OpalApiException exception = new OpalApiException(
             AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
 
-        assertProblem(handler.handleOpalApiException(exception), HttpStatus.INTERNAL_SERVER_ERROR,
+        assertProblem(handler.handleOpalApiException(exception, httpServletResponse), HttpStatus.INTERNAL_SERVER_ERROR,
                       OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR, "opal-api-error", false);
     }
 

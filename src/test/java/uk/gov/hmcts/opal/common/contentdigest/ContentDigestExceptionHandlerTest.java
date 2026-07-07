@@ -1,10 +1,12 @@
 package uk.gov.hmcts.opal.common.contentdigest;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletResponse;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalGlobalExceptionHandler;
 
 import java.util.List;
@@ -17,6 +19,14 @@ class ContentDigestExceptionHandlerTest {
 
     private final OpalGlobalExceptionHandler handler = new OpalGlobalExceptionHandler();
 
+    private MockHttpServletResponse httpServletResponse;
+
+    @BeforeEach
+    void setUp() {
+        httpServletResponse = new MockHttpServletResponse();
+        httpServletResponse.setHeader("operation_id", "12345");
+    }
+
     @Test
     void handleContentDigestException_returnsProblemDetail() {
         InvalidContentDigestException exception = new InvalidContentDigestException(
@@ -24,7 +34,8 @@ class ContentDigestExceptionHandlerTest {
             "Unsupported digest algorithm: sha-256. Supported algorithms (sha-512).",
             List.of("sha-512"));
 
-        ResponseEntity<ProblemDetail> response = handler.handleInvalidContentDigestException(exception);
+        ResponseEntity<ProblemDetail> response = handler
+            .handleInvalidContentDigestException(exception, httpServletResponse);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
@@ -45,7 +56,8 @@ class ContentDigestExceptionHandlerTest {
             "Digest validation failed",
             "Body hash did not match for algorithm: sha-512");
 
-        ResponseEntity<ProblemDetail> response = handler.handleInvalidContentDigestException(exception);
+        ResponseEntity<ProblemDetail> response = handler
+            .handleInvalidContentDigestException(exception, httpServletResponse);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());

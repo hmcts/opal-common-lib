@@ -33,7 +33,7 @@ public class CommonGlobalExceptionHandler {
 
     @ExceptionHandler({PermissionNotAllowedException.class})
     public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex,
-        HttpServletRequest request) {
+                                                                             HttpServletRequest request) {
 
         UserStateV2 userState = null;
         try {

@@ -95,54 +95,54 @@ class OpalGlobalExceptionHandlerTest {
             new org.springframework.core.MethodParameter(method, 0),
             new NumberFormatException("bad"));
         assertProblem(handler.handleMethodArgumentTypeMismatchException(typeMismatch), HttpStatus.NOT_ACCEPTABLE,
-            "Not Acceptable", "type-mismatch", false);
+                      "Not Acceptable", "type-mismatch", false);
 
         HttpInputMessage inputMessage = mock(HttpInputMessage.class);
         assertProblem(handler.handleHttpMessageNotReadableException(new HttpMessageNotReadableException("bad",
-                inputMessage)),
-            HttpStatus.BAD_REQUEST, "Bad Request", "message-not-readable", false);
+                                                                                                        inputMessage)),
+                      HttpStatus.BAD_REQUEST, "Bad Request", "message-not-readable", false);
         assertProblem(handler.handleHttpMediaTypeNotSupportedException(new HttpMediaTypeNotSupportedException("bad")),
-            HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type", "unsupported-media-type", false);
+                      HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type", "unsupported-media-type", false);
     }
 
     @Test
     void handlePersistenceLookupErrors_returnExpectedProblemDetails() throws Exception {
         assertProblem(handler.handleEntityNotFoundException(new EntityNotFoundException("missing")),
-            HttpStatus.NOT_FOUND, "Entity Not Found", "entity-not-found", false);
+                      HttpStatus.NOT_FOUND, "Entity Not Found", "entity-not-found", false);
         assertProblem(handler.handleNoSuchElementException(new NoSuchElementException("missing")),
-            HttpStatus.NOT_FOUND, "No Value Present", "no-such-element", false);
+                      HttpStatus.NOT_FOUND, "No Value Present", "no-such-element", false);
         assertProblem(handler.handleServletExceptions(new NoResourceFoundException(HttpMethod.GET, "/x", "missing")),
-            HttpStatus.NOT_FOUND, "Not Found", "resource-not-found", false);
+                      HttpStatus.NOT_FOUND, "Not Found", "resource-not-found", false);
     }
 
     @Test
     void handleTimeoutAndTransientDatabaseErrors_areRetriable() {
         assertProblem(handler.handleServletExceptions(new QueryTimeoutException("timeout", null, null)),
-            HttpStatus.REQUEST_TIMEOUT, "Request Timeout", "query-timeout", true);
+                      HttpStatus.REQUEST_TIMEOUT, "Request Timeout", "query-timeout", true);
         assertProblem(handler.handleSqlException(new SQLException("connect", "08001")),
-            HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "database-unavailable", true);
+                      HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "database-unavailable", true);
         assertProblem(handler.handleDataAccessResourceFailureException(new DataAccessResourceFailureException("down")),
-            HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "database-unavailable", true);
+                      HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "database-unavailable", true);
 
         TransactionSystemException transaction = new TransactionSystemException(
             "tx",
             new SQLException("deadlock", "40P01"));
         assertProblem(handler.handleServletExceptions(transaction), HttpStatus.INTERNAL_SERVER_ERROR,
-            "Transaction Error", "transaction-error", true);
+                      "Transaction Error", "transaction-error", true);
 
         JpaSystemException jpa = new JpaSystemException(new RuntimeException(new SQLException("serial", "40001")));
         assertProblem(handler.handleJpaSystemException(jpa), HttpStatus.INTERNAL_SERVER_ERROR,
-            OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR, "jpa-system-error", true);
+                      OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR, "jpa-system-error", true);
     }
 
     @Test
     void handleNonTransientDatabaseErrors_areNotRetriable() {
         assertProblem(handler.handleSqlException(new SQLException("syntax", "42601")),
-            HttpStatus.INTERNAL_SERVER_ERROR, OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR,
-            "database-error", false);
+                      HttpStatus.INTERNAL_SERVER_ERROR, OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR,
+                      "database-error", false);
         assertProblem(handler.handleServletExceptions(new PersistenceException("oops")),
-            HttpStatus.INTERNAL_SERVER_ERROR, OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR,
-            "servlet-error", false);
+                      HttpStatus.INTERNAL_SERVER_ERROR, OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR,
+                      "servlet-error", false);
     }
 
     @Test
@@ -150,7 +150,7 @@ class OpalGlobalExceptionHandlerTest {
         PropertyValueException property = new PropertyValueException("missing", "Entity", "name");
         ResponseEntity<ProblemDetail> propertyResponse = handler.handlePropertyValueException(property);
         assertProblem(propertyResponse, HttpStatus.INTERNAL_SERVER_ERROR, "Property Value Error",
-            "property-value-error", false);
+                      "property-value-error", false);
         assertEquals("Entity", propertyResponse.getBody().getProperties().get("entity"));
         assertEquals("name", propertyResponse.getBody().getProperties().get("property"));
 
@@ -187,12 +187,12 @@ class OpalGlobalExceptionHandlerTest {
             null,
             null);
         assertProblem(handler.handleHttpServerErrorException(http503), HttpStatus.INTERNAL_SERVER_ERROR,
-            "Downstream Server Error", "http-server-error", true);
+                      "Downstream Server Error", "http-server-error", true);
 
         assertProblem(handler.handleFeignException(buildFeignException(503, "Service Unavailable")),
-            HttpStatus.SERVICE_UNAVAILABLE, "Downstream Service Error", "downstream-service-error", true);
+                      HttpStatus.SERVICE_UNAVAILABLE, "Downstream Service Error", "downstream-service-error", true);
         assertProblem(handler.handleFeignException(buildFeignException(404, "Not Found")),
-            HttpStatus.NOT_FOUND, "Downstream Service Error", "downstream-service-error", false);
+                      HttpStatus.NOT_FOUND, "Downstream Service Error", "downstream-service-error", false);
     }
 
     @Test
@@ -212,10 +212,10 @@ class OpalGlobalExceptionHandlerTest {
     void handleResponseStatusException_returnsProblemJsonWithRetryFlag() {
         assertProblem(handler.handleResponseStatusException(
                 new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "down")),
-            HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "response-status", true);
+                      HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "response-status", true);
         assertProblem(handler.handleResponseStatusException(
                 new ResponseStatusException(HttpStatus.BAD_REQUEST, "bad")),
-            HttpStatus.BAD_REQUEST, "Bad Request", "response-status", false);
+                      HttpStatus.BAD_REQUEST, "Bad Request", "response-status", false);
     }
 
     @Test
@@ -224,7 +224,7 @@ class OpalGlobalExceptionHandlerTest {
             AuthenticationError.FAILED_TO_OBTAIN_AUTHENTICATION_CONFIG);
 
         assertProblem(handler.handleOpalApiException(exception), HttpStatus.INTERNAL_SERVER_ERROR,
-            OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR, "opal-api-error", false);
+                      OpalGlobalExceptionHandler.INTERNAL_SERVER_ERROR, "opal-api-error", false);
     }
 
     public static void sampleMethod(Integer testParam) {
@@ -232,7 +232,7 @@ class OpalGlobalExceptionHandlerTest {
     }
 
     private static void assertProblem(ResponseEntity<ProblemDetail> response, HttpStatus status, String title,
-        String type, boolean retriable) {
+                                      String type, boolean retriable) {
         assertEquals(status, response.getStatusCode());
         assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
         ProblemDetail problemDetail = response.getBody();

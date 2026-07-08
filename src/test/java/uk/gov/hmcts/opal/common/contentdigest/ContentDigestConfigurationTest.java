@@ -119,8 +119,8 @@ class ContentDigestConfigurationTest {
                 public void doFilter(ServletRequest request, ServletResponse response) {
                     assertThat(request).isInstanceOf(CachedBodyHttpServletRequest.class);
                     assertThat(interceptor.preHandle((CachedBodyHttpServletRequest) request,
-                        (MockHttpServletResponse) response,
-                        null)).isTrue();
+                                                     (MockHttpServletResponse) response,
+                                                     null)).isTrue();
                 }
             };
 

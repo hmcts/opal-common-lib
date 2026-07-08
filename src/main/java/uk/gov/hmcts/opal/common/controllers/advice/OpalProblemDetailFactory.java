@@ -16,8 +16,8 @@ public final class OpalProblemDetailFactory {
     }
 
     public static ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
-        String typeUri, boolean retry, Throwable exception,
-        Logger log) {
+                                                    String typeUri, boolean retry, Throwable exception,
+                                                    Logger log) {
         String opalOperationId = LogUtil.getOrCreateOpalOperationId();
         log.error("Error ID {}:", opalOperationId, exception);
 
@@ -31,7 +31,7 @@ public final class OpalProblemDetailFactory {
     }
 
     public static ResponseEntity<ProblemDetail> responseWithProblemDetail(HttpStatus status,
-        ProblemDetail problemDetail) {
+                                                                          ProblemDetail problemDetail) {
         BodyBuilder builder = ResponseEntity.status(status).contentType(MediaType.APPLICATION_PROBLEM_JSON);
         return builder.body(problemDetail);
     }

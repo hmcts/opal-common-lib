@@ -24,8 +24,8 @@ public class CustomAuthenticationExceptions implements AuthenticationEntryPoint,
 
     @Override
     public void commence(HttpServletRequest request,
-        HttpServletResponse response,
-        AuthenticationException authException) throws IOException {
+                         HttpServletResponse response,
+                         AuthenticationException authException) throws IOException {
         if (checkForNotFound(response, authException)) {
             return;
         }
@@ -50,8 +50,8 @@ public class CustomAuthenticationExceptions implements AuthenticationEntryPoint,
 
     @Override
     public void handle(HttpServletRequest request,
-        HttpServletResponse response,
-        AccessDeniedException accessDeniedException) throws IOException {
+                       HttpServletResponse response,
+                       AccessDeniedException accessDeniedException) throws IOException {
         if (checkForNotFound(response, accessDeniedException)) {
             return;
         }

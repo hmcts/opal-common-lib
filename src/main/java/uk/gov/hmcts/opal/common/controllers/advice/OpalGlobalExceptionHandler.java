@@ -494,7 +494,7 @@ public class OpalGlobalExceptionHandler {
     }
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
-        String typeUri, boolean retry, Throwable exception) {
+                                              String typeUri, boolean retry, Throwable exception) {
         return OpalProblemDetailFactory.createProblemDetail(status, title, detail, typeUri, retry, exception, log);
     }
 

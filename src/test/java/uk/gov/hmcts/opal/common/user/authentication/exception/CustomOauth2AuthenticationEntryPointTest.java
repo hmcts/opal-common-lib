@@ -52,7 +52,6 @@ class CustomOauth2AuthenticationEntryPointTest {
 
         StringWriter output = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(output));
-        when(response.getHeader("operation_id")).thenReturn("op-123");
         when(request.getHeader(AccessTokenService.AUTH_HEADER)).thenReturn("Bearer token-value");
         when(tokenService.extractOid("Bearer token-value")).thenReturn("oid-123");
         when(request.getRequestURI()).thenReturn("/test/resource");
@@ -60,6 +59,7 @@ class CustomOauth2AuthenticationEntryPointTest {
         LocalDateTime timestamp = LocalDateTime.of(2026, 1, 1, 10, 0);
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getRequestTimestamp).thenReturn(timestamp);
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-123");
 
             // Act
             entryPoint.commence(request, response, authenticationException);
@@ -101,7 +101,6 @@ class CustomOauth2AuthenticationEntryPointTest {
 
         StringWriter output = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(output));
-        when(response.getHeader("operation_id")).thenReturn("op-456");
         when(request.getHeader(AccessTokenService.AUTH_HEADER)).thenReturn("Bearer bad-token");
         when(tokenService.extractOid("Bearer bad-token")).thenThrow(new RuntimeException("bad token"));
         when(request.getRequestURI()).thenReturn("/test/fallback");
@@ -110,6 +109,7 @@ class CustomOauth2AuthenticationEntryPointTest {
         LocalDateTime timestamp = LocalDateTime.of(2026, 1, 2, 10, 0);
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getRequestTimestamp).thenReturn(timestamp);
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-456");
 
             // Act
             entryPoint.commence(request, response, authenticationException);
@@ -151,7 +151,6 @@ class CustomOauth2AuthenticationEntryPointTest {
 
         StringWriter output = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(output));
-        when(response.getHeader("operation_id")).thenReturn("op-789");
         when(request.getHeader(AccessTokenService.AUTH_HEADER)).thenReturn("Bearer token-value");
         when(tokenService.extractOid("Bearer token-value")).thenReturn("oid-123");
         when(request.getRequestURI()).thenReturn("/test/disabled-user-service");
@@ -159,6 +158,7 @@ class CustomOauth2AuthenticationEntryPointTest {
         LocalDateTime timestamp = LocalDateTime.of(2026, 1, 3, 10, 0);
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getRequestTimestamp).thenReturn(timestamp);
+            logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn("op-789");
 
             entryPoint.commence(request, response, authenticationException);
         }

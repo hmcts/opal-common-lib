@@ -5,7 +5,6 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
 import jakarta.persistence.QueryTimeoutException;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LazyInitializationException;
@@ -57,31 +56,27 @@ public class OpalGlobalExceptionHandler {
     private static final Set<String> TRANSIENT_SQL_STATES = Set.of("40001", "40P01", "55P03");
 
     @ExceptionHandler(FeatureDisabledException.class)
-    public ResponseEntity<ProblemDetail> handleFeatureDisabledException(
-        FeatureDisabledException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleFeatureDisabledException(FeatureDisabledException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_FOUND,
             "Feature Disabled",
             "The requested feature is not currently available",
             "feature-disabled",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
 
     @ExceptionHandler(InvalidContentDigestException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidContentDigestException(
-        InvalidContentDigestException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleInvalidContentDigestException(InvalidContentDigestException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             ex.getTitle(),
             ex.getDetail(),
             "content-digest",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         if (!ex.getSupportedAlgorithms().isEmpty()) {
             problemDetail.setProperty("supported_algorithms", ex.getSupportedAlgorithms());
@@ -90,38 +85,34 @@ public class OpalGlobalExceptionHandler {
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
-    public ResponseEntity<ProblemDetail> handleMissingRequestHeaderException(
-        MissingRequestHeaderException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Missing Required Header",
             String.format("Required request header \"%s\" is missing", ex.getHeaderName()),
             "missing-header",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ProblemDetail> handleAccessDeniedException(
-        AccessDeniedException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleAccessDeniedException(AccessDeniedException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.FORBIDDEN,
             "Forbidden",
             "You do not have permission to access this resource",
             "forbidden",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotAcceptableException(
-        HttpMediaTypeNotAcceptableException ex, HttpServletResponse response) {
+        HttpMediaTypeNotAcceptableException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_ACCEPTABLE,
@@ -129,15 +120,14 @@ public class OpalGlobalExceptionHandler {
             "The requested media type cannot be produced by the server",
             "not-acceptable",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ProblemDetail> handleMethodArgumentTypeMismatchException(
-        MethodArgumentTypeMismatchException ex, HttpServletResponse response) {
+        MethodArgumentTypeMismatchException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_ACCEPTABLE,
@@ -145,24 +135,21 @@ public class OpalGlobalExceptionHandler {
             "Invalid parameter value format",
             "type-mismatch",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         problemDetail.setProperty("reason", ex.getMessage());
         return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
     }
 
     @ExceptionHandler(PropertyValueException.class)
-    public ResponseEntity<ProblemDetail> handlePropertyValueException(
-        PropertyValueException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handlePropertyValueException(PropertyValueException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "Property Value Error",
             "Invalid or missing value for a required property",
             "property-value-error",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         problemDetail.setProperty("entity", ex.getEntityName());
         problemDetail.setProperty("property", ex.getPropertyName());
@@ -171,7 +158,7 @@ public class OpalGlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ProblemDetail> handleHttpMediaTypeNotSupportedException(
-        HttpMediaTypeNotSupportedException ex, HttpServletResponse response) {
+        HttpMediaTypeNotSupportedException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.UNSUPPORTED_MEDIA_TYPE,
@@ -179,30 +166,27 @@ public class OpalGlobalExceptionHandler {
             "The Content-Type is not supported. Please use application/json",
             "unsupported-media-type",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE, problemDetail);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
-        HttpMessageNotReadableException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
             "The request body could not be read. It may be missing or invalid JSON.",
             "message-not-readable",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(InvalidDataAccessApiUsageException.class)
     public ResponseEntity<ProblemDetail> handleInvalidDataAccessApiUsageException(
-        InvalidDataAccessApiUsageException ex,  HttpServletResponse response) {
+        InvalidDataAccessApiUsageException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -210,15 +194,14 @@ public class OpalGlobalExceptionHandler {
             "A problem occurred while accessing data",
             "invalid-data-access",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(InvalidDataAccessResourceUsageException.class)
     public ResponseEntity<ProblemDetail> handleInvalidDataAccessResourceUsageException(
-        InvalidDataAccessResourceUsageException ex,  HttpServletResponse response) {
+        InvalidDataAccessResourceUsageException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -226,46 +209,40 @@ public class OpalGlobalExceptionHandler {
             "A problem occurred with the requested data resource",
             "invalid-resource-usage",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleEntityNotFoundException(
-        EntityNotFoundException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleEntityNotFoundException(EntityNotFoundException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_FOUND,
             "Entity Not Found",
             "The requested entity could not be found",
             "entity-not-found",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         problemDetail.setProperty("reason", ex.getMessage());
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ProblemDetail> handleNoSuchElementException(
-        NoSuchElementException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleNoSuchElementException(NoSuchElementException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.NOT_FOUND,
             "No Value Present",
             "The requested element does not exist",
             "no-such-element",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
 
     @ExceptionHandler(OpalApiException.class)
-    public ResponseEntity<ProblemDetail> handleOpalApiException(
-        OpalApiException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleOpalApiException(OpalApiException ex) {
         HttpStatus status = ex.getError().getHttpStatus();
         ProblemDetail problemDetail = createProblemDetail(
             status,
@@ -273,15 +250,13 @@ public class OpalGlobalExceptionHandler {
             "An error occurred while processing your request",
             "opal-api-error",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(status, problemDetail);
     }
 
     @ExceptionHandler({ServletException.class, TransactionSystemException.class, PersistenceException.class})
-    public ResponseEntity<ProblemDetail> handleServletExceptions(
-        Exception ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleServletExceptions(Exception ex) {
         if (ex instanceof QueryTimeoutException) {
             ProblemDetail problemDetail = createProblemDetail(
                 HttpStatus.REQUEST_TIMEOUT,
@@ -289,8 +264,7 @@ public class OpalGlobalExceptionHandler {
                 "The request did not receive a response from the database within the timeout period",
                 "query-timeout",
                 true,
-                ex,
-                response.getHeader("operation_id")
+                ex
             );
             return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
         }
@@ -302,8 +276,7 @@ public class OpalGlobalExceptionHandler {
                 "The requested resource could not be found",
                 "resource-not-found",
                 false,
-                nrfe,
-                response.getHeader("operation_id")
+                nrfe
             );
             return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
         }
@@ -316,8 +289,7 @@ public class OpalGlobalExceptionHandler {
                 "A transaction error occurred while processing your request",
                 "transaction-error",
                 retriable,
-                tse,
-                response.getHeader("operation_id")
+                tse
             );
             return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
         }
@@ -328,14 +300,13 @@ public class OpalGlobalExceptionHandler {
             "An unexpected error occurred while processing your request",
             "servlet-error",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(SQLException.class)
-    public ResponseEntity<ProblemDetail> handleSqlException(SQLException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleSqlException(SQLException ex) {
         if (isConnectivitySqlException(ex)) {
             ProblemDetail problemDetail = createProblemDetail(
                 HttpStatus.SERVICE_UNAVAILABLE,
@@ -343,8 +314,7 @@ public class OpalGlobalExceptionHandler {
                 DB_UNAVAILABLE_MESSAGE,
                 "database-unavailable",
                 true,
-                ex,
-                response.getHeader("operation_id")
+                ex
             );
             return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
         }
@@ -355,15 +325,14 @@ public class OpalGlobalExceptionHandler {
             "A database error occurred while processing your request",
             "database-error",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(DataAccessResourceFailureException.class)
     public ResponseEntity<ProblemDetail> handleDataAccessResourceFailureException(
-        DataAccessResourceFailureException ex, HttpServletResponse response) {
+        DataAccessResourceFailureException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.SERVICE_UNAVAILABLE,
@@ -371,29 +340,26 @@ public class OpalGlobalExceptionHandler {
             DB_UNAVAILABLE_MESSAGE,
             "database-unavailable",
             true,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
     @ExceptionHandler(LazyInitializationException.class)
-    public ResponseEntity<ProblemDetail> handleLazyInitializationException(
-        LazyInitializationException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleLazyInitializationException(LazyInitializationException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
             INTERNAL_SERVER_ERROR,
             "A data access error occurred.",
             "lazy-initialization",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(JpaSystemException.class)
-    public ResponseEntity<ProblemDetail> handleJpaSystemException(JpaSystemException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleJpaSystemException(JpaSystemException ex) {
         boolean retriable = isTransientSqlState(sqlState(NestedExceptionUtils.getMostSpecificCause(ex)));
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
@@ -401,15 +367,13 @@ public class OpalGlobalExceptionHandler {
             "A persistence error occurred while processing your request",
             "jpa-system-error",
             retriable,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(HttpServerErrorException.class)
-    public ResponseEntity<ProblemDetail> handleHttpServerErrorException(
-        HttpServerErrorException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleHttpServerErrorException(HttpServerErrorException ex) {
         int upstream = ex.getStatusCode().value();
         boolean retriable = RETRIABLE_HTTP.contains(upstream);
         ProblemDetail problemDetail = createProblemDetail(
@@ -418,30 +382,27 @@ public class OpalGlobalExceptionHandler {
             ex.getMessage(),
             "http-server-error",
             retriable,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(
-        IllegalArgumentException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.BAD_REQUEST,
             "Bad Request",
             "Invalid arguments were provided in the request",
             "illegal-argument",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ProblemDetail> handleObjectOptimisticLockingFailureException(
-        ObjectOptimisticLockingFailureException ex, HttpServletResponse response) {
+        ObjectOptimisticLockingFailureException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.CONFLICT,
@@ -449,8 +410,7 @@ public class OpalGlobalExceptionHandler {
             Optional.ofNullable(ex.getMessage()).orElse("Conflict updating record. Please try again."),
             "optimistic-locking",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         problemDetail.setProperty("resourceType", ex.getPersistentClassName());
         problemDetail.setProperty("resourceId", Optional.ofNullable(ex.getIdentifier()).map(Object::toString)
@@ -459,16 +419,14 @@ public class OpalGlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ProblemDetail> handleDataIntegrityViolationException(
-        DataIntegrityViolationException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.CONFLICT,
             "Conflict",
             "Data integrity violation with the requested resource",
             "resource-conflict",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
 
         if (ex.getCause() instanceof ConstraintViolationException cve) {
@@ -478,8 +436,7 @@ public class OpalGlobalExceptionHandler {
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ProblemDetail> handleResponseStatusException(
-        ResponseStatusException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleResponseStatusException(ResponseStatusException ex) {
         HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
         boolean retriable = RETRIABLE_HTTP.contains(status.value());
         ProblemDetail problemDetail = createProblemDetail(
@@ -488,30 +445,27 @@ public class OpalGlobalExceptionHandler {
             Optional.ofNullable(ex.getReason()).orElse(status.getReasonPhrase()),
             "response-status",
             retriable,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(status, problemDetail);
     }
 
     @ExceptionHandler(FeignException.Unauthorized.class)
-    public ResponseEntity<ProblemDetail> handleFeignExceptionUnauthorized(
-        FeignException.Unauthorized ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleFeignExceptionUnauthorized(FeignException.Unauthorized ex) {
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.UNAUTHORIZED,
             "Not Authorised for Connection",
             ex.getMessage(),
             "unauthorized",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
 
     @ExceptionHandler(DownstreamServiceUnavailableException.class)
     public ResponseEntity<ProblemDetail> handleDownstreamServiceUnavailableException(
-        DownstreamServiceUnavailableException ex, HttpServletResponse response) {
+        DownstreamServiceUnavailableException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
             HttpStatus.SERVICE_UNAVAILABLE,
@@ -519,15 +473,13 @@ public class OpalGlobalExceptionHandler {
             ex.getMessage(),
             "downstream-service-unavailable",
             false,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
     @ExceptionHandler(FeignException.class)
-    public ResponseEntity<ProblemDetail> handleFeignException(
-        FeignException ex, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handleFeignException(FeignException ex) {
         HttpStatus status = HttpStatus.valueOf(ex.status());
         boolean retriable = RETRIABLE_HTTP.contains(status.value());
         ProblemDetail problemDetail = createProblemDetail(
@@ -536,17 +488,14 @@ public class OpalGlobalExceptionHandler {
             "Problem with connecting to a dependant service: " + ex.getMessage(),
             "downstream-service-error",
             retriable,
-            ex,
-            response.getHeader("operation_id")
+            ex
         );
         return responseWithProblemDetail(status, problemDetail);
     }
 
-    private ProblemDetail createProblemDetail(
-        HttpStatus status, String title, String detail,
-        String typeUri, boolean retry, Throwable exception, String opalOperationId) {
-        return OpalProblemDetailFactory
-            .createProblemDetail(status, title, detail, typeUri, retry, exception, log, opalOperationId);
+    private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
+        String typeUri, boolean retry, Throwable exception) {
+        return OpalProblemDetailFactory.createProblemDetail(status, title, detail, typeUri, retry, exception, log);
     }
 
     private ResponseEntity<ProblemDetail> responseWithProblemDetail(HttpStatus status, ProblemDetail problemDetail) {

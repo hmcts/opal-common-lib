@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.common.user.authentication.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,8 +32,8 @@ public class CommonGlobalExceptionHandler {
     private final SecurityEventLoggingService securityEventLoggingService;
 
     @ExceptionHandler({PermissionNotAllowedException.class})
-    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(
-        PermissionNotAllowedException ex, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex,
+        HttpServletRequest request) {
 
         UserStateV2 userState = null;
         try {
@@ -69,9 +68,7 @@ public class CommonGlobalExceptionHandler {
             "forbidden",
             false,
             ex,
-            log,
-            response.getHeader("operation_id")
-        );
+            log);
 
         return OpalProblemDetailFactory.responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.common.user.authentication.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletResponse;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
@@ -42,16 +40,9 @@ class CommonGlobalExceptionHandlerTest {
     @Mock
     SecurityEventLoggingService securityEventLoggingService;
 
+
     @InjectMocks
     CommonGlobalExceptionHandler handler;
-
-    private MockHttpServletResponse httpServletResponse;
-
-    @BeforeEach
-    void setUp() {
-        httpServletResponse = new MockHttpServletResponse();
-        httpServletResponse.setHeader("operation_id", "12345");
-    }
 
     @Test
     void testHandlePermissionNotAllowedException() {
@@ -79,8 +70,7 @@ class CommonGlobalExceptionHandlerTest {
             when(request.getPathInfo()).thenReturn("/api/cases/1");
 
             // Act
-            ResponseEntity<ProblemDetail> response = handler
-                .handlePermissionNotAllowedException(exception, request, httpServletResponse);
+            ResponseEntity<ProblemDetail> response = handler.handlePermissionNotAllowedException(exception, request);
 
             // Assert
             assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -91,7 +81,7 @@ class CommonGlobalExceptionHandlerTest {
             assertEquals("Forbidden", body.getTitle());
             assertEquals("You do not have permission to access this resource", body.getDetail());
             assertEquals("https://hmcts.gov.uk/problems/forbidden", body.getType().toString());
-            assertEquals("12345", body.getProperties().get("operation_id"));
+            assertEquals("op-id", body.getProperties().get("operation_id"));
             assertEquals(false, body.getProperties().get("retriable"));
 
             verify(securityEventLoggingService).logEvent(
@@ -131,8 +121,7 @@ class CommonGlobalExceptionHandlerTest {
             when(request.getPathInfo()).thenReturn("/api/cases/1");
 
             // Act
-            ResponseEntity<ProblemDetail> response = handler
-                .handlePermissionNotAllowedException(exception, request, httpServletResponse);
+            ResponseEntity<ProblemDetail> response = handler.handlePermissionNotAllowedException(exception, request);
 
             // Assert
             assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
@@ -143,7 +132,7 @@ class CommonGlobalExceptionHandlerTest {
             assertEquals("Forbidden", body.getTitle());
             assertEquals("You do not have permission to access this resource", body.getDetail());
             assertEquals("https://hmcts.gov.uk/problems/forbidden", body.getType().toString());
-            assertEquals("12345", body.getProperties().get("operation_id"));
+            assertEquals("op-id", body.getProperties().get("operation_id"));
             assertEquals(false, body.getProperties().get("retriable"));
 
             verify(securityEventLoggingService).logEvent(

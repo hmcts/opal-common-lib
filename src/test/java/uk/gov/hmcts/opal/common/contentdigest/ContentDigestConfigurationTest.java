@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.common.contentdigest;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -26,14 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 class ContentDigestConfigurationTest {
-
-    private MockHttpServletResponse response;
-
-    @BeforeEach
-    void setUp() {
-        response = new MockHttpServletResponse();
-        response.setHeader("operation_id", "12345");
-    }
 
     @Test
     void configurationCreatesReusableBeansWithDefaultProperties() {
@@ -94,8 +85,7 @@ class ContentDigestConfigurationTest {
         OpalGlobalExceptionHandler handler = new OpalGlobalExceptionHandler();
 
         assertNotNull(handler.handleInvalidContentDigestException(
-            new InvalidContentDigestException("Digest validation failed", "Invalid digest"),
-            response
+            new InvalidContentDigestException("Digest validation failed", "Invalid digest")
         ));
     }
 
@@ -129,8 +119,8 @@ class ContentDigestConfigurationTest {
                 public void doFilter(ServletRequest request, ServletResponse response) {
                     assertThat(request).isInstanceOf(CachedBodyHttpServletRequest.class);
                     assertThat(interceptor.preHandle((CachedBodyHttpServletRequest) request,
-                                                     (MockHttpServletResponse) response,
-                                                     null)).isTrue();
+                        (MockHttpServletResponse) response,
+                        null)).isTrue();
                 }
             };
 

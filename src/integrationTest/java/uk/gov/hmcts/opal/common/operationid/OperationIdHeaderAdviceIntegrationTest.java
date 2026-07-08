@@ -1,8 +1,8 @@
-package uk.gov.hmcts.opal.common.config.filter;
+package uk.gov.hmcts.opal.common.operationid;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -14,14 +14,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = OperationIdResponseFilterIntegrationConfiguration.class)
-public class OperationIdResponseFilterIntegrationTest {
+@SpringBootTest(classes = OperationIdHeaderAdviceIntegrationConfiguration.class)
+public class OperationIdHeaderAdviceIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void doFilterInternal_addsOperationIdHeaderToResponse() throws Exception {
+    void beforeBodyWrite_addsOperationIdToResponse() throws Exception {
         String operationId = "891c44e295e44aeabc7a4d333e1e63b3";
 
         try (MockedStatic<LogUtil> logUtilMock = Mockito.mockStatic(LogUtil.class)) {

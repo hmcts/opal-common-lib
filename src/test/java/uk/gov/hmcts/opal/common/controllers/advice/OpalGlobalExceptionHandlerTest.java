@@ -211,10 +211,10 @@ class OpalGlobalExceptionHandlerTest {
     @Test
     void handleResponseStatusException_returnsProblemJsonWithRetryFlag() {
         assertProblem(handler.handleResponseStatusException(
-                new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "down")),
+            new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "down")),
                       HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable", "response-status", true);
         assertProblem(handler.handleResponseStatusException(
-                new ResponseStatusException(HttpStatus.BAD_REQUEST, "bad")),
+            new ResponseStatusException(HttpStatus.BAD_REQUEST, "bad")),
                       HttpStatus.BAD_REQUEST, "Bad Request", "response-status", false);
     }
 

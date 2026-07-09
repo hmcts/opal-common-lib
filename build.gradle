@@ -101,6 +101,9 @@ sonarqube {
   properties {
     property "sonar.projectName", "HMCTS :: opal-common-lib"
     property "sonar.projectKey", "uk.gov.hmcts:opal-common-lib"
+    // UserState is deprecated V1 compatibility code; do not penalise V2 helper migration as duplication.
+    property "sonar.cpd.exclusions",
+      "src/main/java/uk/gov/hmcts/opal/common/user/authorisation/model/UserState.java"
   }
 }
 

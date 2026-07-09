@@ -54,6 +54,7 @@ class OperationIdHeaderAdviceTest {
                     assertThat(operationId).isEqualTo("891c44e295e44aeabc7a4d333e1e63b3");
                 }
             );
+            logUtilMock.verify(LogUtil::getOrCreateOpalOperationId);
         }
     }
 }

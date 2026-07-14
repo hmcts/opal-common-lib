@@ -39,7 +39,14 @@ public final class LogUtil {
     public static String getOrCreateOpalOperationId() {
         return getOperationContext()
             .map(OperationContext::getId)
-            .orElseGet(LogUtil::createOpalOperation);
+            .filter(id -> !id.isBlank())
+            .orElseGet(() -> {
+                String id = MDC.get("opal-operation-id");
+                if (id != null && !id.isBlank()) {
+                    return id;
+                }
+                return createOpalOperation();
+            });
     }
 
     public static String createOpalOperation() {

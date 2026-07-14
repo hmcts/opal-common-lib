@@ -11,14 +11,14 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = OperationIdHeaderAdviceIntegrationConfiguration.class)
-public class OperationIdHeaderAdviceIntegrationTest {
+@SpringBootTest(classes = OperationIdResponseFilterIntegrationConfiguration.class)
+public class OperationIdResponseFilterIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void beforeBodyWrite_addsOperationIdToResponse() throws Exception {
+    void doFilterInternal_addsOperationIdToResponse() throws Exception {
         String operationIdHeader = mockMvc.perform(get("/test"))
             .andExpect(status().isOk()).andReturn().getResponse()
             .getHeader("operation_id");

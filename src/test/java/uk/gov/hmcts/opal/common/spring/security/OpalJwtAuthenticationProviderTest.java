@@ -20,10 +20,10 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authentication.exception.DownstreamAuthenticationServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.util.List;
@@ -224,18 +224,15 @@ class OpalJwtAuthenticationProviderTest {
     }
 
     private UserStateV2 createUserState(Domain domain) {
-        Permission permA = Permission.builder()
-            .permissionId(1L)
-            .permissionName("PERM_A")
-            .build();
+        PermissionV2 permA = PermissionV2.ACCOUNT_ENQUIRY;
 
-        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnitUser = BusinessUnitUserV2.builder()
             .businessUnitUserId("bu-user-1")
             .businessUnitId((short) 101)
             .permissions(Set.of(permA))
             .build();
 
-        DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+        DomainBusinessUnitUsersV2 domainBusinessUnitUsers = DomainBusinessUnitUsersV2.builder()
             .businessUnitUsers(List.of(businessUnitUser))
             .build();
 

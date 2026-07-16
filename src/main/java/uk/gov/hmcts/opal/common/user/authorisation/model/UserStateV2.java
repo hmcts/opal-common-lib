@@ -37,7 +37,7 @@ public class UserStateV2 implements Serializable {
     String cacheName;
 
     @JsonProperty("domains")
-    Map<Domain, DomainBusinessUnitUsers> domains;
+    Map<Domain, DomainBusinessUnitUsersV2> domains;
 
     @JsonCreator
     public UserStateV2(
@@ -47,7 +47,7 @@ public class UserStateV2 implements Serializable {
         @JsonProperty("status") UserStatus status,
         @JsonProperty("version") Long version,
         @JsonProperty("cache_name") String cacheName,
-        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains
+        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsersV2> domains
     ) {
         this.userId = userId;
         this.username = username;
@@ -58,17 +58,17 @@ public class UserStateV2 implements Serializable {
         this.domains = domains;
     }
 
-    public Map<Domain, DomainBusinessUnitUsers> getDomains() {
+    public Map<Domain, DomainBusinessUnitUsersV2> getDomains() {
         if (domains == null) {
             return new HashMap<>();
         }
         return domains;
     }
 
-    public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
+    public DomainBusinessUnitUsersV2 getDomainBusinessUnitUsers(Domain domain) {
         return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null)
             ?
             domains.get(domain) :
-            DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
+            DomainBusinessUnitUsersV2.builder().businessUnitUsers(emptyList()).build();
     }
 }

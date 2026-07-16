@@ -28,7 +28,7 @@ class OpalMethodSecurityExpressionTest {
     private static final short TARGET_BUSINESS_UNIT_ID = 101;
     private static final short OTHER_BUSINESS_UNIT_ID = 202;
     private static final short MISSING_BUSINESS_UNIT_ID = 303;
-    private static final String TEST_PERMISSION = "TEST_PERM";
+    private static final String TEST_PERMISSION = "Account Enquiry";        //  Genuine Permission
 
     @Autowired
     private MockMvc mockMvc;

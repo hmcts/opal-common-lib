@@ -13,13 +13,13 @@ class UserStateV2Test {
     @Test
     void getDomainBusinessUnitUsers_returnsDomainDataWhenDomainExists() {
         // Arrange
-        DomainBusinessUnitUsers finesUsers = DomainBusinessUnitUsers.builder()
+        DomainBusinessUnitUsersV2 finesUsers = DomainBusinessUnitUsersV2.builder()
             .businessUnitUsers(List.of())
             .build();
         UserStateV2 userStateV2 = createUserStateV2(Map.of(Domain.FINES, finesUsers));
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isSameAs(finesUsers);
@@ -31,7 +31,7 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(null);
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isNotNull();
@@ -44,7 +44,7 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(new HashMap<>());
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(null);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(null);
 
         //Assert
         assertThat(result).isNotNull();
@@ -57,7 +57,7 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(new HashMap<>());
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isNotNull();
@@ -67,12 +67,12 @@ class UserStateV2Test {
     @Test
     void getDomainBusinessUnitUsers_returnsEmptyBusinessUnitUsersWhenDomainValueIsNull() {
         //Arrange
-        Map<Domain, DomainBusinessUnitUsers> domains = new HashMap<>();
+        Map<Domain, DomainBusinessUnitUsersV2> domains = new HashMap<>();
         domains.put(Domain.FINES, null);
         UserStateV2 userStateV2 = createUserStateV2(domains);
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isNotNull();
@@ -85,14 +85,14 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(null);
 
         //Act
-        Map<Domain, DomainBusinessUnitUsers> result = userStateV2.getDomains();
+        Map<Domain, DomainBusinessUnitUsersV2> result = userStateV2.getDomains();
 
         //Assert
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
     }
 
-    private UserStateV2 createUserStateV2(Map<Domain, DomainBusinessUnitUsers> domains) {
+    private UserStateV2 createUserStateV2(Map<Domain, DomainBusinessUnitUsersV2> domains) {
         return UserStateV2.builder()
             .userId(123L)
             .username("test.user")

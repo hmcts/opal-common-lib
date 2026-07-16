@@ -39,7 +39,7 @@ public class UserStateV2Dto implements Versioned, ToJsonString {
     private String cacheName;
 
     @JsonProperty("domains")
-    private Map<Domain, DomainDto> domains;
+    private Map<Domain, DomainV2Dto> domains;
 
     @Override
     public BigInteger getVersion() {

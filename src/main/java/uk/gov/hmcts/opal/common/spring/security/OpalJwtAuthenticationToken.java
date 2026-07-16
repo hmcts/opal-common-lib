@@ -6,10 +6,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
@@ -36,7 +37,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         this.userState = userState;
 
 
-        DomainBusinessUnitUsers domainBusinessUnitUsers = userState.getDomainBusinessUnitUsers(domain);
+        DomainBusinessUnitUsersV2 domainBusinessUnitUsers = userState.getDomainBusinessUnitUsers(domain);
 
         this.permissionNames = domainBusinessUnitUsers.getBusinessUnitUsers().stream()
             .flatMap(buUser -> buUser.getPermissions().stream())
@@ -45,7 +46,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
 
         this.businessUnitIdsToPermissionNames = domainBusinessUnitUsers.getBusinessUnitUsers().stream()
             .collect(Collectors.toMap(
-                BusinessUnitUser::getBusinessUnitId,
+                BusinessUnitUserV2::getBusinessUnitId,
                 buUser -> buUser.getPermissions().stream()
                     .map(this::toPermissionNameString)
                     .collect(Collectors.toSet())
@@ -54,6 +55,12 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
 
     public String toPermissionNameString(PermissionDescriptor permissionDescriptor) {
         return permissionDescriptor.getDescription()
+            .toUpperCase()
+            .replace(" ", "_");
+    }
+
+    public String toPermissionNameString(PermissionDescriptorV2 permissionDescriptor) {
+        return permissionDescriptor.getPermissionName()
             .toUpperCase()
             .replace(" ", "_");
     }
@@ -91,7 +98,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return permissionNames.contains(permission);
     }
 
-    public boolean hasPermission(PermissionDescriptor permission) {
+    public boolean hasPermission(PermissionDescriptorV2 permission) {
         return hasPermission(toPermissionNameString(permission));
     }
 
@@ -99,7 +106,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return Arrays.stream(permissions).anyMatch(this::hasPermission);
     }
 
-    public boolean hasAtLeastOneOfPermission(PermissionDescriptor... permissions) {
+    public boolean hasAtLeastOneOfPermission(PermissionDescriptorV2... permissions) {
         return Arrays.stream(permissions).anyMatch(this::hasPermission);
     }
 
@@ -112,11 +119,12 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return permissionsInBusinessUnit.contains(permission);
     }
 
-    public boolean hasPermissionInBusinessUnit(PermissionDescriptor permission, Short businessUnitId) {
+    public boolean hasPermissionInBusinessUnit(PermissionDescriptorV2 permission, Short businessUnitId) {
         return hasPermissionInBusinessUnit(toPermissionNameString(permission), businessUnitId);
     }
 
-    public boolean hasAtLeastOneOfPermissionInBusinessUnit(Short businessUnitId, PermissionDescriptor... permissions) {
+    public boolean hasAtLeastOneOfPermissionInBusinessUnit(Short businessUnitId,
+        PermissionDescriptorV2... permissions) {
         return Arrays.stream(permissions).anyMatch(p -> hasPermissionInBusinessUnit(p, businessUnitId));
     }
 

@@ -122,7 +122,8 @@ public abstract class EntitySpecs<E> {
         return likeLowerCaseBothPredicate(path, cb, candidate + "%");
     }
 
-    protected static Predicate likeLowerCaseBothPredicate(Expression<String> path, CriteriaBuilder cb, String candidate) {
+    protected static Predicate likeLowerCaseBothPredicate(Expression<String> path, CriteriaBuilder cb,
+        String candidate) {
         return cb.like(cb.lower(path), candidate.toLowerCase());
     }
 

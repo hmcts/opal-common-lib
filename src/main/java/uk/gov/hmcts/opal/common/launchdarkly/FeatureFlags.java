@@ -18,7 +18,7 @@ public final class FeatureFlags {
     public static final String RELEASE_1C_AUTO_ENFORCEMENT_CONFIG_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_AUTO_ENFORCEMENT_CONFIG;
     public static final String RELEASE_1C_BANKING_INTERFACES =
-        RELEASE_1C + "-auto-enforcement-config";
+        RELEASE_1C + "-banking-interfaces";
     public static final String RELEASE_1C_BANKING_INTERFACES_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_BANKING_INTERFACES;
 

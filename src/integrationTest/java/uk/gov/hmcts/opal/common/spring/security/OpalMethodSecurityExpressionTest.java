@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.common.spring.security.OpalAuthenticationTestUtil.businessUnit;
 import static uk.gov.hmcts.opal.common.spring.security.OpalAuthenticationTestUtil.opalAuthentication;
@@ -40,6 +41,7 @@ class OpalMethodSecurityExpressionTest {
                                 businessUnit(TARGET_BUSINESS_UNIT_ID, TEST_PERMISSION)
                             ))))
             .andExpect(status().isOk())
+            .andExpect(header().exists("operation_id"))
             .andExpect(content().string("ok"));
     }
 
@@ -49,6 +51,7 @@ class OpalMethodSecurityExpressionTest {
                             .with(authentication(opalAuthentication(
                                 businessUnit(TARGET_BUSINESS_UNIT_ID)
                             ))))
+            .andExpect(header().exists("operation_id"))
             .andExpect(status().isForbidden());
     }
 
@@ -58,6 +61,7 @@ class OpalMethodSecurityExpressionTest {
                             .with(authentication(opalAuthentication(
                                 businessUnit(TARGET_BUSINESS_UNIT_ID)
                             ))))
+            .andExpect(header().exists("operation_id"))
             .andExpect(status().isOk())
             .andExpect(content().string("ok " + TARGET_BUSINESS_UNIT_ID));
     }
@@ -68,6 +72,7 @@ class OpalMethodSecurityExpressionTest {
                             .with(authentication(opalAuthentication(
                                 businessUnit(TARGET_BUSINESS_UNIT_ID)
                             ))))
+            .andExpect(header().exists("operation_id"))
             .andExpect(status().isForbidden());
     }
 
@@ -77,6 +82,7 @@ class OpalMethodSecurityExpressionTest {
                             .with(authentication(opalAuthentication(
                                 businessUnit(TARGET_BUSINESS_UNIT_ID, TEST_PERMISSION)
                             ))))
+            .andExpect(header().exists("operation_id"))
             .andExpect(status().isOk())
             .andExpect(content().string("ok " + TARGET_BUSINESS_UNIT_ID));
     }
@@ -87,6 +93,7 @@ class OpalMethodSecurityExpressionTest {
                             .with(authentication(opalAuthentication(
                                 businessUnit(TARGET_BUSINESS_UNIT_ID)
                             ))))
+            .andExpect(header().exists("operation_id"))
             .andExpect(status().isForbidden());
     }
 
@@ -97,6 +104,7 @@ class OpalMethodSecurityExpressionTest {
                                 businessUnit(TARGET_BUSINESS_UNIT_ID),
                                 businessUnit(OTHER_BUSINESS_UNIT_ID, TEST_PERMISSION)
                             ))))
+            .andExpect(header().exists("operation_id"))
             .andExpect(status().isForbidden());
     }
 

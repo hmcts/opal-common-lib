@@ -173,7 +173,7 @@ dependencies {
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.2', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
-  implementation 'org.hibernate.validator:hibernate-validator:9.1.2.Final'    // CVE-2025-15104 false positive suppressed in owasp file
+  implementation 'org.hibernate.validator:hibernate-validator:9.1.3.Final'    // CVE-2025-15104 false positive suppressed in owasp file
   compileOnly 'org.hibernate.orm:hibernate-core'
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.9'

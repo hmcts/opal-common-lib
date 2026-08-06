@@ -43,7 +43,7 @@
     <cpe>cpe:2.3:a:validator:validator:*:*:*:*:*:*:*:*</cpe>
     <cve>CVE-2025-15104</cve>
   </suppress>
-  <suppress until="2026-08-31Z">
+  <suppress until="2026-08-10Z">
     <notes><![CDATA[
     Reviewed 2026-07-23.
     CVE-2026-44891, CVE-2026-55831, and CVE-2026-55833 apply to Netty versions
@@ -58,6 +58,20 @@
     <cve>CVE-2026-44891</cve>
     <cve>CVE-2026-55831</cve>
     <cve>CVE-2026-55833</cve>
+  </suppress>
+  <suppress until="2026-08-10Z">
+    <notes><![CDATA[
+    file name: tomcat-embed-core-11.0.24.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-core@.*$</packageUrl>
+    <cpe>cpe:/a:apache:tomcat</cpe>
+  </suppress>
+  <suppress until="2026-08-31Z">
+    <notes><![CDATA[
+    file name: tomcat-embed-websocket-11.0.24.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-websocket@.*$</packageUrl>
+    <cpe>cpe:/a:apache:tomcat</cpe>
   </suppress>
   <!--End of Temporary suppression section -->
 

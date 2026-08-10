@@ -3,7 +3,7 @@ plugins {
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
   id 'com.github.ben-manes.versions' version '0.61.0'
-  id 'org.sonarqube' version '7.3.1.8318'
+  id 'org.sonarqube' version '7.4.0.8496'
   id 'maven-publish'
   /*
     Applies analysis tools including checkstyle and OWASP Dependency checker.
@@ -95,6 +95,9 @@ jacocoTestReport {
 }
 
 tasks.sonarqube.dependsOn(jacocoTestReport)
+tasks.named('sonarResolver') {
+  dependsOn(processResources)
+}
 tasks.check.dependsOn(integration)
 
 sonarqube {

@@ -25,7 +25,10 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     OPERATIONAL_REPORT_BY_PAYMENTS("OPERATIONAL_REPORT_BY_PAYMENTS", "Operational report by payments"),
     SEARCH_AND_VIEW_ACCOUNTS("SEARCH_AND_VIEW_ACCOUNTS", "Search and view accounts"),
     VIEW_CREDITOR_BACS("VIEW_CREDITOR_BACS", "View creditor BACS"),
-    AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement");
+    AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
+    // these are speculative:
+    PROCESS_PAYMENTS("PROCESS_PAYMENTS", "Process Payments"),
+    VIEW_REPORTS("VIEW_REPORTS", "View Reports");
 
     //  Properties:
     @JsonProperty("permission_code")
@@ -42,7 +45,7 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
      * @param permissionCode                The enumeration code
      * @param permissionName                The enumeration name
      */
-    private PermissionV2(String permissionCode, String permissionName) {
+    PermissionV2(String permissionCode, String permissionName) {
         this.permissionCode = permissionCode;
         this.permissionName = permissionName;
     }
@@ -55,13 +58,28 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
         return Stream.of(PermissionV2.values())
                     .filter(permission -> permission.permissionCode.equals(permissionCode))
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown PermissionV2 code: " + permissionCode));
+                    .orElse(null);
     }
 
     public static PermissionV2 fromPermissionName(String permissionName) {
         return Stream.of(PermissionV2.values())
             .filter(permission -> permission.permissionName.equals(permissionName))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Unknown PermissionV2 code: " + permissionName));
+            .orElse(null);
     }
+
+    public PermissionDescriptorV2 getDescriptor() {
+        return new PermissionDescriptorV2() {
+            @Override
+            public String getPermissionCode() {
+                return permissionCode;
+            }
+
+            @Override
+            public String getPermissionName() {
+                return permissionName;
+            }
+        };
+    }
+
 }

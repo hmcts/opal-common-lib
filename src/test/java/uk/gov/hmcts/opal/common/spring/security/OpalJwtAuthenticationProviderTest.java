@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.common.user.authentication.exception.DownstreamAuthenti
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
@@ -232,7 +232,7 @@ class OpalJwtAuthenticationProviderTest {
             .permissions(Set.of(permA))
             .build();
 
-        DomainBusinessUnitUsersV2 domainBusinessUnitUsers = DomainBusinessUnitUsersV2.builder()
+        DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
             .businessUnitUsers(List.of(businessUnitUser))
             .build();
 

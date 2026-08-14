@@ -10,11 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PermissionV2Dto {
 
-    //  Properties:
     @JsonProperty("permission_code")
     private String permissionCode;
 
     @JsonProperty("permission_name")
     private String permissionName;
-
 }

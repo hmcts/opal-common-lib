@@ -4,7 +4,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -32,7 +32,7 @@ public final class OpalAuthenticationTestUtil {
     }
 
     private static UserStateV2 userStateWithBusinessUnits(BusinessUnitUserV2... businessUnitUsers) {
-        DomainBusinessUnitUsersV2 finesUsers = DomainBusinessUnitUsersV2.builder()
+        DomainBusinessUnitUsers finesUsers = DomainBusinessUnitUsers.builder()
             .businessUnitUsers(List.of(businessUnitUsers))
             .build();
 

@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.common.user.authorisation.client.service;
 
 import com.nimbusds.jwt.JWTClaimNames;
 import feign.FeignException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -13,8 +15,15 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.util.Optional;
@@ -98,11 +107,54 @@ public class UserStateClientService {
         }
 
         try {
-            return Optional.of(objectMapper.readValue(cachedUserState, UserStateV2Dto.class));
+            //  The UserStateV2 & UserStateV2Dto are no longer JSON compatible, so
+            //  we have to map the JSON to a UserStateV2, then map that to UserStateV2Dto
+            UserStateV2 userState = objectMapper.readValue(cachedUserState, UserStateV2.class);
+
+            return Optional.of(convertFrom(userState));
         } catch (JacksonException e) {
             log.warn(":getUserState: could not parse user state from cache: {}", tokenSubject);
             return Optional.empty();
         }
+    }
+
+    private UserStateV2Dto convertFrom(UserStateV2 userState) {
+        UserStateV2Dto userStateDto = UserStateV2Dto
+            .builder()
+            .userId(userState.getUserId())
+            .username(userState.getUsername())
+            .name(userState.getName())
+            .status(userState.getStatus().name())
+            .version(userState.getVersion())
+            .cacheName(userState.getCacheName())
+            .domains(new HashMap<>() {{
+                    for (Domain domain : userState.getDomains().keySet()) {
+                        DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
+
+                        put(domain, DomainDto
+                                .builder()
+                                .businessUnitUsers(new ArrayList<>() {{
+                                        for(BusinessUnitUserV2 businessUnitUser :
+                                            sourceDomain.getBusinessUnitUsers()) {
+                                            add(new BusinessUnitUserV2Dto(
+                                                businessUnitUser.getBusinessUnitUserId(),
+                                                businessUnitUser.getBusinessUnitId(),
+                                                new ArrayList<>() {{
+                                                        for (PermissionV2 permission :
+                                                            businessUnitUser.getPermissions()) {
+                                                                add(new PermissionV2Dto(permission.getPermissionCode(),
+                                                                    permission.getPermissionName()));
+                                                        }
+                                                    }}
+                                            ));
+                                            }
+                                    }})
+                                .build());
+                    }
+                    }})
+            .build();
+
+        return userStateDto;
     }
 
     private Optional<UserStateV2Dto> getUserStateFromUserService(Jwt jwt) {

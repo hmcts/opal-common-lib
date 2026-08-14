@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -29,8 +30,8 @@ public class BusinessUnitUserV2 {
 
     @JsonCreator
     public BusinessUnitUserV2(@JsonProperty("business_unit_user_id") @NonNull String businessUnitUserId,
-        @JsonProperty("business_unit_id") @NonNull Short businessUnitId,
-        @JsonProperty("permissions") @NonNull Set<PermissionV2> permissions) {
+                            @JsonProperty("business_unit_id") @NonNull Short businessUnitId,
+                            @JsonProperty("permissions") @NonNull Set<PermissionV2> permissions) {
 
         this.businessUnitUserId = businessUnitUserId;
         this.businessUnitId = businessUnitId;
@@ -61,4 +62,29 @@ public class BusinessUnitUserV2 {
         return businessUnitIds.contains(this.businessUnitId);
     }
 
+    public static class DeveloperBusinessUnitUserV2 extends BusinessUnitUserV2 {
+        DeveloperBusinessUnitUserV2() {
+            super("", Short.MAX_VALUE, Collections.emptySet());
+        }
+
+        @Override
+        public boolean hasPermission(PermissionDescriptorV2 reqPermission) {
+            return true;
+        }
+
+        @Override
+        public boolean hasAnyPermission(PermissionDescriptorV2... reqPermissions) {
+            return true;
+        }
+
+        @Override
+        public boolean matchesBusinessUnitId(Short businessUnitId) {
+            return true;
+        }
+
+        public boolean matchesBusinessUnitId(Collection<Short> businessUnitIds) {
+            return true;
+        }
+
+    }
 }

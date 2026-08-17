@@ -28,7 +28,9 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
     // these are speculative:
     PROCESS_PAYMENTS("PROCESS_PAYMENTS", "Process Payments"),
-    VIEW_REPORTS("VIEW_REPORTS", "View Reports");
+    VIEW_REPORTS("VIEW_REPORTS", "View Reports"),
+    VIEW_INTERFACE_FILES("VIEW_INTERFACE_FILES", "View Interface Files"),
+    CREATE_INTERFACE_FILES("CREATE_INTERFACE_FILES", "Create Interface Files");
 
     //  Properties:
     @JsonProperty("permission_code")

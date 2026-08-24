@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
@@ -137,7 +138,14 @@ public class UserStateV2 implements Serializable {
     }
 
     public UserStateV2.UserBusinessUnits allBusinessUnitUsersWithPermission(PermissionDescriptorV2 permission) {
-        return new UserStateV2.UserBusinessUnitsImpl(domains);
+        Set<BusinessUnitUserV2> businessUnitUsers = new HashSet<>();
+
+        // A bit clunkier than a stream, but I understand how this works!
+        for (DomainBusinessUnitUsers domainBusinessUnitUsers : domains.values()) {
+            businessUnitUsers.addAll(domainBusinessUnitUsers.getBusinessUnitUsers()
+                .stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
+        }
+        return new UserStateV2.UserBusinessUnitsImpl(businessUnitUsers);
     }
 
     public interface UserBusinessUnits {
@@ -145,19 +153,14 @@ public class UserStateV2 implements Serializable {
     }
 
     public static class UserBusinessUnitsImpl implements UserStateV2.UserBusinessUnits {
-        private final Map<Domain, DomainBusinessUnitUsers> domains;
+        private final Set<BusinessUnitUserV2> businessUnitUser;
         private final Set<Short> businessUnits;
 
-        public UserBusinessUnitsImpl(Map<Domain, DomainBusinessUnitUsers> domains) {
-            this.domains = domains;
-            businessUnits = new HashSet<>();
+        public UserBusinessUnitsImpl(Set<BusinessUnitUserV2> businessUnitUser) {
+            this.businessUnitUser = businessUnitUser;
 
-            // Bit clunkier than a stream, but I understand how this works!
-            for (DomainBusinessUnitUsers domainBusinessUnitUsers : domains.values()) {
-                for (BusinessUnitUserV2  domainBusinessUnitUser : domainBusinessUnitUsers.getBusinessUnitUsers()) {
-                    businessUnits.add(domainBusinessUnitUser.getBusinessUnitId());
-                }
-            }
+            businessUnits = businessUnitUser.stream().map(BusinessUnitUserV2::getBusinessUnitId)
+                .collect(Collectors.toSet());
         }
 
         public boolean containsBusinessUnit(Short businessUnitId) {

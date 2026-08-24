@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserBusinessUnits;
 
 @Builder
 @Data
@@ -76,10 +77,6 @@ public class DomainBusinessUnitUsers {
         return businessUnitIds.stream()
             .filter(buid -> hasBusinessUnitUserWithAnyPermission(buid, permissions))
             .collect(Collectors.toSet());
-    }
-
-    public interface UserBusinessUnits {
-        boolean containsBusinessUnit(Short businessUnitId);
     }
 
     public static class UserBusinessUnitsImpl implements UserBusinessUnits {

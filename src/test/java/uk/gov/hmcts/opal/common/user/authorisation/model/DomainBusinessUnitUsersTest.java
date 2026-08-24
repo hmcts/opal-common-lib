@@ -74,7 +74,7 @@ class DomainBusinessUnitUsersTest {
 
     @Test
     void allBusinessUnitUsersWithPermission_returnsBusinessUnitsWithPermission() {
-        DomainBusinessUnitUsers.UserBusinessUnits result =
+        UserStateV2.UserBusinessUnits result =
             domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(TestPermission.PROCESS_PAYMENTS);
 
         assertThat(result.containsBusinessUnit((short) 10)).isFalse();

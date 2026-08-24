@@ -30,7 +30,9 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     PROCESS_PAYMENTS("PROCESS_PAYMENTS", "Process Payments"),
     VIEW_REPORTS("VIEW_REPORTS", "View Reports"),
     VIEW_INTERFACE_FILES("VIEW_INTERFACE_FILES", "View Interface Files"),
-    CREATE_INTERFACE_FILES("CREATE_INTERFACE_FILES", "Create Interface Files");
+    CREATE_INTERFACE_FILES("CREATE_INTERFACE_FILES", "Create Interface Files"),
+    DRAFT_ACCOUNT_PERMISSIONS("DRAFT_ACCOUNT_PERMISSIONS", "Draft Account Permissions"),
+    PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments");
 
     //  Properties:
     @JsonProperty("permission_code")

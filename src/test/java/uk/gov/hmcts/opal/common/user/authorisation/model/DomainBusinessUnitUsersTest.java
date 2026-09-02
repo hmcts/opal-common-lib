@@ -74,7 +74,7 @@ class DomainBusinessUnitUsersTest {
 
     @Test
     void allBusinessUnitUsersWithPermission_returnsBusinessUnitsWithPermission() {
-        DomainBusinessUnitUsers.UserBusinessUnits result =
+        UserStateV2.UserBusinessUnits result =
             domainBusinessUnitUsers.allBusinessUnitUsersWithPermission(TestPermission.PROCESS_PAYMENTS);
 
         assertThat(result.containsBusinessUnit((short) 10)).isFalse();
@@ -94,43 +94,40 @@ class DomainBusinessUnitUsersTest {
             Optional.empty(), TestPermission.PROCESS_PAYMENTS)).isFalse();
     }
 
-    private BusinessUnitUser businessUnitUser(String businessUnitUserId, Short businessUnitId,
+    private BusinessUnitUserV2 businessUnitUser(String businessUnitUserId, Short businessUnitId,
                                               TestPermission permission) {
-        return BusinessUnitUser.builder()
+        return BusinessUnitUserV2.builder()
             .businessUnitUserId(businessUnitUserId)
             .businessUnitId(businessUnitId)
             .permissions(Set.of(permission.toCommonPermission()))
             .build();
     }
 
-    private enum TestPermission implements PermissionDescriptor {
-        ACCOUNT_ENQUIRY(1L, "Account Enquiry"),
-        PROCESS_PAYMENTS(2L, "Process Payments"),
-        VIEW_REPORTS(3L, "View Reports");
+    private enum TestPermission implements PermissionDescriptorV2 {
+        ACCOUNT_ENQUIRY("ACCOUNT_ENQUIRY", "Account Enquiry"),
+        PROCESS_PAYMENTS("PROCESS_PAYMENTS", "Process Payments"),
+        VIEW_REPORTS("VIEW_REPORTS", "View Reports");
 
-        private final long id;
-        private final String description;
+        private final String permissionCode;
+        private final String permissionName;
 
-        TestPermission(long id, String description) {
-            this.id = id;
-            this.description = description;
+        TestPermission(String permissionCode, String permissionName) {
+            this.permissionCode = permissionCode;
+            this.permissionName = permissionName;
         }
 
         @Override
-        public long getId() {
-            return id;
+        public String getPermissionCode() {
+            return permissionCode;
         }
 
         @Override
-        public String getDescription() {
-            return description;
+        public String getPermissionName() {
+            return permissionName;
         }
 
-        private Permission toCommonPermission() {
-            return Permission.builder()
-                .permissionId(id)
-                .permissionName(description)
-                .build();
+        private PermissionV2 toCommonPermission() {
+            return PermissionV2.fromPermissionCode(permissionCode);
         }
     }
 }

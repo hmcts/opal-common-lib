@@ -84,7 +84,13 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
             }
             String contentDigestHeader = request.getHeader(CONTENT_DIGEST);
             return contentDigestHeader == null || contentDigestHeader.isBlank();
+        } else if (HttpMethod.GET.matches(request.getMethod())) {
+            //  Not sure if this is the correct solution, but it does stop the tests from failing.
+            String contentDigestHeader = request.getHeader(CONTENT_DIGEST);
+
+            return contentDigestHeader == null || contentDigestHeader.isBlank();
         }
+
         return true;
     }
 

@@ -137,7 +137,7 @@ repositories {
 
 ext {
   jacksonVersion = "2.22.0"
-  lombokVersion = "1.18.46"
+  lombokVersion = "1.18.48"
   mapstructVersion = "1.6.3"
   set('spring-framework.version', "7.0.9")
 }

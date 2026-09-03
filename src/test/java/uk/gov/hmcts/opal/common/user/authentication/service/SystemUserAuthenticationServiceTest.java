@@ -1,12 +1,16 @@
 package uk.gov.hmcts.opal.common.user.authentication.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.client.AzureActiveDirectoryClient;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.AzureToken;
 
@@ -14,6 +18,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -37,6 +42,11 @@ class SystemUserAuthenticationServiceTest {
 
     @InjectMocks
     private SystemUserAuthenticationService systemUserAuthenticationService;
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void getSystemUserAuthenticationToken_whenSystemUserExists_returnsAccessToken() {
@@ -92,6 +102,57 @@ class SystemUserAuthenticationServiceTest {
         verifyNoInteractions(azureActiveDirectoryClient);
     }
 
+    @Test
+    void getCurrentSystemUser_whenAppIdMatchesConfiguredSystemUser_returnsSystemUserEnum() {
+        OpalCommonConfiguration.SystemUser configuredSystemUser = buildSystemUser();
+        stubSystemUsers(Map.of(SystemUserEnum.OPAL_SYSTEM_USER.getConfigKey(), configuredSystemUser));
+        setCurrentAuthenticatedSystemUser(CLIENT_ID);
+
+        assertThat(systemUserAuthenticationService.getCurrentSystemUser())
+            .contains(SystemUserEnum.OPAL_SYSTEM_USER);
+        verifyNoInteractions(azureActiveDirectoryClient);
+    }
+
+    @Test
+    void getCurrentSystemUser_whenAppIdClaimIsMissing_returnsEmpty() {
+        setCurrentAuthenticatedSystemUser(null);
+
+        assertThat(systemUserAuthenticationService.getCurrentSystemUser()).isEmpty();
+        verifyNoInteractions(azureActiveDirectoryClient);
+    }
+
+    @Test
+    void getCurrentSystemUser_whenAppIdDoesNotMatchAnyConfiguredSystemUser_returnsEmpty() {
+        OpalCommonConfiguration.SystemUser configuredSystemUser = buildSystemUser();
+        stubSystemUsers(Map.of(SystemUserEnum.OPAL_SYSTEM_USER.getConfigKey(), configuredSystemUser));
+        setCurrentAuthenticatedSystemUser("other-client-id");
+
+        assertThat(systemUserAuthenticationService.getCurrentSystemUser()).isEmpty();
+        verifyNoInteractions(azureActiveDirectoryClient);
+    }
+
+    @Test
+    void getCurrentSystemUser_whenConfigKeyHasNoMatchingEnum_returnsEmpty() {
+        OpalCommonConfiguration.SystemUser configuredSystemUser = buildSystemUser();
+        stubSystemUsers(Map.of("unknown-system-user", configuredSystemUser));
+        setCurrentAuthenticatedSystemUser(CLIENT_ID);
+
+        assertThat(systemUserAuthenticationService.getCurrentSystemUser()).isEmpty();
+        verifyNoInteractions(azureActiveDirectoryClient);
+    }
+
+    @Test
+    void getCurrentSystemUser_whenCurrentAuthenticationIsMissing_throwsUnauthorizedException() {
+        UnauthorizedException exception = assertThrows(
+            UnauthorizedException.class,
+            () -> systemUserAuthenticationService.getCurrentSystemUser()
+        );
+
+        assertThat(exception.getDetail())
+            .isEqualTo("Current user is not authenticated with OpalJwtAuthenticationToken");
+        verifyNoInteractions(azureActiveDirectoryClient);
+    }
+
     private void stubSystemUsers(Map<String, OpalCommonConfiguration.SystemUser> users) {
         when(opalCommonConfiguration.getSystemUsers()).thenReturn(systemUsers);
         when(systemUsers.getUsers()).thenReturn(users);
@@ -104,6 +165,16 @@ class SystemUserAuthenticationServiceTest {
         systemUser.setScope(SCOPE);
         systemUser.setGrantType(GRANT_TYPE);
         return systemUser;
+    }
+
+    private void setCurrentAuthenticatedSystemUser(String appId) {
+        OpalJwtAuthenticationToken opalJwtAuthenticationToken = mock(OpalJwtAuthenticationToken.class);
+        Jwt jwt = mock(Jwt.class);
+
+        when(opalJwtAuthenticationToken.getToken()).thenReturn(jwt);
+        when(jwt.getClaimAsString("appid")).thenReturn(appId);
+
+        SecurityContextHolder.getContext().setAuthentication(opalJwtAuthenticationToken);
     }
 }
 

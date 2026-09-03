@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.common.operationid;
+package uk.gov.hmcts.opal.common.spring.filter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

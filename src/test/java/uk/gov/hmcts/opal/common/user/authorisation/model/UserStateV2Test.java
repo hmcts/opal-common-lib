@@ -101,7 +101,7 @@ class UserStateV2Test {
         UserStateV2 userState =  createUserStateV2(new HashMap<>() {{
                 put(Domain.FINES, DomainBusinessUnitUsers
                     .builder()
-                    .businessUnitUsers(new ArrayList<>() {{
+                    .businessUnitUsers(new ArrayList<BusinessUnitUserV2>() {{
                             add(BusinessUnitUserV2
                                 .builder()
                                 .businessUnitUserId("123")
@@ -122,7 +122,7 @@ class UserStateV2Test {
         UserStateV2 userState =  createUserStateV2(new HashMap<>() {{
                 put(Domain.FINES, DomainBusinessUnitUsers
                     .builder()
-                    .businessUnitUsers(new ArrayList<>() {{
+                    .businessUnitUsers(new ArrayList<BusinessUnitUserV2>() {{
                             add(BusinessUnitUserV2
                                 .builder()
                                 .businessUnitUserId("123")

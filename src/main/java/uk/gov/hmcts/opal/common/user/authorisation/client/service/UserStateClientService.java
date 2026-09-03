@@ -4,6 +4,8 @@ import com.nimbusds.jwt.JWTClaimNames;
 import feign.FeignException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -87,14 +89,15 @@ public class UserStateClientService {
             UserStateV2 userState = userStateMapper.toUserStateV2(userStateV2Dto.get());
             return Optional.of(userState);
         }
+
         return Optional.empty();
     }
 
     private Optional<UserStateV2Dto> getUserStateFromCache(Jwt jwt) {
-
         String tokenSubject = jwt.getClaim(JWTClaimNames.SUBJECT);
         String cacheKey = USER_STATE_CACHE_PREFIX + tokenSubject;
         String cachedUserState;
+
         try {
             cachedUserState = redisTemplate.opsForValue().get(cacheKey);
         } catch (DataAccessException e) {
@@ -119,7 +122,7 @@ public class UserStateClientService {
     }
 
     private UserStateV2Dto convertFrom(UserStateV2 userState) {
-        UserStateV2Dto userStateDto = UserStateV2Dto
+        return UserStateV2Dto
             .builder()
             .userId(userState.getUserId())
             .username(userState.getUsername())
@@ -127,34 +130,48 @@ public class UserStateClientService {
             .status(userState.getStatus().name())
             .version(userState.getVersion())
             .cacheName(userState.getCacheName())
-            .domains(new HashMap<>() {{
-                    for (Domain domain : userState.getDomains().keySet()) {
-                        DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
-
-                        put(domain, DomainDto
-                                .builder()
-                                .businessUnitUsers(new ArrayList<>() {{
-                                        for(BusinessUnitUserV2 businessUnitUser :
-                                            sourceDomain.getBusinessUnitUsers()) {
-                                            add(new BusinessUnitUserV2Dto(
-                                                businessUnitUser.getBusinessUnitUserId(),
-                                                businessUnitUser.getBusinessUnitId(),
-                                                new ArrayList<>() {{
-                                                        for (PermissionV2 permission :
-                                                            businessUnitUser.getPermissions()) {
-                                                                add(new PermissionV2Dto(permission.getPermissionCode(),
-                                                                    permission.getPermissionName()));
-                                                        }
-                                                    }}
-                                            ));
-                                            }
-                                    }})
-                                .build());
-                    }
-                    }})
+            .domains(getDomainsFromUserStateV2Dto(userState))
             .build();
+    }
 
-        return userStateDto;
+    private Map<Domain, DomainDto> getDomainsFromUserStateV2Dto(UserStateV2 userState) {
+        Map<Domain, DomainDto> domains = new HashMap<>();
+
+        for (Domain domain : userState.getDomains().keySet()) {
+            DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
+
+            domains.put(domain, DomainDto
+                .builder()
+                .businessUnitUsers(getBusinessUnitUsersFromDomain(sourceDomain))
+                .build());
+        }
+
+        return domains;
+    }
+
+    private List<BusinessUnitUserV2Dto> getBusinessUnitUsersFromDomain(DomainBusinessUnitUsers sourceDomain) {
+        List<BusinessUnitUserV2Dto> businessUnitUsers = new ArrayList<>();
+
+        for (BusinessUnitUserV2 businessUnitUser : sourceDomain.getBusinessUnitUsers()) {
+            businessUnitUsers.add(new BusinessUnitUserV2Dto(
+                businessUnitUser.getBusinessUnitUserId(),
+                businessUnitUser.getBusinessUnitId(),
+                getPermissionsFromBusinessUnitUserV2Dto(businessUnitUser)
+            ));
+        }
+
+        return businessUnitUsers;
+    }
+
+    private List<PermissionV2Dto> getPermissionsFromBusinessUnitUserV2Dto(BusinessUnitUserV2 businessUnitUser) {
+        List<PermissionV2Dto> permissions = new ArrayList<>();
+
+        for (PermissionV2 permission : businessUnitUser.getPermissions()) {
+            permissions.add(new PermissionV2Dto(permission.getPermissionCode(),
+                permission.getPermissionName()));
+        }
+
+        return permissions;
     }
 
     private Optional<UserStateV2Dto> getUserStateFromUserService(Jwt jwt) {

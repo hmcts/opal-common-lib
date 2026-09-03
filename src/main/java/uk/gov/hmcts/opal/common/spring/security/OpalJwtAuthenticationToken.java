@@ -111,13 +111,6 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return Arrays.stream(permissions).anyMatch(this::hasPermission);
     }
 
-    /*
-    public boolean hasAtLeastOneOfPermission(PermissionV2... permissions) {
-        return Arrays.stream(permissions).anyMatch(this::hasPermissionV2);
-    }
-
-     */
-
     private boolean hasPermissionV2(PermissionV2 permissionV2) {
         return hasPermission(permissionV2.getPermissionName().toUpperCase()
             .replace(" ", "_"));

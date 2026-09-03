@@ -74,12 +74,6 @@ public interface UserStateMapper {
             return Map.of();
         }
 
-        /*
-        Collection<BusinessUnitUserV2> businessUnitUsers = domainBusinessUnitUsers.getBusinessUnitUsers();
-        if (businessUnitUsers == null) {
-            return Map.of();
-        }
-         */
         return new HashMap<>() {{
                 put(domain, domainBusinessUnitUsers);
             }};

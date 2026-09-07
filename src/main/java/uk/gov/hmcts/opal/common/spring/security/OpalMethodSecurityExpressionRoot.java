@@ -30,7 +30,6 @@ public class OpalMethodSecurityExpressionRoot extends SecurityExpressionRoot<Met
     }
 
     public boolean hasPermission(String permission) {
-        System.out.println("Permission: " + permission);
         return getAuthToken().hasPermission(permission);
     }
 

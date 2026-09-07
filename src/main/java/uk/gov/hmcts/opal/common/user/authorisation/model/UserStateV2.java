@@ -140,7 +140,6 @@ public class UserStateV2 implements Serializable {
     public UserStateV2.UserBusinessUnits allBusinessUnitUsersWithPermission(PermissionDescriptorV2 permission) {
         Set<BusinessUnitUserV2> businessUnitUsers = new HashSet<>();
 
-        // A bit clunkier than a stream, but I understand how this works!
         for (DomainBusinessUnitUsers domainBusinessUnitUsers : domains.values()) {
             businessUnitUsers.addAll(domainBusinessUnitUsers.getBusinessUnitUsers()
                 .stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));

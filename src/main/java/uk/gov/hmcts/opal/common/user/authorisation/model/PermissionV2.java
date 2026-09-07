@@ -26,7 +26,6 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     SEARCH_AND_VIEW_ACCOUNTS("SEARCH_AND_VIEW_ACCOUNTS", "Search and view accounts"),
     VIEW_CREDITOR_BACS("VIEW_CREDITOR_BACS", "View creditor BACS"),
     AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
-    // these are speculative:
     PROCESS_PAYMENTS("PROCESS_PAYMENTS", "Process Payments"),
     VIEW_REPORTS("VIEW_REPORTS", "View Reports"),
     VIEW_INTERFACE_FILES("VIEW_INTERFACE_FILES", "View Interface Files"),

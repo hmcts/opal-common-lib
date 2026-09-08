@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.common.user.authorisation.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import lombok.Builder;
@@ -29,9 +28,9 @@ public class BusinessUnitUserV2 {
     Set<PermissionV2> permissions;
 
     @JsonCreator
-    public BusinessUnitUserV2(@JsonProperty("business_unit_user_id") String businessUnitUserId,
-                            @JsonProperty("business_unit_id") Short businessUnitId,
-                            @JsonProperty("permissions") Set<PermissionV2> permissions) {
+    public BusinessUnitUserV2(@NonNull @JsonProperty("business_unit_user_id") String businessUnitUserId,
+                            @NonNull @JsonProperty("business_unit_id") Short businessUnitId,
+                            @NonNull@JsonProperty("permissions") Set<PermissionV2> permissions) {
 
         this.businessUnitUserId = businessUnitUserId;
         this.businessUnitId = businessUnitId;
@@ -46,20 +45,8 @@ public class BusinessUnitUserV2 {
         return Arrays.stream(reqPermissions).anyMatch(this::hasPermission);
     }
 
-    public boolean doesNotHavePermission(PermissionDescriptorV2 permission) {
-        return !hasPermission(permission);
-    }
-
-    public boolean doesNotHaveAnyPermission(PermissionDescriptorV2... reqPermissions) {
-        return !hasAnyPermission(reqPermissions);
-    }
-
     public boolean matchesBusinessUnitId(Short businessUnitId) {
         return this.businessUnitId.equals(businessUnitId);
-    }
-
-    public boolean matchesBusinessUnitId(Collection<Short> businessUnitIds) {
-        return businessUnitIds.contains(this.businessUnitId);
     }
 
     public static class DeveloperBusinessUnitUserV2 extends BusinessUnitUserV2 {
@@ -79,11 +66,6 @@ public class BusinessUnitUserV2 {
 
         @Override
         public boolean matchesBusinessUnitId(Short businessUnitId) {
-            return true;
-        }
-
-        @Override
-        public boolean matchesBusinessUnitId(Collection<Short> businessUnitIds) {
             return true;
         }
 

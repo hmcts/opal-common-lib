@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.common.user.authorisation.client.service;
 import com.nimbusds.jwt.JWTClaimNames;
 import feign.FeignException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -135,7 +135,7 @@ public class UserStateClientService {
     }
 
     private Map<Domain, DomainDto> getDomainsFromUserStateV2Dto(UserStateV2 userState) {
-        Map<Domain, DomainDto> domains = new HashMap<>();
+        Map<Domain, DomainDto> domains = new EnumMap<>(Domain.class);
 
         for (Domain domain : userState.getDomains().keySet()) {
             DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);

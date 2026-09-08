@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.common.user.authorisation.client.mapper;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import lombok.NonNull;
 import org.mapstruct.Mapper;
@@ -74,9 +74,9 @@ public interface UserStateMapper {
             return Map.of();
         }
 
-        return new HashMap<>() {{
-                put(domain, domainBusinessUnitUsers);
-            }};
+        EnumMap<Domain, DomainBusinessUnitUsers> result = new EnumMap<>(Domain.class);
+        result.put(domain, domainBusinessUnitUsers);
+        return result;
     }
 
     //  Temporary fix.

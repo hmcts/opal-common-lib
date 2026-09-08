@@ -152,11 +152,9 @@ public class UserStateV2 implements Serializable {
     }
 
     public static class UserBusinessUnitsImpl implements UserStateV2.UserBusinessUnits {
-        private final Set<BusinessUnitUserV2> businessUnitUser;
         private final Set<Short> businessUnits;
 
         public UserBusinessUnitsImpl(Set<BusinessUnitUserV2> businessUnitUser) {
-            this.businessUnitUser = businessUnitUser;
 
             businessUnits = businessUnitUser.stream().map(BusinessUnitUserV2::getBusinessUnitId)
                 .collect(Collectors.toSet());
@@ -181,6 +179,7 @@ public class UserStateV2 implements Serializable {
             return true;
         }
 
+        @Override
         public boolean anyBusinessUnitUserHasAnyPermission(PermissionDescriptorV2... permission) {
             return true;
         }
@@ -204,13 +203,7 @@ public class UserStateV2 implements Serializable {
 
         @Override
         public UserBusinessUnits allBusinessUnitUsersWithPermission(PermissionDescriptorV2 permission) {
-            return new UserBusinessUnits() {
-                @Override
-                public boolean containsBusinessUnit(Short businessUnitId) {
-                    return true;
-                }
-
-            };
+            return businessUnitId -> true;
         }
     }
 

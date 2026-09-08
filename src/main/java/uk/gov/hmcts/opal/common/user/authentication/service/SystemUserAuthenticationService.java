@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.common.user.authentication.service;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
@@ -54,13 +55,20 @@ public class SystemUserAuthenticationService {
     }
 
     private AzureToken getAzureToken(OpalCommonConfiguration.SystemUser systemUser) {
-        AzureActiveDirectoryClient.GetSystemUserFormData formData =
-            new AzureActiveDirectoryClient.GetSystemUserFormData(
-                systemUser.getClientId(),
-                systemUser.getClientSecret(),
-                systemUser.getScope(),
-                systemUser.getGrantType()
-            );
-        return azureActiveDirectoryClient.getSystemUser(formData);
+        try {
+            AzureActiveDirectoryClient.GetSystemUserFormData formData =
+                new AzureActiveDirectoryClient.GetSystemUserFormData(
+                    systemUser.getClientId(),
+                    systemUser.getClientSecret(),
+                    systemUser.getScope(),
+                    systemUser.getGrantType()
+                );
+            return azureActiveDirectoryClient.getSystemUser(formData);
+        } catch (Exception e) {
+            throw new InternalServerErrorException(
+                "Error fetching system user token for clientId: " + systemUser.getClientId(),
+                "Please check Client Secret, Client ID and token-url are correct and exist in Azure AD",
+                e);
+        }
     }
 }

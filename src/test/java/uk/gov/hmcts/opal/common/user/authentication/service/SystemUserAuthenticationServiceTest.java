@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
@@ -100,6 +101,26 @@ class SystemUserAuthenticationServiceTest {
 
         assertThat(exception.getDetail()).isEqualTo("System user not found for enum: opal-system-user");
         verifyNoInteractions(azureActiveDirectoryClient);
+    }
+
+    @Test
+    void getSystemUserAuthenticationToken_whenAzureClientThrows_wrapsAsInternalServerErrorException() {
+        OpalCommonConfiguration.SystemUser configuredSystemUser = buildSystemUser();
+        RuntimeException rootCause = new RuntimeException("azure-ad-failure");
+        stubSystemUsers(Map.of(SystemUserEnum.OPAL_SYSTEM_USER.getConfigKey(), configuredSystemUser));
+
+        when(azureActiveDirectoryClient.getSystemUser(argThat(this::matchesSystemUserFormData)))
+            .thenThrow(rootCause);
+
+        InternalServerErrorException exception = assertThrows(
+            InternalServerErrorException.class,
+            () -> systemUserAuthenticationService.getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER)
+        );
+
+        assertThat(exception.getDetail())
+            .isEqualTo("Please check Client Secret, Client ID and token-url are correct and exist in Azure AD");
+        assertThat(exception).hasCause(rootCause);
+        verify(azureActiveDirectoryClient).getSystemUser(argThat(this::matchesSystemUserFormData));
     }
 
     @Test

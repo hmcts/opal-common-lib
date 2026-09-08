@@ -1,5 +1,14 @@
 package uk.gov.hmcts.opal.common.user.authentication.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,15 +22,6 @@ import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.client.AzureActiveDirectoryClient;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.AzureToken;
-
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SystemUserAuthenticationServiceTest {
@@ -55,14 +55,14 @@ class SystemUserAuthenticationServiceTest {
         azureToken.setAccessToken("access-token");
         stubSystemUsers(Map.of(SystemUserEnum.OPAL_SYSTEM_USER.getConfigKey(), configuredSystemUser));
 
-        when(azureActiveDirectoryClient.getSystemUser(CLIENT_ID, CLIENT_SECRET, SCOPE, GRANT_TYPE))
+        when(azureActiveDirectoryClient.getSystemUser(argThat(this::matchesSystemUserFormData)))
             .thenReturn(azureToken);
 
         String accessToken = systemUserAuthenticationService
             .getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER);
 
         assertThat(accessToken).isEqualTo("access-token");
-        verify(azureActiveDirectoryClient).getSystemUser(CLIENT_ID, CLIENT_SECRET, SCOPE, GRANT_TYPE);
+        verify(azureActiveDirectoryClient).getSystemUser(argThat(this::matchesSystemUserFormData));
     }
 
     @Test
@@ -175,6 +175,13 @@ class SystemUserAuthenticationServiceTest {
         when(jwt.getClaimAsString("appid")).thenReturn(appId);
 
         SecurityContextHolder.getContext().setAuthentication(opalJwtAuthenticationToken);
+    }
+
+    private boolean matchesSystemUserFormData(AzureActiveDirectoryClient.GetSystemUserFormData formData) {
+        return CLIENT_ID.equals(formData.getFirst("client_id"))
+            && CLIENT_SECRET.equals(formData.getFirst("client_secret"))
+            && SCOPE.equals(formData.getFirst("scope"))
+            && GRANT_TYPE.equals(formData.getFirst("grant_type"));
     }
 }
 

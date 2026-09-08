@@ -54,11 +54,13 @@ public class SystemUserAuthenticationService {
     }
 
     private AzureToken getAzureToken(OpalCommonConfiguration.SystemUser systemUser) {
-        return azureActiveDirectoryClient.getSystemUser(
-            systemUser.getClientId(),
-            systemUser.getClientSecret(),
-            systemUser.getScope(),
-            systemUser.getGrantType()
-        );
+        AzureActiveDirectoryClient.GetSystemUserFormData formData =
+            new AzureActiveDirectoryClient.GetSystemUserFormData(
+                systemUser.getClientId(),
+                systemUser.getClientSecret(),
+                systemUser.getScope(),
+                systemUser.getGrantType()
+            );
+        return azureActiveDirectoryClient.getSystemUser(formData);
     }
 }

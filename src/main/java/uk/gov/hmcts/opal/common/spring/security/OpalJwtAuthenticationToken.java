@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.common.spring.security;
 
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -33,7 +34,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
     public OpalJwtAuthenticationToken(UserStateV2 userState, Domain domain, Jwt jwt,
                                       Collection<? extends GrantedAuthority> authorities, Object details) {
 
-        super(jwt, authorities, jwt.getClaimAsString(JwtClaimNames.SUB));
+        super(jwt, authorities, Objects.requireNonNull(jwt.getClaimAsString(JwtClaimNames.SUB)));
         setDetails(details);
         this.userState = userState;
 
@@ -74,20 +75,12 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return userState.getUsername();
     }
 
-    public String getUserStateName() {
-        return userState.getName();
-    }
-
     public UserStatus getStatus() {
         return userState.getStatus();
     }
 
     public Long getVersion() {
         return userState.getVersion();
-    }
-
-    public String getCacheName() {
-        return userState.getCacheName();
     }
 
     public boolean hasBusinessUnit(short businessUnitId) {
@@ -101,10 +94,6 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
 
     public boolean hasPermission(PermissionV2 permission) {
         return hasPermission(permission.getPermissionName().toUpperCase().replace(" ", "_"));
-    }
-
-    public boolean hasAtLeastOneOfPermission(String... permissions) {
-        return Arrays.stream(permissions).anyMatch(this::hasPermission);
     }
 
     public boolean hasAtLeastOneOfPermission(PermissionV2... permissions) {

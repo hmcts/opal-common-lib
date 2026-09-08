@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.common.user.authorisation.client.mapper;
 
-import java.util.EnumMap;
-import java.util.Map;
 import lombok.NonNull;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -40,12 +38,6 @@ public interface UserStateMapper {
     @Deprecated
     UserState toUserState(UserStateV2 userStateV2, Domain domain);
 
-    /* ACR: 2026-08-06 Note: Not convinced about this one! */
-    @Mapping(source = "userStateV2.username", target = "username")
-    @Mapping(source = "userStateV2.name", target = "name")
-    @Mapping(target = "userStateV2.domains", expression = "java(flattenBusinessUnitUsersV2Dep(userStateV2, domain))")
-    UserStateV2 toUserStateSpecific(UserStateV2 userStateV2, Domain domain);
-
     UserStateV2 toUserStateV2(UserStateV2Dto userStateV2Dto);
 
     BusinessUnitUser toBusinessUnitUser(BusinessUnitUserDto businessUnitUserDto);
@@ -61,21 +53,6 @@ public interface UserStateMapper {
             result = PermissionV2.fromPermissionCode(permissionV2Dto.getPermissionCode());
         }
 
-        return result;
-    }
-
-    default Map<Domain, DomainBusinessUnitUsers> flattenBusinessUnitUsersV2Dep(UserStateV2 userStateV2, Domain domain) {
-        if (Objects.isNull(userStateV2) || Objects.isNull(domain)) {
-            return Map.of();
-        }
-
-        DomainBusinessUnitUsers domainBusinessUnitUsers = userStateV2.getDomains().get(domain);
-        if (Objects.isNull(domainBusinessUnitUsers)) {
-            return Map.of();
-        }
-
-        EnumMap<Domain, DomainBusinessUnitUsers> result = new EnumMap<>(Domain.class);
-        result.put(domain, domainBusinessUnitUsers);
         return result;
     }
 
@@ -123,26 +100,6 @@ public interface UserStateMapper {
                 .permissionId((long)pv2.ordinal())
                 .permissionName(pv2.getPermissionName())
                 .build();
-    }
-
-    default Set<BusinessUnitUserV2> flattenBusinessUnitUsers(UserStateV2 userStateV2, Domain domain) {
-        if (domain == null || userStateV2.getDomains() == null) {
-            return Set.of();
-        }
-
-        DomainBusinessUnitUsers domainBusinessUnitUsers = userStateV2.getDomains().get(domain);
-        if (domainBusinessUnitUsers == null) {
-            return Set.of();
-        }
-
-        Collection<BusinessUnitUserV2> businessUnitUsers = domainBusinessUnitUsers.getBusinessUnitUsers();
-        if (businessUnitUsers == null) {
-            return Set.of();
-        }
-
-        return businessUnitUsers.stream()
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
     }
 
 }

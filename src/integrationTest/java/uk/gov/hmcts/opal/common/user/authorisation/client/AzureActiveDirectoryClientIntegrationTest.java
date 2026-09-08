@@ -67,7 +67,8 @@ class AzureActiveDirectoryClientIntegrationTest {
                     }
                     """)));
 
-        AzureActiveDirectoryClient.GetSystemUserFormData formData = new AzureActiveDirectoryClient.GetSystemUserFormData(CLIENT_ID, CLIENT_SECRET, SCOPE, GRANT_TYPE);
+        AzureActiveDirectoryClient.GetSystemUserFormData formData =
+            new AzureActiveDirectoryClient.GetSystemUserFormData(CLIENT_ID, CLIENT_SECRET, SCOPE, GRANT_TYPE);
 
         AzureToken token = azureActiveDirectoryClient.getSystemUser(formData);
 

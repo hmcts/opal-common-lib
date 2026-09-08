@@ -38,6 +38,11 @@ public interface UserStateMapper {
     @Deprecated
     UserState toUserState(UserStateV2 userStateV2, Domain domain);
 
+    @Mapping(source = "userStateV2.username", target = "username")
+    @Mapping(source = "userStateV2.name", target = "name")
+    @Mapping(target = "userStateV2.domains", expression = "java(flattenBusinessUnitUsersV2Dep(userStateV2, domain))")
+    UserStateV2 toUserStateSpecific(UserStateV2 userStateV2, Domain domain);
+
     UserStateV2 toUserStateV2(UserStateV2Dto userStateV2Dto);
 
     BusinessUnitUser toBusinessUnitUser(BusinessUnitUserDto businessUnitUserDto);

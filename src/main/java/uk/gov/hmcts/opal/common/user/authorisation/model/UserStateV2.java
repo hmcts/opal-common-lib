@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.common.user.authorisation.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -13,6 +14,7 @@ import lombok.NonNull;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2.DeveloperBusinessUnitUserV2;
 
 import static java.util.Collections.emptyList;
 
@@ -163,7 +165,6 @@ public class UserStateV2 implements Serializable {
         }
     }
 
-    /*
     public static class DeveloperUserState extends UserStateV2 {
         private static final Optional<BusinessUnitUserV2> DEV_BUSINESS_UNIT_USER =
             Optional.of(new DeveloperBusinessUnitUserV2());
@@ -205,7 +206,5 @@ public class UserStateV2 implements Serializable {
             return businessUnitId -> true;
         }
     }
-
-     */
 
 }

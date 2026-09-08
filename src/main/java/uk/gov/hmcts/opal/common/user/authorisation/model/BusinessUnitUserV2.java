@@ -29,9 +29,9 @@ public class BusinessUnitUserV2 {
     Set<PermissionV2> permissions;
 
     @JsonCreator
-    public BusinessUnitUserV2(@NonNull @JsonProperty("business_unit_user_id") String businessUnitUserId,
-                            @NonNull @JsonProperty("business_unit_id") Short businessUnitId,
-                            @NonNull@JsonProperty("permissions") Set<PermissionV2> permissions) {
+    public BusinessUnitUserV2(@JsonProperty("business_unit_user_id") String businessUnitUserId,
+                            @JsonProperty("business_unit_id") Short businessUnitId,
+                            @JsonProperty("permissions") Set<PermissionV2> permissions) {
 
         this.businessUnitUserId = businessUnitUserId;
         this.businessUnitId = businessUnitId;
@@ -88,4 +88,5 @@ public class BusinessUnitUserV2 {
         }
 
     }
+
 }

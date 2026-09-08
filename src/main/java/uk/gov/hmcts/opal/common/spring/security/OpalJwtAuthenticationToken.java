@@ -10,7 +10,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -53,12 +52,6 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
                     .map(this::toPermissionNameStringV2)
                     .collect(Collectors.toSet())
             ));
-    }
-
-    public String toPermissionNameString(PermissionDescriptor permissionDescriptor) {
-        return permissionDescriptor.getDescription()
-            .toUpperCase()
-            .replace(" ", "_");
     }
 
     public String toPermissionNameStringV2(PermissionDescriptorV2 permissionDescriptor) {

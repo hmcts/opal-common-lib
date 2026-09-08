@@ -224,8 +224,8 @@ public class UserStateClientService {
 
         try {
             JsonNode problemJson = objectMapper.readTree(responseBody);
-            return FEATURE_DISABLED_PROBLEM_TYPE.equals(problemJson.path("type").asText())
-                || FEATURE_DISABLED_PROBLEM_TITLE.equals(problemJson.path("title").asText());
+            return FEATURE_DISABLED_PROBLEM_TYPE.equals(problemJson.path("type").asString())
+                || FEATURE_DISABLED_PROBLEM_TITLE.equals(problemJson.path("title").asString());
         } catch (JacksonException parsingFailure) {
             log.debug(":isFeatureDisabledProblem: could not parse downstream problem detail", parsingFailure);
             return false;

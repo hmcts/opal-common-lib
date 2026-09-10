@@ -13,9 +13,9 @@ import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
 @Slf4j
 public class AbstractQueueService<T> {
 
-    private final JmsTemplate jmsTemplate;
-    private final ObjectMapper objectMapper;
-    private final String queueName;
+    protected final JmsTemplate jmsTemplate;
+    protected final ObjectMapper objectMapper;
+    protected final String queueName;
 
 
     public AbstractQueueService(

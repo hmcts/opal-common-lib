@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.common.operationid;
+package uk.gov.hmcts.opal.common.spring.filter;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

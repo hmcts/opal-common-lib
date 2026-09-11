@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.common.operationid;
+package uk.gov.hmcts.opal.common.spring.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

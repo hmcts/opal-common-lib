@@ -38,7 +38,7 @@ public class UserStateV2Dto implements Versioned, ToJsonString {
     private String cacheName;
 
     @JsonProperty("is_system_user")
-    private boolean systemUser;
+    private Boolean systemUser;
 
     @JsonProperty("domains")
     private Map<Domain, DomainDto> domains;
@@ -46,5 +46,9 @@ public class UserStateV2Dto implements Versioned, ToJsonString {
     @Override
     public BigInteger getVersion() {
         return Optional.ofNullable(version).map(BigInteger::valueOf).orElse(null);
+    }
+
+    public boolean isSystemUser() {
+        return Boolean.TRUE.equals(systemUser);
     }
 }

@@ -46,4 +46,17 @@ class UserStateV2DtoTest {
         assertThat(dto.getDomains()).containsOnlyKeys(Domain.FINES);
         assertThat(dto.isSystemUser()).isTrue();
     }
+
+    @Test
+    void deserializesNullSystemUserAsFalse() throws Exception {
+        String json = """
+            {
+              "is_system_user": null
+            }
+            """;
+
+        UserStateV2Dto dto = ToJsonString.getObjectMapper().readValue(json, UserStateV2Dto.class);
+
+        assertThat(dto.isSystemUser()).isFalse();
+    }
 }

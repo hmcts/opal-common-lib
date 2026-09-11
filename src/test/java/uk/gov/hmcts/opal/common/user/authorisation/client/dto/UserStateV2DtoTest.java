@@ -32,6 +32,7 @@ class UserStateV2DtoTest {
     void deserializesDomainsUsingDisplayNameKeys() throws Exception {
         String json = """
             {
+              "is_system_user": true,
               "domains": {
                 "fines": {
                   "business_unit_users": []
@@ -43,5 +44,6 @@ class UserStateV2DtoTest {
         UserStateV2Dto dto = ToJsonString.getObjectMapper().readValue(json, UserStateV2Dto.class);
 
         assertThat(dto.getDomains()).containsOnlyKeys(Domain.FINES);
+        assertThat(dto.isSystemUser()).isTrue();
     }
 }

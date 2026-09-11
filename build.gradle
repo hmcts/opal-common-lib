@@ -149,7 +149,7 @@ dependencyManagement {
     mavenBom "tools.jackson:jackson-bom:3.2.2"
     mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.1'
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.3'
-    mavenBom "io.netty:netty-bom:4.2.17.Final"
+    mavenBom "io.netty:netty-bom:4.2.18.Final"
     mavenBom "org.apache.logging.log4j:log4j-bom:2.26.1"
   }
 }
@@ -208,6 +208,7 @@ dependencies {
   smokeTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
+  integrationTestImplementation 'org.wiremock:wiremock-standalone:3.13.1'
   testImplementation 'org.hibernate.orm:hibernate-core'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'

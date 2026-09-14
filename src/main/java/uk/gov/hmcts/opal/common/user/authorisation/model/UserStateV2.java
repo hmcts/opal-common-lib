@@ -143,12 +143,10 @@ public class UserStateV2 implements Serializable {
     }
 
     public UserStateV2.UserBusinessUnits allBusinessUnitUsersWithPermission(PermissionDescriptorV2 permission) {
-        Set<BusinessUnitUserV2> businessUnitUsers = new HashSet<>();
-
-        for (DomainBusinessUnitUsers domainBusinessUnitUsers : domains.values()) {
-            businessUnitUsers.addAll(domainBusinessUnitUsers.getBusinessUnitUsers()
-                .stream().filter(r -> r.hasPermission(permission)).collect(Collectors.toSet()));
-        }
+        Set<BusinessUnitUserV2> businessUnitUsers = domains.values().stream()
+            .flatMap(domain -> domain.getBusinessUnitUsers().stream()
+                .filter(user -> user.hasPermission(permission)))
+            .collect(Collectors.toSet());
         return new UserStateV2.UserBusinessUnitsImpl(businessUnitUsers);
     }
 

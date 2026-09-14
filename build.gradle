@@ -208,7 +208,7 @@ dependencies {
   smokeTestAnnotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 
   testImplementation "org.springframework.boot:spring-boot-starter-test"
-  integrationTestImplementation 'org.wiremock:wiremock-standalone:3.13.1'
+  integrationTestImplementation 'org.wiremock:wiremock-standalone:3.13.2'
   testImplementation 'org.hibernate.orm:hibernate-core'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'

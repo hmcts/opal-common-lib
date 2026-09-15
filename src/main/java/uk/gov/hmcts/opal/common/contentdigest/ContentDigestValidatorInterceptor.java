@@ -84,7 +84,12 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
             }
             String contentDigestHeader = request.getHeader(CONTENT_DIGEST);
             return contentDigestHeader == null || contentDigestHeader.isBlank();
+        } else if (HttpMethod.GET.matches(request.getMethod())) {
+            String contentDigestHeader = request.getHeader(CONTENT_DIGEST);
+
+            return contentDigestHeader == null || contentDigestHeader.isBlank();
         }
+
         return true;
     }
 

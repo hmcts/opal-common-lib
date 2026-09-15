@@ -33,6 +33,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -95,18 +96,18 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticationToken_returnsStateFromCacheWhenPresent() throws Exception {
+    void getUserStateByAuthenticationToken_returnsStateFromCacheWhenPresent() {
         // Arrange
         String subject = "subject-123";
         String cachedUserState = "{\"cached\":true}";
-        UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
         UserStateV2 mappedUserStateV2 = createMappedUserStateV2();
+        UserStateV2 secondMappedUserStateV2 = createMappedUserStateV2();
 
         when(jwt.getClaim(JWTClaimNames.SUBJECT)).thenReturn(subject);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(cachedUserState);
-        when(objectMapper.readValue(cachedUserState, UserStateV2Dto.class)).thenReturn(userStateV2Dto);
-        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
+        when(objectMapper.readValue(cachedUserState, UserStateV2.class)).thenReturn(secondMappedUserStateV2);
+        when(userStateMapper.toUserStateV2(any(UserStateV2Dto.class))).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -167,7 +168,7 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticationToken_fallsBackToServiceWhenCachedStateCannotBeParsed() throws Exception {
+    void getUserStateByAuthenticationToken_fallsBackToServiceWhenCachedStateCannotBeParsed() {
         // Arrange
         String subject = "subject-123";
         String tokenValue = "token-abc";
@@ -179,7 +180,7 @@ class UserStateClientServiceTest {
         when(jwt.getTokenValue()).thenReturn(tokenValue);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(cachedUserState);
-        when(objectMapper.readValue(cachedUserState, UserStateV2Dto.class))
+        when(objectMapper.readValue(cachedUserState, UserStateV2.class))
             .thenThrow(new JacksonException("invalid json") {
             });
         when(userClient.getUserStateByIdWithAuthToken(CURRENT_USER_ID, "Bearer " + tokenValue))
@@ -196,8 +197,7 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticationToken_throwsDownstreamServiceUnavailableWhenUserServiceEndpointDisabled()
-        throws Exception {
+    void getUserStateByAuthenticationToken_throwsDownstreamServiceUnavailableWhenUserServiceEndpointDisabled() {
         String subject = "subject-123";
         String tokenValue = "token-abc";
 
@@ -218,8 +218,7 @@ class UserStateClientServiceTest {
     }
 
     @Test
-    void getUserStateByAuthenticatedUser_throwsDownstreamServiceUnavailableWhenUserServiceEndpointDisabled()
-        throws Exception {
+    void getUserStateByAuthenticatedUser_throwsDownstreamServiceUnavailableWhenUserServiceEndpointDisabled() {
         when(objectMapper.readTree(anyString())).thenReturn(featureDisabledProblemJson());
         when(userClient.getUserState(CURRENT_USER_ID)).thenThrow(buildFeatureDisabledException(404));
 

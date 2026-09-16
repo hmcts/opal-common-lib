@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.common.user.authorisation.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,16 +48,11 @@ public class UserStateV2 implements Serializable {
     Map<Domain, DomainBusinessUnitUsers> domains;
 
     @JsonCreator
-    public UserStateV2(
-        @JsonProperty("user_id") @NonNull Long userId,
-        @JsonProperty("username") @NonNull String username,
-        @JsonProperty("name") String name,
-        @JsonProperty("status") UserStatus status,
-        @JsonProperty("version") Long version,
-        @JsonProperty("cache_name") String cacheName,
-        @JsonProperty("is_system_user") boolean systemUser,
-        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains
-    ) {
+    public UserStateV2(@JsonProperty("user_id") @NonNull Long userId,
+        @JsonProperty("username") @NonNull String username, @JsonProperty("name") String name,
+        @JsonProperty("status") UserStatus status, @JsonProperty("version") Long version,
+        @JsonProperty("cache_name") String cacheName, @JsonProperty("is_system_user") boolean systemUser,
+        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains) {
         this.userId = userId;
         this.username = username;
         this.name = name;
@@ -77,10 +71,8 @@ public class UserStateV2 implements Serializable {
     }
 
     public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
-        return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null)
-            ?
-            domains.get(domain) :
-            DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
+        return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null) ? domains.get(
+            domain) : DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
     }
 
     public boolean anyBusinessUnitUserHasPermission(PermissionDescriptorV2 permission) {
@@ -117,9 +109,9 @@ public class UserStateV2 implements Serializable {
 
     public Optional<BusinessUnitUserV2> getBusinessUnitUserForBusinessUnit(short businessUnitId) {
         for (DomainBusinessUnitUsers domainBusinessUnitUsers : getDomains().values()) {
-            Optional<BusinessUnitUserV2> hasBusinessUnit = domainBusinessUnitUsers.businessUnitUsers.stream()
-                .filter(r -> r.matchesBusinessUnitId(businessUnitId))
-                .findFirst();
+            Optional<BusinessUnitUserV2> hasBusinessUnit =
+                domainBusinessUnitUsers.businessUnitUsers.stream().filter(r ->
+                        r.matchesBusinessUnitId(businessUnitId)).findFirst();
 
             if (hasBusinessUnit.isPresent()) {
                 return hasBusinessUnit;
@@ -151,14 +143,15 @@ public class UserStateV2 implements Serializable {
     }
 
     public interface UserBusinessUnits {
+
         boolean containsBusinessUnit(Short businessUnitId);
     }
 
     public static class UserBusinessUnitsImpl implements UserStateV2.UserBusinessUnits {
+
         private final Set<Short> businessUnits;
 
         public UserBusinessUnitsImpl(Set<BusinessUnitUserV2> businessUnitUser) {
-
             businessUnits = businessUnitUser.stream().map(BusinessUnitUserV2::getBusinessUnitId)
                 .collect(Collectors.toSet());
         }
@@ -169,12 +162,13 @@ public class UserStateV2 implements Serializable {
     }
 
     public static class DeveloperUserState extends UserStateV2 {
+
         private static final Optional<BusinessUnitUserV2> DEV_BUSINESS_UNIT_USER =
             Optional.of(new DeveloperBusinessUnitUserV2());
 
         public DeveloperUserState() {
-            super(0L, "Developer_User", "Developer User", UserStatus.ACTIVE, 1L,
-                "DeveloperUserStateCache", true, Collections.emptyMap());
+            super(0L, "Developer_User", "Developer User", UserStatus.ACTIVE, 1L, "DeveloperUserStateCache", true,
+                Collections.emptyMap());
         }
 
         @Override
@@ -209,5 +203,4 @@ public class UserStateV2 implements Serializable {
             return businessUnitId -> true;
         }
     }
-
 }

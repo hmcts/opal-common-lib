@@ -1,31 +1,31 @@
 package uk.gov.hmcts.opal.common.user.authorisation.exception;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PermissionNotAllowedExceptionTest {
 
-    private enum TestPermission implements PermissionDescriptor {
-        SAMPLE(1L, "Sample Permission");
+    private enum TestPermission implements PermissionDescriptorV2 {
+        SAMPLE("SAMPLE", "Sample Permission");
 
-        private final long id;
-        private final String description;
+        private final String permissionCode;
+        private final String permissionName;
 
-        TestPermission(long id, String description) {
-            this.id = id;
-            this.description = description;
+        TestPermission(String code, String name) {
+            this.permissionCode = code;
+            this.permissionName = name;
         }
 
         @Override
-        public long getId() {
-            return id;
+        public String getPermissionCode() {
+            return permissionCode;
         }
 
         @Override
-        public String getDescription() {
-            return description;
+        public String getPermissionName() {
+            return permissionName;
         }
     }
 

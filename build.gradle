@@ -181,7 +181,7 @@ dependencies {
   implementation 'org.hibernate.validator:hibernate-validator:9.1.3.Final'    // CVE-2025-15104 false positive suppressed in owasp file
   compileOnly 'org.hibernate.orm:hibernate-core'
 
-  implementation 'com.microsoft.azure:applicationinsights-web:3.7.9'
+  implementation 'com.microsoft.azure:applicationinsights-web:3.7.10'
   implementation "org.mapstruct:mapstruct:${mapstructVersion}"
 
   runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-el'

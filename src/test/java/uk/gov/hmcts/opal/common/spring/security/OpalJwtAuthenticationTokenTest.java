@@ -28,6 +28,7 @@ class OpalJwtAuthenticationTokenTest {
     private static final String JWT_SUBJECT = "subject-123";
 
     @Test
+    @SuppressWarnings("removal")
     void constructorShouldExposeDataFromSpecifiedDomainWhenMultipleDomainsExist() {
         // Arrange
         Jwt jwt = createJwt(JWT_SUBJECT);
@@ -51,6 +52,7 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     void constructorShouldHidePermissionsFromOtherDomainsWhenMultipleDomainsExist() {
         // Arrange
         Jwt jwt = createJwt(JWT_SUBJECT);
@@ -90,6 +92,7 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     void hasPermissionShouldReturnTrueWhenPermissionExistsAndFalseWhenMissing() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -106,6 +109,23 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    void hasPermissionCodeShouldReturnTrueWhenPermissionExistsAndFalseWhenMissing() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean hasPermission = authenticationToken.hasPermissionCode("PERM_A_CODE");
+        boolean hasMissingPermission = authenticationToken.hasPermissionCode("UNKNOWN_PERMISSION_CODE");
+
+        //Assert
+        assertAll("permission code presence checks",
+            () -> assertTrue(hasPermission),
+            () -> assertFalse(hasMissingPermission)
+        );
+    }
+
+    @Test
+    @SuppressWarnings("removal")
     void hasPermissionInBusinessUnitShouldReturnTrueWhenPermissionExists() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -118,6 +138,20 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    void hasPermissionCodeInBusinessUnitShouldReturnTrueWhenPermissionExists() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean hasPermissionInBusinessUnit =
+            authenticationToken.hasPermissionCodeInBusinessUnit("PERM_B_CODE", (short) 101);
+
+        //Assert
+        assertTrue(hasPermissionInBusinessUnit);
+    }
+
+    @Test
+    @SuppressWarnings("removal")
     void hasPermissionInBusinessUnitShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -129,6 +163,24 @@ class OpalJwtAuthenticationTokenTest {
 
         //Assert
         assertAll("permission-in-business-unit negative checks",
+            () -> assertFalse(missingPermissionInExistingBusinessUnit),
+            () -> assertFalse(missingBusinessUnit)
+        );
+    }
+
+    @Test
+    void hasPermissionCodeInBusinessUnitShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean missingPermissionInExistingBusinessUnit =
+            authenticationToken.hasPermissionCodeInBusinessUnit("PERM_C_CODE", (short) 101);
+        boolean missingBusinessUnit =
+            authenticationToken.hasPermissionCodeInBusinessUnit("PERM_A_CODE", (short) 999);
+
+        //Assert
+        assertAll("permission code-in-business-unit negative checks",
             () -> assertFalse(missingPermissionInExistingBusinessUnit),
             () -> assertFalse(missingBusinessUnit)
         );
@@ -158,21 +210,25 @@ class OpalJwtAuthenticationTokenTest {
         Permission permA = Permission.builder()
             .permissionId(1L)
             .permissionName("PERM_A")
+            .permissionCode("PERM_A_CODE")
             .build();
 
         Permission permB = Permission.builder()
             .permissionId(2L)
             .permissionName("PERM_B")
+            .permissionCode("PERM_B_CODE")
             .build();
 
         Permission permC = Permission.builder()
             .permissionId(3L)
             .permissionName("PERM_C")
+            .permissionCode("PERM_C_CODE")
             .build();
 
         Permission permD = Permission.builder()
             .permissionId(4L)
             .permissionName("PERM_D")
+            .permissionCode("PERM_D_CODE")
             .build();
 
         BusinessUnitUser businessUnit101 = BusinessUnitUser.builder()
@@ -216,6 +272,7 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     void hasPermission_PermissionDescriptor_shouldReturnTheCorrectStatus() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -232,6 +289,7 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     void hasAtLeastOneOfPermission_PermissionDescriptor_shouldReturnTheCorrectStatus() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -252,6 +310,7 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     void hasAtLeastOneOfPermission_String_shouldReturnTheCorrectStatus() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -271,8 +330,29 @@ class OpalJwtAuthenticationTokenTest {
         );
     }
 
+    @Test
+    void hasAtLeastOneOfPermissionCode_String_shouldReturnTheCorrectStatus() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+        // Act
+        boolean hasPermission = authenticationToken.hasAtLeastOneOfPermissionCode(
+            "PERM_A_CODE",
+            "PERM_NOT_USED_A_CODE");
+
+        boolean hasMissingPermission = authenticationToken.hasAtLeastOneOfPermissionCode(
+            "PERM_NOT_USED_A_CODE",
+            "PERM_NOT_USED_B_CODE");
+
+        //Assert
+        assertAll("permission code presence checks",
+            () -> assertTrue(hasPermission),
+            () -> assertFalse(hasMissingPermission)
+        );
+    }
+
 
     @Test
+    @SuppressWarnings("removal")
     void hasPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnTrueWhenPermissionExists() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -287,6 +367,7 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     @Test
+    @SuppressWarnings("removal")
     void hasPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -306,6 +387,7 @@ class OpalJwtAuthenticationTokenTest {
 
 
     @Test
+    @SuppressWarnings("removal")
     void hasAtLeastOneOfPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnTrueWhenPermissionExists() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -322,7 +404,7 @@ class OpalJwtAuthenticationTokenTest {
 
     @Test
     //This throws because of the method name but this is required to outline what the test is doing
-    @SuppressWarnings("LineLength")
+    @SuppressWarnings({"LineLength", "removal"})
     void hasAtLeastOneOfPermissionInBusinessUnit_PermissionDescriptor_ShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
         // Arrange
         OpalJwtAuthenticationToken authenticationToken = createToken();
@@ -345,7 +427,6 @@ class OpalJwtAuthenticationTokenTest {
     }
 
 
-
     @Test
     void hasAtLeastOneOfPermissionInBusinessUnit_String_ShouldReturnTrueWhenPermissionExists() {
         // Arrange
@@ -357,6 +438,22 @@ class OpalJwtAuthenticationTokenTest {
                 (short) 101,
                 "PERM_B",
                 "PERM_NOT_USED_A");
+        //Assert
+        assertTrue(hasPermissionInBusinessUnit);
+    }
+
+    @Test
+    @SuppressWarnings("removal")
+    void hasAtLeastOneOfPermissionCodeInBusinessUnit_String_ShouldReturnTrueWhenPermissionExists() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean hasPermissionInBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionCodeInBusinessUnit(
+                (short) 101,
+                "PERM_B_CODE",
+                "PERM_NOT_USED_A_CODE");
         //Assert
         assertTrue(hasPermissionInBusinessUnit);
     }
@@ -378,6 +475,29 @@ class OpalJwtAuthenticationTokenTest {
 
         //Assert
         assertAll("permission-in-business-unit negative checks",
+            () -> assertFalse(missingPermissionInExistingBusinessUnit),
+            () -> assertFalse(missingBusinessUnit)
+        );
+    }
+
+    @Test
+    @SuppressWarnings("removal")
+    void hasAtLeastOneOfPermissionCodeInBusinessUnit_String_ShouldReturnFalseWhenPermissionOrBusinessUnitMissing() {
+        // Arrange
+        OpalJwtAuthenticationToken authenticationToken = createToken();
+
+        // Act
+        boolean missingPermissionInExistingBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionCodeInBusinessUnit((short) 101,
+                "PERM_C_CODE",
+                "PERM_NOT_USED_A_CODE");
+        boolean missingBusinessUnit =
+            authenticationToken.hasAtLeastOneOfPermissionCodeInBusinessUnit((short) 999,
+                "PERM_A_CODE",
+                "PERM_NOT_USED_A_CODE");
+
+        //Assert
+        assertAll("permission code-in-business-unit negative checks",
             () -> assertFalse(missingPermissionInExistingBusinessUnit),
             () -> assertFalse(missingBusinessUnit)
         );

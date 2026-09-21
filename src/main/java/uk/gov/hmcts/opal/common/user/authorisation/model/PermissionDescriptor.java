@@ -13,6 +13,7 @@ public interface PermissionDescriptor {
     /**
      * The id persisted in and returned from the user service.
      */
+    @Deprecated
     long getId();
 
     /**

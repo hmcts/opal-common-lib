@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.common.user.authorisation.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigInteger;
+import java.util.Map;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,10 +11,6 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
 import uk.gov.hmcts.opal.common.dto.Versioned;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-
-import java.math.BigInteger;
-import java.util.Map;
-import java.util.Optional;
 
 @Data
 @NoArgsConstructor
@@ -38,11 +37,18 @@ public class UserStateV2Dto implements Versioned, ToJsonString {
     @JsonProperty("cache_name")
     private String cacheName;
 
+    @JsonProperty("is_system_user")
+    private Boolean systemUser;
+
     @JsonProperty("domains")
     private Map<Domain, DomainDto> domains;
 
     @Override
     public BigInteger getVersion() {
         return Optional.ofNullable(version).map(BigInteger::valueOf).orElse(null);
+    }
+
+    public boolean isSystemUser() {
+        return Boolean.TRUE.equals(systemUser);
     }
 }

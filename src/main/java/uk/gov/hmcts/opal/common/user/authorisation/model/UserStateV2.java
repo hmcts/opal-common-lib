@@ -42,6 +42,9 @@ public class UserStateV2 implements Serializable {
     @JsonProperty("cache_name")
     String cacheName;
 
+    @JsonProperty("is_system_user")
+    boolean systemUser;
+
     @JsonProperty("domains")
     Map<Domain, DomainBusinessUnitUsers> domains;
 
@@ -53,6 +56,7 @@ public class UserStateV2 implements Serializable {
         @JsonProperty("status") UserStatus status,
         @JsonProperty("version") Long version,
         @JsonProperty("cache_name") String cacheName,
+        @JsonProperty("is_system_user") boolean systemUser,
         @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains
     ) {
         this.userId = userId;
@@ -61,6 +65,7 @@ public class UserStateV2 implements Serializable {
         this.status = status;
         this.version = version;
         this.cacheName = cacheName;
+        this.systemUser = systemUser;
         this.domains = domains;
     }
 

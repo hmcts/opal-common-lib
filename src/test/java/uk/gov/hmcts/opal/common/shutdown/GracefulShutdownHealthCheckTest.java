@@ -1,0 +1,27 @@
+package uk.gov.hmcts.opal.common.shutdown;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.health.contributor.Health;
+
+class GracefulShutdownHealthCheckTest {
+
+    @Test
+    void setReadyTrue_shouldSetHealthToUp() {
+        GracefulShutdownHealthCheck healthCheck = new GracefulShutdownHealthCheck();
+        healthCheck.setReady(true);
+        Health health = healthCheck.health();
+        assertEquals("UP", health.getStatus().getCode());
+        assertEquals("application up", health.getDetails().get(GracefulShutdownHealthCheck.HEALTH_KEY));
+    }
+
+    @Test
+    void setReadyFalse_shouldSetHealthToDown() {
+        GracefulShutdownHealthCheck healthCheck = new GracefulShutdownHealthCheck();
+        healthCheck.setReady(false);
+        Health health = healthCheck.health();
+        assertEquals("DOWN", health.getStatus().getCode());
+        assertEquals("gracefully shutting down", health.getDetails().get(GracefulShutdownHealthCheck.HEALTH_KEY));
+    }
+}

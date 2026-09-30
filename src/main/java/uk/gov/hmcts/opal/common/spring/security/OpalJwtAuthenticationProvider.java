@@ -53,7 +53,7 @@ public class OpalJwtAuthenticationProvider implements AuthenticationProvider {
      * @throws AuthenticationException if authentication failed for some reason
      */
     @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    public OpalJwtAuthenticationToken authenticate(Authentication authentication) throws AuthenticationException {
 
         BearerTokenAuthenticationToken bearer = (BearerTokenAuthenticationToken) authentication;
         Jwt jwt;

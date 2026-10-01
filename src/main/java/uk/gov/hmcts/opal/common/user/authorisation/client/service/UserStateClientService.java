@@ -136,16 +136,11 @@ public class UserStateClientService {
 
     private Map<Domain, DomainDto> getDomainsFromUserStateV2Dto(UserStateV2 userState) {
         Map<Domain, DomainDto> domains = new EnumMap<>(Domain.class);
-
         for (Domain domain : userState.getDomains().keySet()) {
             DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
-
-            domains.put(domain, DomainDto
-                .builder()
-                .businessUnitUsers(getBusinessUnitUsersFromDomain(sourceDomain))
-                .build());
+            domains.put(domain, DomainDto.builder()
+                .businessUnitUsers(getBusinessUnitUsersFromDomain(sourceDomain)).build());
         }
-
         return domains;
     }
 

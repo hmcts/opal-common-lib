@@ -176,7 +176,7 @@ public class UserStateV2 implements Serializable {
 
         public DeveloperUserState() {
             super(0L, "Developer_User", "Developer User", UserStatus.ACTIVE, 0L,
-                "Unknown", Collections.emptyMap());
+                "Unknown", false, Collections.emptyMap());
         }
 
         @Override

@@ -17,9 +17,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.client.AzureActiveDirectoryClient;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.AzureToken;
@@ -41,12 +43,61 @@ class SystemUserAuthenticationServiceTest {
     @Mock
     private AzureActiveDirectoryClient azureActiveDirectoryClient;
 
+    @Mock
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
+
     @InjectMocks
     private SystemUserAuthenticationService systemUserAuthenticationService;
 
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void setupAsSystemUser_authenticatesSystemUserTokenAndSetsSecurityContext() {
+        OpalCommonConfiguration.SystemUser configuredSystemUser = buildSystemUser();
+        AzureToken azureToken = new AzureToken();
+        azureToken.setAccessToken("access-token");
+        OpalJwtAuthenticationToken authenticatedToken = mock(OpalJwtAuthenticationToken.class);
+        stubSystemUsers(Map.of(SystemUserEnum.OPAL_SYSTEM_USER.getConfigKey(), configuredSystemUser));
+
+        when(azureActiveDirectoryClient.getSystemUser(argThat(this::matchesSystemUserFormData)))
+            .thenReturn(azureToken);
+        when(opalJwtAuthenticationProvider.authenticate(argThat(this::matchesBearerToken)))
+            .thenReturn(authenticatedToken);
+
+        OpalJwtAuthenticationToken returnedToken = systemUserAuthenticationService
+            .setupAsSystemUser(SystemUserEnum.OPAL_SYSTEM_USER);
+
+        assertThat(returnedToken).isSameAs(authenticatedToken);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isSameAs(authenticatedToken);
+        verify(azureActiveDirectoryClient).getSystemUser(argThat(this::matchesSystemUserFormData));
+        verify(opalJwtAuthenticationProvider).authenticate(argThat(this::matchesBearerToken));
+    }
+
+    @Test
+    void setupAsSystemUser_whenProviderThrows_doesNotSetSecurityContext() {
+        OpalCommonConfiguration.SystemUser configuredSystemUser = buildSystemUser();
+        AzureToken azureToken = new AzureToken();
+        azureToken.setAccessToken("access-token");
+        RuntimeException authenticationFailure = new RuntimeException("authentication-failure");
+        stubSystemUsers(Map.of(SystemUserEnum.OPAL_SYSTEM_USER.getConfigKey(), configuredSystemUser));
+
+        when(azureActiveDirectoryClient.getSystemUser(argThat(this::matchesSystemUserFormData)))
+            .thenReturn(azureToken);
+        when(opalJwtAuthenticationProvider.authenticate(argThat(this::matchesBearerToken)))
+            .thenThrow(authenticationFailure);
+
+        RuntimeException exception = assertThrows(
+            RuntimeException.class,
+            () -> systemUserAuthenticationService.setupAsSystemUser(SystemUserEnum.OPAL_SYSTEM_USER)
+        );
+
+        assertThat(exception).isSameAs(authenticationFailure);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        verify(azureActiveDirectoryClient).getSystemUser(argThat(this::matchesSystemUserFormData));
+        verify(opalJwtAuthenticationProvider).authenticate(argThat(this::matchesBearerToken));
     }
 
     @Test
@@ -204,5 +255,9 @@ class SystemUserAuthenticationServiceTest {
             && SCOPE.equals(formData.getFirst("scope"))
             && GRANT_TYPE.equals(formData.getFirst("grant_type"));
     }
-}
 
+    private boolean matchesBearerToken(Object authentication) {
+        return authentication instanceof BearerTokenAuthenticationToken bearerToken
+            && "access-token".equals(bearerToken.getToken());
+    }
+}

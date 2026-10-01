@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.common.spring.security;
 
+import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,7 +10,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -33,7 +33,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
     public OpalJwtAuthenticationToken(UserStateV2 userState, Domain domain, Jwt jwt,
                                       Collection<? extends GrantedAuthority> authorities, Object details) {
 
-        super(jwt, authorities, jwt.getClaimAsString(JwtClaimNames.SUB));
+        super(jwt, authorities, Objects.requireNonNull(jwt.getClaimAsString(JwtClaimNames.SUB)));
         setDetails(details);
         this.userState = userState;
 
@@ -54,12 +54,6 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
             ));
     }
 
-    public String toPermissionNameString(PermissionDescriptor permissionDescriptor) {
-        return permissionDescriptor.getDescription()
-            .toUpperCase()
-            .replace(" ", "_");
-    }
-
     public String toPermissionNameStringV2(PermissionDescriptorV2 permissionDescriptor) {
         return permissionDescriptor.getPermissionName()
             .toUpperCase()
@@ -74,20 +68,12 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return userState.getUsername();
     }
 
-    public String getUserStateName() {
-        return userState.getName();
-    }
-
     public UserStatus getStatus() {
         return userState.getStatus();
     }
 
     public Long getVersion() {
         return userState.getVersion();
-    }
-
-    public String getCacheName() {
-        return userState.getCacheName();
     }
 
     public boolean hasBusinessUnit(short businessUnitId) {
@@ -103,24 +89,8 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         return hasPermission(permission.getPermissionName().toUpperCase().replace(" ", "_"));
     }
 
-    public boolean hasAtLeastOneOfPermission(String... permissions) {
-        return Arrays.stream(permissions).anyMatch(this::hasPermission);
-    }
-
     public boolean hasAtLeastOneOfPermission(PermissionV2... permissions) {
         return Arrays.stream(permissions).anyMatch(this::hasPermission);
-    }
-
-    /*
-    public boolean hasAtLeastOneOfPermission(PermissionV2... permissions) {
-        return Arrays.stream(permissions).anyMatch(this::hasPermissionV2);
-    }
-
-     */
-
-    private boolean hasPermissionV2(PermissionV2 permissionV2) {
-        return hasPermission(permissionV2.getPermissionName().toUpperCase()
-            .replace(" ", "_"));
     }
 
     public boolean hasPermissionInBusinessUnit(String permission, Short businessUnitId) {

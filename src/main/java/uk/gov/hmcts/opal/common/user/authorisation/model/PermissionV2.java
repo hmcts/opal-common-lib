@@ -19,20 +19,20 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     CHECK_VALIDATE_DRAFT_ACCOUNTS("CHECK_VALIDATE_DRAFT_ACCOUNTS", "Check and Validate Draft Accounts"),
     COLLECTION_ORDER("COLLECTION_ORDER", "Collection Order"),
     CONSOLIDATE("CONSOLIDATE", "Consolidate"),
-    CREATE_MANAGE_DRAFT_ACCOUNTS("CREATE_MANAGE_DRAFT_ACCOUNTS", "Create and Manage Draft Accounts"),
+    CREATE_MANAGE_DRAFT_ACCOUNTS("CREATE_MANAGE_DRAFT_ACCOUNTS", "Create Manage Draft Accounts"),
     ENTER_ENFORCEMENT("ENTER_ENFORCEMENT", "Enter Enforcement"),
     OPERATIONAL_REPORT_BY_ENFORCEMENT("OPERATIONAL_REPORT_BY_ENFORCEMENT", "Operational Report by Enforcement"),
     OPERATIONAL_REPORT_BY_PAYMENTS("OPERATIONAL_REPORT_BY_PAYMENTS", "Operational report by payments"),
     SEARCH_AND_VIEW_ACCOUNTS("SEARCH_AND_VIEW_ACCOUNTS", "Search and view accounts"),
     VIEW_CREDITOR_BACS("VIEW_CREDITOR_BACS", "View creditor BACS"),
     AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
-    // these are speculative:
     PROCESS_PAYMENTS("PROCESS_PAYMENTS", "Process Payments"),
     VIEW_REPORTS("VIEW_REPORTS", "View Reports"),
     VIEW_INTERFACE_FILES("VIEW_INTERFACE_FILES", "View Interface Files"),
     CREATE_INTERFACE_FILES("CREATE_INTERFACE_FILES", "Create Interface Files"),
     DRAFT_ACCOUNT_PERMISSIONS("DRAFT_ACCOUNT_PERMISSIONS", "Draft Account Permissions"),
-    PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments");
+    PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments"),
+    ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance Minor Creditor");
 
     //  Properties:
     @JsonProperty("permission_code")
@@ -59,17 +59,29 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     }
 
     public static PermissionV2 fromPermissionCode(String permissionCode) {
-        return Stream.of(PermissionV2.values())
-                    .filter(permission -> permission.permissionCode.equals(permissionCode))
-                    .findFirst()
-                    .orElse(null);
+        PermissionV2 result = Stream.of(PermissionV2.values())
+            .filter(permission -> permission.permissionCode.equals(permissionCode))
+            .findFirst()
+            .orElse(null);
+
+        return result;
     }
 
     public static PermissionV2 fromPermissionName(String permissionName) {
         return Stream.of(PermissionV2.values())
-            .filter(permission -> permission.permissionName.equals(permissionName))
+            .filter(permission -> matchPermissionName(permission.permissionName, permissionName))
             .findFirst()
             .orElse(null);
+    }
+
+    private static boolean matchPermissionName(String permissionName, String permissionCandidate) {
+        boolean result = permissionName.equals(permissionCandidate);
+
+        if (!result) {
+            result = permissionName.toUpperCase().replace(" ", "_").equals(permissionCandidate);
+        }
+
+        return result;
     }
 
     public PermissionDescriptorV2 getDescriptor() {

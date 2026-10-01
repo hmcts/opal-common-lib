@@ -82,9 +82,11 @@ public class BusinessUnitUserV2 {
             return true;
         }
 
+        @Override
         public boolean matchesBusinessUnitId(Collection<Short> businessUnitIds) {
             return true;
         }
 
     }
+
 }

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import uk.gov.hmcts.opal.common.util.RequestUtil;
 
 @Slf4j(topic = "opal.ContentDigestValidatorInterceptor")
 @Getter
@@ -76,6 +77,9 @@ public class ContentDigestValidatorInterceptor implements HandlerInterceptor {
     }
 
     boolean shouldSkipValidation(HttpServletRequest request) {
+        if (RequestUtil.isMultipart(request)) {
+            return true;
+        }
         if (HttpMethod.POST.matches(request.getMethod())
             || HttpMethod.PUT.matches(request.getMethod())
             || HttpMethod.PATCH.matches(request.getMethod())) {

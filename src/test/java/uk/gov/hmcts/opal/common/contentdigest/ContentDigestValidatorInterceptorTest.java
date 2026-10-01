@@ -218,6 +218,19 @@ class ContentDigestValidatorInterceptorTest {
                     "Request body was not cached before Content-Digest validation.");
         }
 
+        @DisplayName("Should skip validation for multipart request when enforcement is enabled")
+        @Test
+        void shouldSkipValidationForMultipartRequestWhenEnforcementIsEnabled() {
+            ContentDigestValidatorInterceptor interceptor = new ContentDigestValidatorInterceptor(
+                getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS));
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getContentType()).thenReturn("multipart/form-data; boundary=opal");
+
+            boolean result = interceptor.preHandle(request, null, null);
+
+            assertThat(result).isTrue();
+        }
+
         @DisplayName("Should reject empty body when enforcement is enabled and Content-Digest header is missing")
         @Test
         void shouldRejectEmptyBodyWhenEnforcementIsEnabledAndContentDigestHeaderIsMissing() {
@@ -309,6 +322,18 @@ class ContentDigestValidatorInterceptorTest {
     @Nested
     @DisplayName("shouldSkipValidation")
     class ShouldSkipValidation {
+
+        @ValueSource(strings = {"POST", "PUT", "PATCH"})
+        @ParameterizedTest
+        void shouldSkipValidation_whenMultipart(String method) {
+            ContentDigestValidatorInterceptor interceptor = spy(new ContentDigestValidatorInterceptor(
+                getContentDigestProperties(true, VALID_SUPPORTED_ALGORITHMS)));
+
+            CachedBodyHttpServletRequest request = mock(CachedBodyHttpServletRequest.class);
+            lenient().doReturn(method).when(request).getMethod();
+            when(request.getContentType()).thenReturn("multipart/form-data; boundary=opal");
+            assertTrue(interceptor.shouldSkipValidation(request));
+        }
 
         @ValueSource(strings = {"GET", "HEAD", "DELETE", "CONNECT", "OPTIONS", "TRACE"})
         @ParameterizedTest

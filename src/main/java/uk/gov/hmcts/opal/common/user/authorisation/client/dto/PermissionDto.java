@@ -15,4 +15,7 @@ public class PermissionDto {
 
     @JsonProperty("permission_name")
     private String permissionName;
+
+    @JsonProperty("permission_code")
+    private String permissionCode;
 }

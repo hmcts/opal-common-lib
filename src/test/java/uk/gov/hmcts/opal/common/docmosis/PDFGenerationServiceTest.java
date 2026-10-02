@@ -7,12 +7,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.common.exceptions.standard.ServiceUnavailableException;
 import uk.gov.hmcts.opal.common.config.DocmosisConfig;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,12 +38,12 @@ class PDFGenerationServiceTest {
     void setUp() {
 
         when(docmosisConfig.getApiKey()).thenReturn(API_KEY);
-        when(docmosisClient.generatePdf(any(DocmosisRequest.class))).thenReturn(GENERATED_PDF_CONTENT);
     }
 
     @Test
     void generatePdf_derivesOutputNameFromTemplateName() {
         Map<String, Object> payload = Map.of("account_number", "1234567890");
+        mockGeneratedPdf();
 
         byte[] result = service.generatePdf("fine-notice.docx", payload);
 
@@ -55,6 +58,7 @@ class PDFGenerationServiceTest {
     @Test
     void generatePdf_preservesTemplateNameWhenNoExtensionCanBeReplaced() {
         Map<String, Object> payload = Map.of("account_number", "1234567890");
+        mockGeneratedPdf();
 
         byte[] result = service.generatePdf("fine-notice", payload);
 
@@ -69,6 +73,7 @@ class PDFGenerationServiceTest {
     @Test
     void generatePdf_usesExplicitOutputName() {
         Map<String, Object> payload = Map.of("account_number", "1234567890");
+        mockGeneratedPdf();
 
         byte[] result = service.generatePdf("fine-notice.docx", "custom-output.pdf", payload);
 
@@ -78,6 +83,26 @@ class PDFGenerationServiceTest {
         assertEquals("custom-output.pdf", request.getOutputName());
         assertEquals(API_KEY, request.getAccessKey());
         assertEquals(payload, request.getData());
+    }
+
+    @Test
+    void generatePdf_wrapsDocmosisClientFailureInServiceUnavailableException() {
+        Map<String, Object> payload = Map.of("account_number", "1234567890");
+        RuntimeException clientException = new RuntimeException("Docmosis connection failed");
+        when(docmosisClient.generatePdf(any(DocmosisRequest.class))).thenThrow(clientException);
+
+        ServiceUnavailableException exception = assertThrows(
+            ServiceUnavailableException.class,
+            () -> service.generatePdf("fine-notice.docx", payload)
+        );
+
+        assertEquals("Service is temporarily unavailable. Please try again later.", exception.getTitle());
+        assertEquals("Unexpected error occurred while generating PDF from Docmosis", exception.getDetail());
+        assertSame(clientException, exception.getCause());
+    }
+
+    private void mockGeneratedPdf() {
+        when(docmosisClient.generatePdf(any(DocmosisRequest.class))).thenReturn(GENERATED_PDF_CONTENT);
     }
 
     private DocmosisRequest captureGeneratedRequest() {

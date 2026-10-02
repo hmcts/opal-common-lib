@@ -2,6 +2,10 @@ package uk.gov.hmcts.opal.common.user.authorisation.client.service;
 
 import com.nimbusds.jwt.JWTClaimNames;
 import feign.FeignException;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -13,8 +17,15 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.util.Optional;
@@ -78,14 +89,15 @@ public class UserStateClientService {
             UserStateV2 userState = userStateMapper.toUserStateV2(userStateV2Dto.get());
             return Optional.of(userState);
         }
+
         return Optional.empty();
     }
 
     private Optional<UserStateV2Dto> getUserStateFromCache(Jwt jwt) {
-
         String tokenSubject = jwt.getClaim(JWTClaimNames.SUBJECT);
         String cacheKey = USER_STATE_CACHE_PREFIX + tokenSubject;
         String cachedUserState;
+
         try {
             cachedUserState = redisTemplate.opsForValue().get(cacheKey);
         } catch (DataAccessException e) {
@@ -98,11 +110,63 @@ public class UserStateClientService {
         }
 
         try {
-            return Optional.of(objectMapper.readValue(cachedUserState, UserStateV2Dto.class));
+            //  The UserStateV2 & UserStateV2Dto are no longer JSON compatible, so
+            //  we have to map the JSON to a UserStateV2, then map that to UserStateV2Dto
+            UserStateV2 userState = objectMapper.readValue(cachedUserState, UserStateV2.class);
+
+            return Optional.of(convertFrom(userState));
         } catch (JacksonException e) {
             log.warn(":getUserState: could not parse user state from cache: {}", tokenSubject);
             return Optional.empty();
         }
+    }
+
+    private UserStateV2Dto convertFrom(UserStateV2 userState) {
+        return UserStateV2Dto
+            .builder()
+            .userId(userState.getUserId())
+            .username(userState.getUsername())
+            .name(userState.getName())
+            .status(userState.getStatus().name())
+            .version(userState.getVersion())
+            .cacheName(userState.getCacheName())
+            .domains(getDomainsFromUserStateV2Dto(userState))
+            .build();
+    }
+
+    private Map<Domain, DomainDto> getDomainsFromUserStateV2Dto(UserStateV2 userState) {
+        Map<Domain, DomainDto> domains = new EnumMap<>(Domain.class);
+        for (Domain domain : userState.getDomains().keySet()) {
+            DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
+            domains.put(domain, DomainDto.builder()
+                .businessUnitUsers(getBusinessUnitUsersFromDomain(sourceDomain)).build());
+        }
+        return domains;
+    }
+
+    private List<BusinessUnitUserV2Dto> getBusinessUnitUsersFromDomain(DomainBusinessUnitUsers sourceDomain) {
+        List<BusinessUnitUserV2Dto> businessUnitUsers = new ArrayList<>();
+
+        for (BusinessUnitUserV2 businessUnitUser : sourceDomain.getBusinessUnitUsers()) {
+            businessUnitUsers.add(new BusinessUnitUserV2Dto(
+                businessUnitUser.getBusinessUnitUserId(),
+                businessUnitUser.getBusinessUnitId(),
+                getPermissionsFromBusinessUnitUserV2Dto(businessUnitUser)
+            ));
+        }
+
+        return businessUnitUsers;
+    }
+
+    private List<PermissionV2Dto> getPermissionsFromBusinessUnitUserV2Dto(BusinessUnitUserV2 businessUnitUser) {
+        List<PermissionV2Dto> permissions = new ArrayList<>();
+
+        for (PermissionV2 permission : businessUnitUser.getPermissions()) {
+            permissions.add(new PermissionV2Dto(permission.getPermissionCode(),
+                permission.getPermissionName()));
+        }
+
+        return permissions;
     }
 
     private Optional<UserStateV2Dto> getUserStateFromUserService(Jwt jwt) {
@@ -155,8 +219,8 @@ public class UserStateClientService {
 
         try {
             JsonNode problemJson = objectMapper.readTree(responseBody);
-            return FEATURE_DISABLED_PROBLEM_TYPE.equals(problemJson.path("type").asText())
-                || FEATURE_DISABLED_PROBLEM_TITLE.equals(problemJson.path("title").asText());
+            return FEATURE_DISABLED_PROBLEM_TYPE.equals(problemJson.path("type").asString())
+                || FEATURE_DISABLED_PROBLEM_TITLE.equals(problemJson.path("title").asString());
         } catch (JacksonException parsingFailure) {
             log.debug(":isFeatureDisabledProblem: could not parse downstream problem detail", parsingFailure);
             return false;

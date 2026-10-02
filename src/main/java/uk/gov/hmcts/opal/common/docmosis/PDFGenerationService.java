@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.common.docmosis;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.common.exceptions.standard.ServiceUnavailableException;
 import uk.gov.hmcts.opal.common.config.DocmosisConfig;
 
 @Service
@@ -24,6 +25,13 @@ public class PDFGenerationService {
             .accessKey(docmosisConfig.getApiKey())
             .data(payload)
             .build();
-        return docmosisClient.generatePdf(docmosisRequest);
+        try {
+            return docmosisClient.generatePdf(docmosisRequest);
+        } catch (Exception e) {
+            throw new ServiceUnavailableException(
+                "Service is temporarily unavailable. Please try again later.",
+                "Unexpected error occurred while generating PDF from Docmosis",
+                e);
+        }
     }
 }

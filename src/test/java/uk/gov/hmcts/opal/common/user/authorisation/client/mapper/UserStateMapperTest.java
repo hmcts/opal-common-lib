@@ -3,13 +3,17 @@ package uk.gov.hmcts.opal.common.user.authorisation.client.mapper;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -129,13 +133,13 @@ class UserStateMapperTest {
         //Assert
         DomainBusinessUnitUsers finesDomainUsers = mappedUserState.getDomainBusinessUnitUsers(Domain.FINES);
         assertEquals(1, finesDomainUsers.getBusinessUnitUsers().size());
-        BusinessUnitUser finesBusinessUnitUser = finesDomainUsers.getBusinessUnitUsers().get(0);
+        BusinessUnitUserV2 finesBusinessUnitUser = finesDomainUsers.getBusinessUnitUsers().get(0);
         assertEquals("bu-user-101", finesBusinessUnitUser.getBusinessUnitUserId());
         assertEquals((short) 101, finesBusinessUnitUser.getBusinessUnitId());
         assertEquals(
             Set.of(
-                Permission.builder().permissionId(1L).permissionName("PERM_A").build(),
-                Permission.builder().permissionId(2L).permissionName("PERM_B").build()
+                PermissionV2.ACCOUNT_ENQUIRY,
+                PermissionV2.ACCOUNT_ENQUIRY_NOTES
             ),
             finesBusinessUnitUser.getPermissions()
         );
@@ -154,11 +158,11 @@ class UserStateMapperTest {
             Domain.CONFISCATION
         );
         assertEquals(1, confiscationDomainUsers.getBusinessUnitUsers().size());
-        BusinessUnitUser confiscationBusinessUnitUser = confiscationDomainUsers.getBusinessUnitUsers().get(0);
+        BusinessUnitUserV2 confiscationBusinessUnitUser = confiscationDomainUsers.getBusinessUnitUsers().getFirst();
         assertEquals("bu-user-303", confiscationBusinessUnitUser.getBusinessUnitUserId());
         assertEquals((short) 303, confiscationBusinessUnitUser.getBusinessUnitId());
         assertEquals(
-            Set.of(Permission.builder().permissionId(3L).permissionName("PERM_C").build()),
+            Set.of(PermissionV2.ACCOUNT_MAINTENANCE),
             confiscationBusinessUnitUser.getPermissions()
         );
     }
@@ -168,15 +172,15 @@ class UserStateMapperTest {
         // Arrange
         DomainDto domainDto = DomainDto.builder()
             .businessUnitUsers(List.of(
-                new BusinessUnitUserDto(
+                new BusinessUnitUserV2Dto(
                     "bu-user-101",
                     (short) 101,
-                    List.of(new PermissionDto(1L, "PERM_A"))
+                    List.of(new PermissionV2Dto("ACCOUNT_ENQUIRY", "Account Enquiry"))
                 ),
-                new BusinessUnitUserDto(
+                new BusinessUnitUserV2Dto(
                     "bu-user-202",
                     (short) 202,
-                    List.of(new PermissionDto(2L, "PERM_B"))
+                    List.of(new PermissionV2Dto("ACCOUNT_ENQUIRY_NOTES", "Account Enquiry - Account Notes"))
                 )
             ))
             .build();
@@ -185,11 +189,11 @@ class UserStateMapperTest {
         DomainBusinessUnitUsers mappedDomainUsers = userStateMapper.toDomainBusinessUnitUsers(domainDto);
 
         //Assert
-        BusinessUnitUser businessUnit101 = mappedDomainUsers.getBusinessUnitUsers().stream()
+        BusinessUnitUserV2 businessUnit101 = mappedDomainUsers.getBusinessUnitUsers().stream()
             .filter(businessUnitUser -> businessUnitUser.getBusinessUnitId() == (short) 101)
             .findFirst()
             .orElseThrow();
-        BusinessUnitUser businessUnit202 = mappedDomainUsers.getBusinessUnitUsers().stream()
+        BusinessUnitUserV2 businessUnit202 = mappedDomainUsers.getBusinessUnitUsers().stream()
             .filter(businessUnitUser -> businessUnitUser.getBusinessUnitId() == (short) 202)
             .findFirst()
             .orElseThrow();
@@ -198,14 +202,14 @@ class UserStateMapperTest {
             () -> assertEquals(2, mappedDomainUsers.getBusinessUnitUsers().size()),
             () -> assertEquals(
                 Set.of((short) 101, (short) 202),
-                mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUser::getBusinessUnitId)
+                mappedDomainUsers.getBusinessUnitUsers().stream().map(BusinessUnitUserV2::getBusinessUnitId)
                     .collect(toSet())
             ),
             () -> assertEquals("bu-user-101", businessUnit101.getBusinessUnitUserId()),
-            () -> assertEquals(Set.of(Permission.builder().permissionId(1L).permissionName("PERM_A").build()),
+            () -> assertEquals(Set.of(PermissionV2.fromPermissionName("Account Enquiry")),
                 businessUnit101.getPermissions()),
             () -> assertEquals("bu-user-202", businessUnit202.getBusinessUnitUserId()),
-            () -> assertEquals(Set.of(Permission.builder().permissionId(2L).permissionName("PERM_B").build()),
+            () -> assertEquals(Set.of(PermissionV2.fromPermissionName("Account Enquiry - Account Notes")),
                 businessUnit202.getPermissions())
         );
     }
@@ -251,21 +255,15 @@ class UserStateMapperTest {
     }
 
     private UserStateV2 createUserStateV2ModelWithMultipleDomains() {
-        Permission permA = Permission.builder()
-            .permissionId(1L)
-            .permissionName("PERM_A")
-            .build();
-        Permission permB = Permission.builder()
-            .permissionId(2L)
-            .permissionName("PERM_B")
-            .build();
+        PermissionV2 permA = PermissionV2.ACCOUNT_ENQUIRY;
+        PermissionV2 permB = PermissionV2.ACCOUNT_ENQUIRY_NOTES;
 
-        BusinessUnitUser businessUnit101 = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnit101 = BusinessUnitUserV2.builder()
             .businessUnitUserId("v2-bu-user-101")
             .businessUnitId((short) 101)
             .permissions(Set.of(permA))
             .build();
-        BusinessUnitUser businessUnit202 = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnit202 = BusinessUnitUserV2.builder()
             .businessUnitUserId("v2-bu-user-202")
             .businessUnitId((short) 202)
             .permissions(Set.of(permB))
@@ -293,12 +291,12 @@ class UserStateMapperTest {
         // Arrange
         DomainDto finesDomain = DomainDto.builder()
             .businessUnitUsers(List.of(
-                new BusinessUnitUserDto(
+                new BusinessUnitUserV2Dto(
                     "bu-user-101",
                     (short) 101,
                     List.of(
-                        new PermissionDto(1L, "PERM_A"),
-                        new PermissionDto(2L, "PERM_B")
+                        new PermissionV2Dto("ACCOUNT_ENQUIRY", "Account Enquiry"),
+                        new PermissionV2Dto("ACCOUNT_ENQUIRY_NOTES", "Account Enquiry - Account Notes")
                     )
                 )
             ))
@@ -306,10 +304,10 @@ class UserStateMapperTest {
 
         DomainDto confiscationDomain = DomainDto.builder()
             .businessUnitUsers(List.of(
-                new BusinessUnitUserDto(
+                new BusinessUnitUserV2Dto(
                     "bu-user-303",
                     (short) 303,
-                    List.of(new PermissionDto(3L, "PERM_C"))
+                    List.of(new PermissionV2Dto("ACCOUNT_MAINTENANCE", "Account Maintenance"))
                 )
             ))
             .build();

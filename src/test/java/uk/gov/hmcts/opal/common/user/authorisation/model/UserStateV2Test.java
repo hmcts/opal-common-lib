@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.common.user.authorisation.model;
 
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -7,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UserStateV2Test {
 
@@ -90,6 +95,62 @@ class UserStateV2Test {
         //Assert
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void testUserStateWithAnyPermission() {
+        UserStateV2 userState =  createUserStateV2(createDomainBusinessUnitUsers());
+
+        assertFalse(userState.hasBusinessUnitUserWithAnyPermission((short) 123, PermissionV2.CONSOLIDATE));
+        assertFalse(userState.anyBusinessUnitUserHasAnyPermission(PermissionV2.CONSOLIDATE.getDescriptor()));
+    }
+
+    private static EnumMap<Domain, DomainBusinessUnitUsers> createDomainBusinessUnitUsers() {
+        EnumMap<Domain, DomainBusinessUnitUsers> domains = new EnumMap<>(Domain.class);
+
+        List<BusinessUnitUserV2> businessUnitUsers = new ArrayList<>();
+
+        businessUnitUsers.add(BusinessUnitUserV2
+            .builder()
+            .businessUnitUserId("123")
+            .businessUnitId(((short) 123))
+            .permissions(Set.of())
+            .build());
+
+        domains.put(Domain.FINES,
+            DomainBusinessUnitUsers.builder().businessUnitUsers(businessUnitUsers).build());
+
+        return domains;
+    }
+
+    @Test
+    void testUserStateWithBusinessUnitUserHasAnyPermission() {
+        UserStateV2 userState =  createUserStateV2(createDomainsForTest());
+
+
+        assertTrue(userState.anyBusinessUnitUserHasAnyPermission(PermissionV2.CONSOLIDATE.getDescriptor()));
+        assertTrue(userState.anyBusinessUnitUserHasPermission(PermissionV2.CONSOLIDATE.getDescriptor()));
+        assertFalse(userState.anyBusinessUnitUserHasPermission(PermissionV2.ACCOUNT_ENQUIRY.getDescriptor()));
+        assertTrue(userState.hasBusinessUnitUserWithPermission((short) 123, PermissionV2.CONSOLIDATE.getDescriptor()));
+        assertTrue(userState.noBusinessUnitUserHasPermission(PermissionV2.ACCOUNT_ENQUIRY.getDescriptor()));
+    }
+
+    private static Map<Domain, DomainBusinessUnitUsers> createDomainsForTest() {
+        EnumMap<Domain, DomainBusinessUnitUsers> domains = new EnumMap<>(Domain.class);
+
+        List<BusinessUnitUserV2> businessUnitUsers = new ArrayList<>();
+
+        businessUnitUsers.add(BusinessUnitUserV2
+            .builder()
+            .businessUnitUserId("123")
+            .businessUnitId(((short) 123))
+            .permissions(Set.of(PermissionV2.CONSOLIDATE))
+            .build());
+
+        domains.put(Domain.FINES,
+            DomainBusinessUnitUsers.builder().businessUnitUsers(businessUnitUsers).build());
+
+        return domains;
     }
 
     private UserStateV2 createUserStateV2(Map<Domain, DomainBusinessUnitUsers> domains) {

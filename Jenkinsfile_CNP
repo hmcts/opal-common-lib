@@ -4,7 +4,7 @@
 
 def type = "java"
 def product = "opal"
-def component = "logging-service-integration-lib"
+def component = "opal-common-lib"
 
 withPipeline(type, product, component) {
     nonDeployableApp()

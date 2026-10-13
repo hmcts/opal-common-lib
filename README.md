@@ -3,6 +3,12 @@
 Shared Opal components for authentication, authorisation, and other cross-cutting concerns.
 This module builds a reusable Java library—there is no runnable Spring Boot application here. 
 
+## CI/CD
+
+To support development if code is merged into master with a new version, the CI/CD pipeline will automatically publish the new version to Azure Artifacts. The library is then available for consumption by other services via Maven coordinates `uk.gov.hmcts:opal-common-lib:<version>`.
+
+To ensure that PR's that require a new version are correctly deployed, if the label 'new-version' is applied to a PR, the pipeline will automatically bump the version in `build.gradle` (if it is different to master).
+
 ## Build & Test
 
 Use the bundled Gradle wrapper:

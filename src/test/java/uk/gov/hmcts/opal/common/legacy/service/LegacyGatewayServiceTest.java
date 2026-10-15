@@ -1,31 +1,5 @@
 package uk.gov.hmcts.opal.common.legacy.service;
 
-import jakarta.xml.bind.UnmarshalException;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestClient;
-import org.xml.sax.SAXParseException;
-import tools.jackson.core.JacksonException;
-import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
-import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
-import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
-
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -37,32 +11,50 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import jakarta.xml.bind.UnmarshalException;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.xml.sax.SAXParseException;
+import tools.jackson.core.JacksonException;
+import uk.gov.hmcts.opal.common.legacy.client.LegacyGatewayClient;
+import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
+
 @ExtendWith(MockitoExtension.class)
 class LegacyGatewayServiceTest {
 
     @Mock
-    private RestClient restClient;
+    private LegacyGatewayClient gatewayClient;
 
     @Mock
     private LegacyGatewayProperties properties;
 
-    @Mock
-    private RestClient.RequestBodyUriSpec requestBodyUriSpec;
-
-    @Mock
-    private RestClient.RequestBodySpec requestBodySpec;
-
-    @Mock
-    private RestClient.ResponseSpec responseSpec;
-
-    @InjectMocks
     private LegacyGatewayService gatewayService;
+
+    @BeforeEach
+    void setUp() {
+        gatewayService = new LegacyGatewayService(properties, gatewayClient);
+    }
 
     @Test
     void postToGateway_returnsStringResponse() {
-        mockRestClientPost();
         ResponseEntity<String> responseEntity = new ResponseEntity<>("{\"status\":\"success\"}", HttpStatus.OK);
-        when(responseSpec.toEntity(String.class)).thenReturn(responseEntity);
+        mockGatewayPost(responseEntity);
 
         GatewayService.Response<String> response = gatewayService.postToGateway("testAction", "{}");
 
@@ -73,9 +65,8 @@ class LegacyGatewayServiceTest {
 
     @Test
     void postToGateway_returnsNullBodyWhenResponseIsEmpty() {
-        mockRestClientPost();
         ResponseEntity<String> responseEntity = ResponseEntity.status(HttpStatus.OK).body(null);
-        when(responseSpec.toEntity(String.class)).thenReturn(responseEntity);
+        mockGatewayPost(responseEntity);
 
         GatewayService.Response<String> response = gatewayService.postToGateway("testAction", "{}");
 
@@ -85,12 +76,10 @@ class LegacyGatewayServiceTest {
     }
 
     @Test
-    void postToGateway_returnsNon2xxStringResponse() {
-        mockRestClientPost();
+    void extractResponse_preservesNon2xxStringResponse() {
         ResponseEntity<String> responseEntity = new ResponseEntity<>("Error", HttpStatus.BAD_REQUEST);
-        when(responseSpec.toEntity(String.class)).thenReturn(responseEntity);
 
-        GatewayService.Response<String> response = gatewayService.postToGateway("testAction", "{}");
+        GatewayService.Response<String> response = gatewayService.extractResponse(responseEntity, String.class, null);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.code);
         assertEquals("Error", response.body);
@@ -99,9 +88,8 @@ class LegacyGatewayServiceTest {
 
     @Test
     void postToGateway_unmarshalsXmlDtoResponse() {
-        mockRestClientPost();
         ResponseEntity<String> responseEntity = new ResponseEntity<>(testEntityXml(), HttpStatus.OK);
-        when(responseSpec.toEntity(String.class)).thenReturn(responseEntity);
+        mockGatewayPost(responseEntity);
 
         GatewayService.Response<TestDto> response =
             gatewayService.postToGateway("testAction", TestDto.class, "{}", null);
@@ -115,9 +103,8 @@ class LegacyGatewayServiceTest {
 
     @Test
     void postToGateway_invalidXmlReturnsExceptionResponse() {
-        mockRestClientPost();
         ResponseEntity<String> responseEntity = new ResponseEntity<>("{\"test_id\":\"bad\"}", HttpStatus.OK);
-        when(responseSpec.toEntity(String.class)).thenReturn(responseEntity);
+        mockGatewayPost(responseEntity);
 
         GatewayService.Response<TestDto> response =
             gatewayService.postToGateway("testAction", TestDto.class, "{}", null);
@@ -131,9 +118,8 @@ class LegacyGatewayServiceTest {
 
     @Test
     void postToGateway_invalidEntityReturnsExceptionResponse() {
-        mockRestClientPost();
         ResponseEntity<String> responseEntity = new ResponseEntity<>(brokenEntityXml(), HttpStatus.OK);
-        when(responseSpec.toEntity(String.class)).thenReturn(responseEntity);
+        mockGatewayPost(responseEntity);
 
         GatewayService.Response<TestDto> response =
             gatewayService.postToGateway("testAction", TestDto.class, "{}", null);
@@ -146,9 +132,8 @@ class LegacyGatewayServiceTest {
 
     @Test
     void postToGatewayAsync_returnsCompletedFuture() throws Exception {
-        mockRestClientPost();
         ResponseEntity<String> responseEntity = new ResponseEntity<>("{\"status\":\"success\"}", HttpStatus.OK);
-        when(responseSpec.toEntity(String.class)).thenReturn(responseEntity);
+        mockGatewayPost(responseEntity);
 
         CompletableFuture<GatewayService.Response<String>> future =
             gatewayService.postToGatewayAsync("testAction", String.class, "{}", null);
@@ -186,17 +171,26 @@ class LegacyGatewayServiceTest {
         assertTrue(response.isError());
     }
 
-    private void mockRestClientPost() {
+    @Test
+    void postToGateway_detectsEmbeddedLegacyError() {
+        ResponseEntity<String> responseEntity = new ResponseEntity<>("""
+            <response><error_response><error_code>123</error_code><error_message>boom</error_message>
+            </error_response></response>
+            """, HttpStatus.OK);
+        mockGatewayPost(responseEntity);
+
+        GatewayService.Response<LegacyErrorEnvelope> response = gatewayService.postToGateway(
+            "testAction", LegacyErrorEnvelope.class, "{}", null);
+
+        assertTrue(response.hasErrorResponse());
+        assertEquals("123", response.responseEntity.getErrorResponse().getErrorCode());
+    }
+
+    private void mockGatewayPost(ResponseEntity<String> responseEntity) {
         when(properties.getUrl()).thenReturn("http://test.com");
         when(properties.getUsername()).thenReturn("user");
         when(properties.getPassword()).thenReturn("password");
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(any(MediaType.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.accept(any(MediaType.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.body(any(Object.class))).thenReturn(requestBodySpec);
-        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
+        when(gatewayClient.post(anyString(), anyString(), any())).thenReturn(responseEntity);
     }
 
     private String testEntityXml() {
@@ -232,9 +226,13 @@ class LegacyGatewayServiceTest {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
+    @XmlRootElement(name = "response")
+    @XmlAccessorType(XmlAccessType.FIELD)
     static class LegacyErrorEnvelope implements HasErrorResponse {
 
+        @XmlElement(name = "error_response")
         private ErrorResponse errorResponse;
     }
 

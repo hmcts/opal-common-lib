@@ -1,0 +1,93 @@
+name: Bump PR version
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: bump-version-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  bump-version:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.pull_request.labels.*.name, 'new-version') &&
+      github.actor != 'github-actions[bot]' &&
+      (github.event.action != 'labeled' || github.event.label.name == 'new-version')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version
+        id: bump
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          current_version="$(sed -nE "s/^version = '([0-9]+)\.([0-9]+)\.([0-9]+)'$/\1.\2.\3/p" build.gradle)"
+          base_version="$(git show "origin/${BASE_REF}:build.gradle" | sed -nE "s/^version = '([0-9]+)\.([0-9]+)\.([0-9]+)'$/\1.\2.\3/p")"
+
+          if [ -z "$current_version" ]; then
+            echo "Unable to find a semantic version in build.gradle" >&2
+            exit 1
+          fi
+
+          if [ -z "$base_version" ]; then
+            echo "Unable to find a semantic version in origin/${BASE_REF}:build.gradle" >&2
+            exit 1
+          fi
+
+          if [ "$current_version" != "$base_version" ]; then
+            echo "Version is already different from ${BASE_REF}: ${base_version} -> ${current_version}"
+            echo "should_bump=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          IFS=. read -r major minor patch <<EOF
+          $current_version
+          EOF
+
+          new_version="${major}.${minor}.$((patch + 1))"
+          perl -0pi -e "s/^version = '\Q$current_version\E'$/version = '$new_version'/m" build.gradle
+
+          echo "old_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
+          echo "should_bump=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        if: steps.bump.outputs.should_bump == 'true'
+        run: |
+          git add build.gradle
+          git commit -m "Bump version to ${{ steps.bump.outputs.new_version }}"
+          git push
+
+      - name: Comment on PR
+        if: steps.bump.outputs.should_bump == 'true'
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --body "Version updated from ${{ steps.bump.outputs.old_version }} to ${{ steps.bump.outputs.new_version }} because this PR has the \`new-version\` label."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

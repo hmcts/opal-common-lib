@@ -16,4 +16,8 @@ public class SecurityUtil {
             "Current user is not authenticated with OpalJwtAuthenticationToken"
         );
     }
+
+    public static void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 }

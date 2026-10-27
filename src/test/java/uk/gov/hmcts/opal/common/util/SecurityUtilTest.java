@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.common.util;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +13,10 @@ import static org.mockito.Mockito.mock;
 
 class SecurityUtilTest {
 
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     void getOpalJwtAuthenticationTokenForCurrentUser_hasAuthButNotCorrectType_shouldError() {
@@ -47,5 +52,15 @@ class SecurityUtilTest {
             .isEqualTo("Unauthorised");
         assertThat(exception.getDetail())
             .isEqualTo("Current user is not authenticated with OpalJwtAuthenticationToken");
+    }
+
+    @Test
+    void clearSecurityContext_removesCurrentAuthentication() {
+        Authentication authentication = mock(Authentication.class);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        SecurityUtil.clearSecurityContext();
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 }

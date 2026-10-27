@@ -2,10 +2,13 @@ package uk.gov.hmcts.opal.common.user.authentication.service;
 
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.BearerTokenAuthenticationToken;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.common.exceptions.standard.InternalServerErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.client.AzureActiveDirectoryClient;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.AzureToken;
@@ -17,6 +20,15 @@ public class SystemUserAuthenticationService {
 
     private final OpalCommonConfiguration opalCommonConfiguration;
     private final AzureActiveDirectoryClient azureActiveDirectoryClient;
+    private final OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
+
+    public OpalJwtAuthenticationToken setupAsSystemUser(SystemUserEnum systemUserEnum) {
+        OpalJwtAuthenticationToken authenticationToken = opalJwtAuthenticationProvider.authenticate(
+            new BearerTokenAuthenticationToken(getSystemUserAuthenticationToken(systemUserEnum))
+        );
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        return authenticationToken;
+    }
 
     public String getSystemUserAuthenticationToken(SystemUserEnum systemUserEnum) {
         OpalCommonConfiguration.SystemUser systemUser = getSystemUser(systemUserEnum);

@@ -1,32 +1,66 @@
 package uk.gov.hmcts.opal.common.legacy.service;
 
-import tools.jackson.core.JacksonException;
-import lombok.RequiredArgsConstructor;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.util.StringUtils;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
+import uk.gov.hmcts.opal.common.legacy.client.LegacyGatewayClient;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.xml.XmlUtil;
 
-import java.util.Base64;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
+/**
+ * Supports the existing RestClient path while consumers migrate explicitly to Feign.
+ * Consumers using Feign must enable {@code legacy-gateway.feign-enabled} to register the client.
+ */
 @Slf4j(topic = "opal.LegacyGatewayService")
-@RequiredArgsConstructor
 public class LegacyGatewayService implements GatewayService {
 
     public static final String ACTION_TYPE = "actionType";
 
     protected final LegacyGatewayProperties gatewayProperties;
-    protected final RestClient restClient;
+    private final GatewayTransport transport;
+
+    public LegacyGatewayService(LegacyGatewayProperties gatewayProperties, RestClient restClient) {
+        this.gatewayProperties = gatewayProperties;
+        this.transport = (actionType, authorization, request) -> {
+            UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
+                .queryParam(ACTION_TYPE, actionType);
+
+            return restClient.post()
+                .uri(gatewayProperties.getUrl() + builder.toUriString())
+                .header("AUTHORIZATION", authorization)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_XML)
+                .body(request)
+                .retrieve().toEntity(String.class);
+        };
+    }
+
+    public LegacyGatewayService(LegacyGatewayProperties gatewayProperties, LegacyGatewayClient gatewayClient) {
+        this.gatewayProperties = gatewayProperties;
+        this.transport = (actionType, authorization, request) -> {
+            try {
+                return gatewayClient.post(actionType, authorization, request);
+            } catch (FeignException exception) {
+                throw toRestClientException(exception);
+            }
+        };
+    }
 
     @SuppressWarnings("unchecked")
     public <T> Response<T> extractResponse(ResponseEntity<String> responseEntity, Class<T> clzz, String schemaFile) {
@@ -65,18 +99,9 @@ public class LegacyGatewayService implements GatewayService {
 
         log.info("postToGateway: POST to Gateway: {}?{}={}", gatewayProperties.getUrl(), ACTION_TYPE, actionType);
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("")
-            .queryParam(ACTION_TYPE, actionType);
-
-        RestClient.RequestBodySpec bodySpec = restClient.post()
-            .uri(gatewayProperties.getUrl() + builder.toUriString())
-            .header("AUTHORIZATION", encodeBasic(gatewayProperties.getUsername(), gatewayProperties.getPassword()))
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_XML)
-            .body(request);
-
-        ResponseEntity<String> responseEntity = bodySpec.retrieve().toEntity(String.class);
-        return extractResponse(responseEntity, responseType, responseSchemaFile);
+        ResponseEntity<String> response = transport.post(actionType,
+            encodeBasic(gatewayProperties.getUsername(), gatewayProperties.getPassword()), request);
+        return extractResponse(response, responseType, responseSchemaFile);
     }
 
     public Response<String> postToGateway(String actionType, Object request) {
@@ -115,6 +140,42 @@ public class LegacyGatewayService implements GatewayService {
     }
 
     private String encodeBasic(String username, String password) {
-        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
+        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password)
+            .getBytes(StandardCharsets.UTF_8));
+    }
+
+    private RuntimeException toRestClientException(FeignException exception) {
+        int rawStatus = exception.status();
+        if (rawStatus < 400 || rawStatus >= 600) {
+            return exception;
+        }
+
+        HttpStatusCode status = HttpStatusCode.valueOf(rawStatus);
+        HttpStatus knownStatus = HttpStatus.resolve(rawStatus);
+        String statusText = knownStatus != null ? knownStatus.getReasonPhrase() : "";
+        HttpHeaders headers = new HttpHeaders();
+        exception.responseHeaders().forEach((name, values) -> values.forEach(value -> headers.add(name, value)));
+        byte[] body = exception.responseBody().map(buffer -> {
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            return bytes;
+        }).orElseGet(() -> new byte[0]);
+
+        if (status.is4xxClientError()) {
+            return HttpClientErrorException.create(status, statusText, headers,
+                body, StandardCharsets.UTF_8);
+        }
+        return HttpServerErrorException.create(status, statusText, headers,
+            body, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Keeps the existing RestClient path and opt-in Feign path behind the same request contract during migration.
+     * Remove this bridge once all consumers use Feign.
+     */
+    @FunctionalInterface
+    private interface GatewayTransport {
+
+        ResponseEntity<String> post(String actionType, String authorization, Object request);
     }
 }

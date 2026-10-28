@@ -71,8 +71,12 @@ public class UserStateV2 implements Serializable {
     }
 
     public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
-        return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null) ? domains.get(
-            domain) : DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
+        DomainBusinessUnitUsers users = domain == null || domains == null ? null : domains.get(domain);
+        return users != null
+            ? users
+            : DomainBusinessUnitUsers.builder()
+              .businessUnitUsers(emptyList())
+              .build();
     }
 
     public boolean anyBusinessUnitUserHasPermission(PermissionDescriptorV2 permission) {

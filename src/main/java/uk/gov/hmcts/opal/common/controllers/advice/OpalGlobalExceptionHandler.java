@@ -115,14 +115,14 @@ public class OpalGlobalExceptionHandler {
         HttpMediaTypeNotAcceptableException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.NOT_ACCEPTABLE,
-            "Not Acceptable",
+            HttpStatus.BAD_REQUEST,
+            "Invalid/Unsupported Media Type",
             "The requested media type cannot be produced by the server",
             "not-acceptable",
             false,
             ex
         );
-        return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -130,15 +130,15 @@ public class OpalGlobalExceptionHandler {
         MethodArgumentTypeMismatchException ex) {
 
         ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.NOT_ACCEPTABLE,
-            "Not Acceptable",
+            HttpStatus.BAD_REQUEST,
+            "Bad Request",
             "Invalid parameter value format",
             "type-mismatch",
             false,
             ex
         );
         problemDetail.setProperty("reason", ex.getMessage());
-        return responseWithProblemDetail(HttpStatus.NOT_ACCEPTABLE, problemDetail);
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(PropertyValueException.class)

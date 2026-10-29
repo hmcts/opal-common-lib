@@ -48,11 +48,16 @@ public class UserStateV2 implements Serializable {
     Map<Domain, DomainBusinessUnitUsers> domains;
 
     @JsonCreator
-    public UserStateV2(@JsonProperty("user_id") @NonNull Long userId,
-        @JsonProperty("username") @NonNull String username, @JsonProperty("name") String name,
-        @JsonProperty("status") UserStatus status, @JsonProperty("version") Long version,
-        @JsonProperty("cache_name") String cacheName, @JsonProperty("is_system_user") boolean systemUser,
-        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains) {
+    public UserStateV2(
+        @JsonProperty("user_id") Long userId,
+        @JsonProperty("username") String username,
+        @JsonProperty("name") String name,
+        @JsonProperty("status") UserStatus status,
+        @JsonProperty("version") Long version,
+        @JsonProperty("cache_name") String cacheName,
+        @JsonProperty("is_system_user") boolean systemUser,
+        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains
+    ) {
         this.userId = userId;
         this.username = username;
         this.name = name;
@@ -71,8 +76,10 @@ public class UserStateV2 implements Serializable {
     }
 
     public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
-        return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null) ? domains.get(
-            domain) : DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
+        return (domain != null && getDomains().containsKey(domain) && getDomains().get(domain) != null)
+            ?
+            domains.get(domain) :
+            DomainBusinessUnitUsers.builder().businessUnitUsers(emptyList()).build();
     }
 
     public boolean anyBusinessUnitUserHasPermission(PermissionDescriptorV2 permission) {

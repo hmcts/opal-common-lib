@@ -48,8 +48,8 @@ class PDFGenerationServiceIntegrationTest {
     @SpringBootConfiguration
     @EnableAutoConfiguration
     @EnableConfigurationProperties(DocmosisConfig.class)
-    @EnableFeignClients(clients = DocmosisClient.class)
-    @Import(PDFGenerationService.class)
+    @EnableFeignClients(basePackages = "uk.gov.hmcts.opal.common.docmosis")
+    @Import({DocmosisClientConfiguration.class, PDFGenerationService.class})
     static class TestApplication {
 
     }

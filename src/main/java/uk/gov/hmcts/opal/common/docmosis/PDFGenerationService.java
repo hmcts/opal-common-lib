@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.common.docmosis;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.common.exceptions.standard.ServiceUnavailableException;
 import uk.gov.hmcts.opal.common.config.DocmosisConfig;
 
 @Service
+@ConditionalOnProperty(prefix = "opal.common.docmosis", name = {"url", "api-key"})
 @RequiredArgsConstructor
 public class PDFGenerationService {
 

@@ -59,12 +59,10 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     }
 
     public static PermissionV2 fromPermissionCode(String permissionCode) {
-        PermissionV2 result = Stream.of(PermissionV2.values())
+        return Stream.of(PermissionV2.values())
             .filter(permission -> permission.permissionCode.equals(permissionCode))
             .findFirst()
             .orElse(null);
-
-        return result;
     }
 
     public static PermissionV2 fromPermissionName(String permissionName) {

@@ -8,7 +8,6 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
@@ -373,23 +372,5 @@ class OpalJwtAuthenticationTokenTest {
             () -> assertFalse(missingPermissionInExistingBusinessUnit),
             () -> assertFalse(missingBusinessUnit)
         );
-    }
-
-    enum TestPermissionDescriptor implements PermissionDescriptor {
-        PERM_A,
-        PERM_B,
-        PERM_C,
-        PERM_NOT_USED_A,
-        PERM_NOT_USED_B;
-
-        @Override
-        public long getId() {
-            return ordinal();
-        }
-
-        @Override
-        public String getDescription() {
-            return name();
-        }
     }
 }

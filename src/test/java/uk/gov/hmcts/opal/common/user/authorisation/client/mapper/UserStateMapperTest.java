@@ -2,19 +2,14 @@ package uk.gov.hmcts.opal.common.user.authorisation.client.mapper;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
@@ -29,79 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class UserStateMapperTest {
 
     private final UserStateMapper userStateMapper = Mappers.getMapper(UserStateMapper.class);
-
-    @Test
-    void toUserStateFromUserStateV2ShouldMapTopLevelFields() {
-        // Arrange
-        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
-
-        // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.FINES);
-
-        //Assert
-        assertAll("top-level fields from user state v2",
-            () -> assertEquals(777L, mappedUserState.getUserId()),
-            () -> assertEquals("v2.user", mappedUserState.getUserName()),
-            () -> assertEquals("V2 User", mappedUserState.getName())
-        );
-    }
-
-    @Test
-    void toUserStateFromUserStateV2ShouldOnlyIncludeBusinessUnitsForRequestedDomain() {
-        // Arrange
-        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
-
-        // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.FINES);
-
-        //Assert
-        assertEquals(1, mappedUserState.getBusinessUnitUser().size());
-        assertEquals(
-            Set.of((short) 101),
-            mappedUserState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId).collect(toSet())
-        );
-    }
-
-    @Test
-    void toUserStateFromUserStateV2ShouldMapNullDomainsToEmptyBusinessUnitSet() {
-        // Arrange
-        UserStateV2 userStateV2 = UserStateV2.builder()
-            .userId(777L)
-            .username("v2.user")
-            .name("V2 User")
-            .domains(null)
-            .build();
-
-        // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.FINES);
-
-        //Assert
-        assertEquals(0, mappedUserState.getBusinessUnitUser().size());
-    }
-
-    @Test
-    void toUserStateFromUserStateV2ShouldMapUnknownDomainToEmptyBusinessUnitSet() {
-        // Arrange
-        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
-
-        // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2, Domain.MAINTENANCE);
-
-        //Assert
-        assertEquals(0, mappedUserState.getBusinessUnitUser().size());
-    }
-
-    @Test
-    void toUserStateFromUserStateV2ShouldMapNullDomainToEmptyBusinessUnitSet() {
-        // Arrange
-        UserStateV2 userStateV2 = createUserStateV2ModelWithMultipleDomains();
-
-        // Act
-        UserState mappedUserState = userStateMapper.toUserState(userStateV2, null);
-
-        //Assert
-        assertEquals(0, mappedUserState.getBusinessUnitUser().size());
-    }
 
     @Test
     void toUserStateV2ShouldMapTopLevelFields() {
@@ -133,7 +55,7 @@ class UserStateMapperTest {
         //Assert
         DomainBusinessUnitUsers finesDomainUsers = mappedUserState.getDomainBusinessUnitUsers(Domain.FINES);
         assertEquals(1, finesDomainUsers.getBusinessUnitUsers().size());
-        BusinessUnitUserV2 finesBusinessUnitUser = finesDomainUsers.getBusinessUnitUsers().get(0);
+        BusinessUnitUserV2 finesBusinessUnitUser = finesDomainUsers.getBusinessUnitUsers().getFirst();
         assertEquals("bu-user-101", finesBusinessUnitUser.getBusinessUnitUserId());
         assertEquals((short) 101, finesBusinessUnitUser.getBusinessUnitId());
         assertEquals(
@@ -217,25 +139,25 @@ class UserStateMapperTest {
     @Test
     void toBusinessUnitUserShouldMapFieldsAndPermissions() {
         // Arrange
-        BusinessUnitUserDto businessUnitUserDto = new BusinessUnitUserDto(
+        BusinessUnitUserV2Dto businessUnitUserDto = new BusinessUnitUserV2Dto(
             "bu-user-101",
             (short) 101,
             List.of(
-                new PermissionDto(1L, "PERM_A"),
-                new PermissionDto(2L, "PERM_B")
+                new PermissionV2Dto("ACCOUNT_ENQUIRY", "Account Enquiry"),
+                new PermissionV2Dto("ACCOUNT_ENQUIRY_NOTES", "Account Enquiry - Account Notes")
             )
         );
 
         // Act
-        BusinessUnitUser mappedBusinessUnitUser = userStateMapper.toBusinessUnitUser(businessUnitUserDto);
+        BusinessUnitUserV2 mappedBusinessUnitUser = userStateMapper.toBusinessUnitUser(businessUnitUserDto);
 
         //Assert
         assertEquals("bu-user-101", mappedBusinessUnitUser.getBusinessUnitUserId());
         assertEquals((short) 101, mappedBusinessUnitUser.getBusinessUnitId());
         assertEquals(
             Set.of(
-                Permission.builder().permissionId(1L).permissionName("PERM_A").build(),
-                Permission.builder().permissionId(2L).permissionName("PERM_B").build()
+                PermissionV2.ACCOUNT_ENQUIRY,
+                PermissionV2.ACCOUNT_ENQUIRY_NOTES
             ),
             mappedBusinessUnitUser.getPermissions()
         );
@@ -244,14 +166,14 @@ class UserStateMapperTest {
     @Test
     void toPermissionShouldMapPermissionFields() {
         // Arrange
-        PermissionDto permissionDto = new PermissionDto(9L, "PERM_X");
+        PermissionV2Dto permissionDto = new PermissionV2Dto("ACCOUNT_MAINTENANCE", "Account Maintenance");
 
         // Act
-        Permission mappedPermission = userStateMapper.toPermission(permissionDto);
+        PermissionV2 mappedPermission = userStateMapper.toPermission(permissionDto);
 
         //Assert
-        assertEquals(9L, mappedPermission.getPermissionId());
-        assertEquals("PERM_X", mappedPermission.getPermissionName());
+        assertEquals("ACCOUNT_MAINTENANCE", mappedPermission.getPermissionCode());
+        assertEquals("Account Maintenance", mappedPermission.getPermissionName());
     }
 
     private UserStateV2 createUserStateV2ModelWithMultipleDomains() {

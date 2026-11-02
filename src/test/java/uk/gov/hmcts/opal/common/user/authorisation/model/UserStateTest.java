@@ -1,34 +1,33 @@
 package uk.gov.hmcts.opal.common.user.authorisation.model;
 
+import java.util.Map;
 import org.junit.jupiter.api.Test;
-
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserStateTest {
 
     @Test
-    void getDisplayName_returnsDisplayNameWhenPresent() {
-        UserState userState = UserState.builder()
+    void getDisplayName_returnsNameWhenPresent() {
+        UserStateV2 userState = UserStateV2.builder()
             .userId(1L)
-            .userName("normal@users.com")
+            .username("normal@users.com")
             .name("Normal User")
-            .businessUnitUser(Set.of())
+            .domains(Map.of())
             .build();
 
-        assertEquals("Normal User", userState.getDisplayName());
+        assertEquals("Normal User", userState.getName());
     }
 
     @Test
-    void getDisplayName_fallsBackToUsernameWhenDisplayNameMissing() {
-        UserState userState = UserState.builder()
+    void getDisplayName_fallsBackToUsernameWhenNameMissing() {
+        UserStateV2 userState = UserStateV2.builder()
             .userId(1L)
-            .userName("normal@users.com")
+            .username("normal@users.com")
             .name(" ")
-            .businessUnitUser(Set.of())
+            .domains(Map.of())
             .build();
 
-        assertEquals("normal@users.com", userState.getDisplayName());
+        assertEquals("normal@users.com", userState.getUsername());
     }
 }

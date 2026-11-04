@@ -5,11 +5,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
@@ -44,9 +44,9 @@ class OpalJwtAuthenticationTokenTest {
 
         //Assert
         assertAll("confiscation domain data is exposed",
-            () -> assertTrue(authenticationToken.hasPermission("PERM_D")),
+            () -> assertTrue(authenticationToken.hasPermission("ADD_ACCOUNT_ACTIVITY_NOTES")),
             () -> assertTrue(authenticationToken.hasBusinessUnit((short) 303)),
-            () -> assertTrue(authenticationToken.hasPermissionInBusinessUnit("PERM_D", (short) 303))
+            () -> assertTrue(authenticationToken.hasPermissionInBusinessUnit("ADD_ACCOUNT_ACTIVITY_NOTES", (short) 303))
         );
     }
 
@@ -95,8 +95,10 @@ class OpalJwtAuthenticationTokenTest {
         OpalJwtAuthenticationToken authenticationToken = createToken();
 
         // Act
-        boolean hasPermission = authenticationToken.hasPermission("PERM_A");
-        boolean hasMissingPermission = authenticationToken.hasPermission("UNKNOWN_PERMISSION");
+        boolean hasPermission = authenticationToken.hasPermission(
+            PermissionV2.ACCOUNT_ENQUIRY.getPermissionName().toUpperCase().replace(" ", "_"));
+        boolean hasMissingPermission = authenticationToken.hasPermission(
+            PermissionV2.AUTO_ENFORCEMENT.getPermissionName().toUpperCase().replace(" ", "_"));
 
         //Assert
         assertAll("permission presence checks",
@@ -111,7 +113,9 @@ class OpalJwtAuthenticationTokenTest {
         OpalJwtAuthenticationToken authenticationToken = createToken();
 
         // Act
-        boolean hasPermissionInBusinessUnit = authenticationToken.hasPermissionInBusinessUnit("PERM_B", (short) 101);
+        boolean hasPermissionInBusinessUnit = authenticationToken.hasPermissionInBusinessUnit(
+            PermissionV2.ACCOUNT_ENQUIRY_NOTES.getPermissionName().toUpperCase().replace(" ", "_"),
+            (short) 101);
 
         //Assert
         assertTrue(hasPermissionInBusinessUnit);
@@ -155,39 +159,27 @@ class OpalJwtAuthenticationTokenTest {
     }
 
     private UserStateV2 createUserStateWithMultipleDomainData() {
-        Permission permA = Permission.builder()
-            .permissionId(1L)
-            .permissionName("PERM_A")
-            .build();
+        PermissionV2 permA = PermissionV2.ACCOUNT_ENQUIRY;
 
-        Permission permB = Permission.builder()
-            .permissionId(2L)
-            .permissionName("PERM_B")
-            .build();
+        PermissionV2 permB = PermissionV2.ACCOUNT_ENQUIRY_NOTES;
 
-        Permission permC = Permission.builder()
-            .permissionId(3L)
-            .permissionName("PERM_C")
-            .build();
+        PermissionV2 permC = PermissionV2.ACCOUNT_MAINTENANCE;
 
-        Permission permD = Permission.builder()
-            .permissionId(4L)
-            .permissionName("PERM_D")
-            .build();
+        PermissionV2 permD = PermissionV2.ADD_ACCOUNT_ACTIVITY_NOTES;
 
-        BusinessUnitUser businessUnit101 = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnit101 = BusinessUnitUserV2.builder()
             .businessUnitUserId("bu-user-101")
             .businessUnitId((short) 101)
             .permissions(Set.of(permA, permB))
             .build();
 
-        BusinessUnitUser businessUnit202 = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnit202 = BusinessUnitUserV2.builder()
             .businessUnitUserId("bu-user-202")
             .businessUnitId((short) 202)
             .permissions(Set.of(permC))
             .build();
 
-        BusinessUnitUser businessUnit303 = BusinessUnitUser.builder()
+        BusinessUnitUserV2 businessUnit303 = BusinessUnitUserV2.builder()
             .businessUnitUserId("bu-user-303")
             .businessUnitId((short) 303)
             .permissions(Set.of(permD))
@@ -221,8 +213,8 @@ class OpalJwtAuthenticationTokenTest {
         OpalJwtAuthenticationToken authenticationToken = createToken();
 
         // Act
-        boolean hasPermission = authenticationToken.hasPermission(TestPermissionDescriptor.PERM_A);
-        boolean hasMissingPermission = authenticationToken.hasPermission(TestPermissionDescriptor.PERM_NOT_USED_A);
+        boolean hasPermission = authenticationToken.hasPermission(PermissionV2.ACCOUNT_ENQUIRY);
+        boolean hasMissingPermission = authenticationToken.hasPermission(PermissionV2.AUTO_ENFORCEMENT);
 
         //Assert
         assertAll("permission presence checks",
@@ -237,12 +229,12 @@ class OpalJwtAuthenticationTokenTest {
         OpalJwtAuthenticationToken authenticationToken = createToken();
         // Act
         boolean hasPermission = authenticationToken.hasAtLeastOneOfPermission(
-            TestPermissionDescriptor.PERM_A,
-            TestPermissionDescriptor.PERM_NOT_USED_A);
+            PermissionV2.ACCOUNT_ENQUIRY,
+            PermissionV2.AUTO_ENFORCEMENT);
 
         boolean hasMissingPermission = authenticationToken.hasAtLeastOneOfPermission(
-            TestPermissionDescriptor.PERM_NOT_USED_A,
-            TestPermissionDescriptor.PERM_NOT_USED_B);
+            PermissionV2.COLLECTION_ORDER,
+            PermissionV2.CONSOLIDATE);
 
         //Assert
         assertAll("permission presence checks",
@@ -257,12 +249,12 @@ class OpalJwtAuthenticationTokenTest {
         OpalJwtAuthenticationToken authenticationToken = createToken();
         // Act
         boolean hasPermission = authenticationToken.hasAtLeastOneOfPermission(
-            "PERM_A",
-            "PERM_NOT_USED_A");
+            PermissionV2.ACCOUNT_ENQUIRY,
+            PermissionV2.VIEW_CREDITOR_BACS);
 
         boolean hasMissingPermission = authenticationToken.hasAtLeastOneOfPermission(
-            "PERM_NOT_USED_A",
-            "PERM_NOT_USED_B");
+            PermissionV2.VIEW_CREDITOR_BACS,
+            PermissionV2.AUTO_ENFORCEMENT);
 
         //Assert
         assertAll("permission presence checks",
@@ -279,7 +271,7 @@ class OpalJwtAuthenticationTokenTest {
 
         // Act
         boolean hasPermissionInBusinessUnit =
-            authenticationToken.hasPermissionInBusinessUnit(TestPermissionDescriptor.PERM_B,
+            authenticationToken.hasPermissionInBusinessUnit(PermissionV2.ACCOUNT_ENQUIRY,
                 (short) 101);
 
         //Assert
@@ -293,9 +285,9 @@ class OpalJwtAuthenticationTokenTest {
 
         // Act
         boolean missingPermissionInExistingBusinessUnit =
-            authenticationToken.hasPermissionInBusinessUnit(TestPermissionDescriptor.PERM_C, (short) 101);
+            authenticationToken.hasPermissionInBusinessUnit(PermissionV2.ENTER_ENFORCEMENT, (short) 101);
         boolean missingBusinessUnit =
-            authenticationToken.hasPermissionInBusinessUnit(TestPermissionDescriptor.PERM_A, (short) 999);
+            authenticationToken.hasPermissionInBusinessUnit(PermissionV2.ACCOUNT_ENQUIRY, (short) 999);
 
         //Assert
         assertAll("permission-in-business-unit negative checks",
@@ -314,8 +306,8 @@ class OpalJwtAuthenticationTokenTest {
         boolean hasPermissionInBusinessUnit =
             authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit(
                 (short) 101,
-                TestPermissionDescriptor.PERM_B,
-                TestPermissionDescriptor.PERM_NOT_USED_A);
+                PermissionV2.ACCOUNT_ENQUIRY,
+                PermissionV2.AUTO_ENFORCEMENT);
         //Assert
         assertTrue(hasPermissionInBusinessUnit);
     }
@@ -330,12 +322,12 @@ class OpalJwtAuthenticationTokenTest {
         // Act
         boolean missingPermissionInExistingBusinessUnit =
             authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit((short) 101,
-                TestPermissionDescriptor.PERM_C,
-                TestPermissionDescriptor.PERM_NOT_USED_A);
+                PermissionV2.ACCOUNT_MAINTENANCE,
+                PermissionV2.AUTO_ENFORCEMENT);
         boolean missingBusinessUnit =
             authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit((short) 999,
-                TestPermissionDescriptor.PERM_A,
-                TestPermissionDescriptor.PERM_NOT_USED_A);
+                PermissionV2.ACCOUNT_ENQUIRY,
+                PermissionV2.AUTO_ENFORCEMENT);
 
         //Assert
         assertAll("permission-in-business-unit negative checks",
@@ -355,8 +347,8 @@ class OpalJwtAuthenticationTokenTest {
         boolean hasPermissionInBusinessUnit =
             authenticationToken.hasAtLeastOneOfPermissionInBusinessUnit(
                 (short) 101,
-                "PERM_B",
-                "PERM_NOT_USED_A");
+                "ACCOUNT_ENQUIRY_-_ACCOUNT_NOTES",
+                "CONSOLIDATE");
         //Assert
         assertTrue(hasPermissionInBusinessUnit);
     }

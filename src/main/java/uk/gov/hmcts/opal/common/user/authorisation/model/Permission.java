@@ -19,8 +19,8 @@ public class Permission implements PermissionDescriptor {
     String permissionName;
 
     @JsonCreator
-    public Permission(@JsonProperty("permission_id") Long permissionId,
-                      @JsonProperty("permission_name") String permissionName) {
+    public Permission(@JsonProperty("permission_id") @NonNull Long permissionId,
+                      @JsonProperty("permission_name") @NonNull String permissionName) {
         this.permissionId = permissionId;
         this.permissionName = permissionName;
     }

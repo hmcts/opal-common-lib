@@ -4,11 +4,13 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@NoArgsConstructor(force = true)
 public class ServiceBusConnectionStringParser {
 
     private final ServiceBusProperties serviceBusProperties;

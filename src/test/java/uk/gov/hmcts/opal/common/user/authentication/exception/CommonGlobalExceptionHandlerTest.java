@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 import java.time.LocalDateTime;
@@ -149,16 +149,16 @@ class CommonGlobalExceptionHandlerTest {
         }
     }
 
-    private enum TestPermission implements PermissionDescriptor {
+    private enum TestPermission implements PermissionDescriptorV2 {
         READ_CASE;
 
         @Override
-        public long getId() {
-            return 1L;
+        public String getPermissionCode() {
+            return "READ_CASE";
         }
 
         @Override
-        public String getDescription() {
+        public String getPermissionName() {
             return "Read case";
         }
     }

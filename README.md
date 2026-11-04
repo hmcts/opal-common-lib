@@ -58,3 +58,10 @@ Azure Artifacts publishing is handled by the CI pipeline once pull requests merg
 ## License
 
 This project is licensed under the MIT License – see [LICENSE](LICENSE) for details.
+
+# Migration Guide
+
+v0.3.20
+Updated the `OpalGlobalExceptionHandler` to return `HttpStatus.BAD_REQUEST` instead of `HttpStatus.NOT_ACCEPTABLE` for `HttpMediaTypeNotAcceptableException` and `MethodArgumentTypeMismatchException`. 
+This change ensures that the API returns a more appropriate status code for these types of errors, improving the clarity of error responses for clients.
+When upgrading to v0.3.20, please review any custom exception handling logic in your application that may rely on the previous status codes and update it accordingly to handle `HttpStatus.BAD_REQUEST` for these exceptions this may include updating existing test cases.

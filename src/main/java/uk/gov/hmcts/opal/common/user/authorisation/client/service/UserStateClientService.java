@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
-import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.CommonUserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
@@ -43,7 +43,7 @@ public class UserStateClientService {
         "The required user-service endpoint is disabled.";
 
     private final UserClient userClient;
-    private final UserStateMapper userStateMapper;
+    private final CommonUserStateMapper commonUserStateMapper;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -57,7 +57,7 @@ public class UserStateClientService {
             log.info(":getUserState: Fetching user state for userId: 0");
 
             UserStateV2Dto userStateDto = userClient.getUserState(CURRENT_USER_ID);
-            UserStateV2 userState = userStateMapper.toUserStateV2(userStateDto);
+            UserStateV2 userState = commonUserStateMapper.toUserStateV2(userStateDto);
 
             log.debug(":getUserState: Mapped UserState for userId 0: {}", userState);
             return Optional.of(userState);
@@ -68,7 +68,7 @@ public class UserStateClientService {
                 String.format(":getUserState: User not found in User Service for userId: %d", CURRENT_USER_ID),
                 String.format(":getUserState: User service endpoint is disabled for userId: %d", CURRENT_USER_ID)
             );
-            return userStateDto.map(userStateMapper::toUserStateV2);
+            return userStateDto.map(commonUserStateMapper::toUserStateV2);
         }
     }
 
@@ -86,7 +86,7 @@ public class UserStateClientService {
         }
 
         if (userStateV2Dto.isPresent()) {
-            UserStateV2 userState = userStateMapper.toUserStateV2(userStateV2Dto.get());
+            UserStateV2 userState = commonUserStateMapper.toUserStateV2(userStateV2Dto.get());
             return Optional.of(userState);
         }
 

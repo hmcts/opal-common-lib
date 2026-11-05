@@ -33,7 +33,12 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     DRAFT_ACCOUNT_PERMISSIONS("DRAFT_ACCOUNT_PERMISSIONS", "Draft Account Permissions"),
     PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments"),
     ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance Minor Creditor"),
-    MANAGE_ALTERNATE_PAYMENT_REFERENCES("MANAGE_ALTERNATE_PAYMENT_REFERENCES", "Manage Alternate Payment References");
+    MANAGE_ALTERNATE_PAYMENT_REFERENCES("MANAGE_ALTERNATE_PAYMENT_REFERENCES", "Manage Alternate Payment References"),
+    CREATE_MANAGE_DRAFT_CASEFILES("CREATE_MANAGE_DRAFT_CASEFILES", "Create Manage Draft Casefiles"),
+    CHECK_VALIDATE_DRAFT_CASEFILES("CHECK_VALIDATE_DRAFT_CASEFILES", "Check Validate Draft Casefiles"),
+    PUBLISH_FIXED_PENALTIES("PUBLISH_FIXED_PENALTIES", "Publish Fixed penalties"),
+    VIEW_SUSPENSE_ITEMS("VIEW_SUSPENSE_ITEMS", "View Suspense Items"),
+    MANAGE_SUSPENSE_ITEMS("MANAGE_SUSPENSE_ITEMS", "Manage Suspense Items");
 
     //  Properties:
     @JsonProperty("permission_code")

@@ -21,7 +21,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
-import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.CommonUserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
 
@@ -55,7 +55,7 @@ class UserStateClientServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private UserStateMapper userStateMapper;
+    private CommonUserStateMapper commonUserStateMapper;
 
     @Mock
     private ValueOperations<String, String> valueOperations;
@@ -80,7 +80,7 @@ class UserStateClientServiceTest {
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(null);
         when(userClient.getUserStateByIdWithAuthToken(CURRENT_USER_ID, "Bearer " + tokenValue))
             .thenReturn(userStateV2Dto);
-        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
+        when(commonUserStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -107,7 +107,7 @@ class UserStateClientServiceTest {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(cachedUserState);
         when(objectMapper.readValue(cachedUserState, UserStateV2.class)).thenReturn(secondMappedUserStateV2);
-        when(userStateMapper.toUserStateV2(any(UserStateV2Dto.class))).thenReturn(mappedUserStateV2);
+        when(commonUserStateMapper.toUserStateV2(any(UserStateV2Dto.class))).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -156,7 +156,7 @@ class UserStateClientServiceTest {
             });
         when(userClient.getUserStateByIdWithAuthToken(CURRENT_USER_ID, "Bearer " + tokenValue))
             .thenReturn(userStateV2Dto);
-        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
+        when(commonUserStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -185,7 +185,7 @@ class UserStateClientServiceTest {
             });
         when(userClient.getUserStateByIdWithAuthToken(CURRENT_USER_ID, "Bearer " + tokenValue))
             .thenReturn(userStateV2Dto);
-        when(userStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
+        when(commonUserStateMapper.toUserStateV2(userStateV2Dto)).thenReturn(mappedUserStateV2);
 
         // Act
         Optional<UserStateV2> userState = userStateClientService.getUserStateByAuthenticationToken(jwt);
@@ -207,7 +207,7 @@ class UserStateClientServiceTest {
         when(valueOperations.get(USER_STATE_CACHE_PREFIX + subject)).thenReturn(null);
         when(objectMapper.readTree(anyString())).thenReturn(featureDisabledProblemJson());
         when(userClient.getUserStateByIdWithAuthToken(CURRENT_USER_ID, "Bearer " + tokenValue))
-            .thenThrow(buildFeatureDisabledException(404));
+            .thenThrow(buildFeatureDisabledException());
 
         DownstreamServiceUnavailableException exception = assertThrows(
             DownstreamServiceUnavailableException.class,
@@ -220,7 +220,7 @@ class UserStateClientServiceTest {
     @Test
     void getUserStateByAuthenticatedUser_throwsDownstreamServiceUnavailableWhenUserServiceEndpointDisabled() {
         when(objectMapper.readTree(anyString())).thenReturn(featureDisabledProblemJson());
-        when(userClient.getUserState(CURRENT_USER_ID)).thenThrow(buildFeatureDisabledException(404));
+        when(userClient.getUserState(CURRENT_USER_ID)).thenThrow(buildFeatureDisabledException());
 
         DownstreamServiceUnavailableException exception = assertThrows(
             DownstreamServiceUnavailableException.class,
@@ -238,7 +238,7 @@ class UserStateClientServiceTest {
             .put("detail", "The requested feature is not currently available");
     }
 
-    private static FeignException buildFeatureDisabledException(int status) {
+    private static FeignException buildFeatureDisabledException() {
         Map<String, Collection<String>> headers = Collections.emptyMap();
         Request request = Request.create(
             Request.HttpMethod.GET,
@@ -250,7 +250,7 @@ class UserStateClientServiceTest {
 
         Response response = Response.builder()
             .request(request)
-            .status(status)
+            .status(404)
             .reason("Feature Disabled")
             .headers(headers)
             .body(

@@ -2,6 +2,10 @@ package uk.gov.hmcts.opal.common.user.authorisation.client.mapper;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
@@ -17,13 +21,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-class UserStateMapperTest {
+class CommonUserStateMapperTest {
 
-    private final UserStateMapper userStateMapper = Mappers.getMapper(UserStateMapper.class);
+    private final CommonUserStateMapper commonUserStateMapper = Mappers.getMapper(CommonUserStateMapper.class);
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void toUserStateV2ShouldMapTopLevelFields() {
@@ -31,7 +39,7 @@ class UserStateMapperTest {
         UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
 
         // Act
-        UserStateV2 mappedUserState = userStateMapper.toUserStateV2(userStateV2Dto);
+        UserStateV2 mappedUserState = commonUserStateMapper.toUserStateV2(userStateV2Dto);
 
         //Assert
         assertAll("top-level user state fields",
@@ -50,7 +58,7 @@ class UserStateMapperTest {
         UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
 
         // Act
-        UserStateV2 mappedUserState = userStateMapper.toUserStateV2(userStateV2Dto);
+        UserStateV2 mappedUserState = commonUserStateMapper.toUserStateV2(userStateV2Dto);
 
         //Assert
         DomainBusinessUnitUsers finesDomainUsers = mappedUserState.getDomainBusinessUnitUsers(Domain.FINES);
@@ -73,7 +81,7 @@ class UserStateMapperTest {
         UserStateV2Dto userStateV2Dto = createUserStateV2Dto();
 
         // Act
-        UserStateV2 mappedUserState = userStateMapper.toUserStateV2(userStateV2Dto);
+        UserStateV2 mappedUserState = commonUserStateMapper.toUserStateV2(userStateV2Dto);
 
         //Assert
         DomainBusinessUnitUsers confiscationDomainUsers = mappedUserState.getDomainBusinessUnitUsers(
@@ -108,7 +116,7 @@ class UserStateMapperTest {
             .build();
 
         // Act
-        DomainBusinessUnitUsers mappedDomainUsers = userStateMapper.toDomainBusinessUnitUsers(domainDto);
+        DomainBusinessUnitUsers mappedDomainUsers = commonUserStateMapper.toDomainBusinessUnitUsers(domainDto);
 
         //Assert
         BusinessUnitUserV2 businessUnit101 = mappedDomainUsers.getBusinessUnitUsers().stream()
@@ -149,7 +157,7 @@ class UserStateMapperTest {
         );
 
         // Act
-        BusinessUnitUserV2 mappedBusinessUnitUser = userStateMapper.toBusinessUnitUser(businessUnitUserDto);
+        BusinessUnitUserV2 mappedBusinessUnitUser = commonUserStateMapper.toBusinessUnitUser(businessUnitUserDto);
 
         //Assert
         assertEquals("bu-user-101", mappedBusinessUnitUser.getBusinessUnitUserId());
@@ -169,11 +177,66 @@ class UserStateMapperTest {
         PermissionV2Dto permissionDto = new PermissionV2Dto("ACCOUNT_MAINTENANCE", "Account Maintenance");
 
         // Act
-        PermissionV2 mappedPermission = userStateMapper.toPermission(permissionDto);
+        PermissionV2 mappedPermission = commonUserStateMapper.toPermission(permissionDto);
 
         //Assert
         assertEquals("ACCOUNT_MAINTENANCE", mappedPermission.getPermissionCode());
         assertEquals("Account Maintenance", mappedPermission.getPermissionName());
+    }
+
+    @Test
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    void toUserStateV2Dto_fromUserStateV2_mapsCacheNameAndDomains() throws JacksonException {
+
+        // Arrange
+        UserStateV2 userStateV2 = UserStateV2.builder()
+            .userId(123L)
+            .username("username")
+            .name("token")
+            .status(UserStatus.ACTIVE)
+            .version(321L)
+            .systemUser(true)
+            .cacheName("USER_STATE_subject-123")
+            .domains(java.util.Map.of(
+                Domain.FINES, DomainBusinessUnitUsers.builder()
+                    .businessUnitUsers(List.of(
+                        BusinessUnitUserV2.builder()
+                            .businessUnitUserId("ABC123")
+                            .businessUnitId((short) 41)
+                            .permissions(emptySet())
+                            .build()
+                    ))
+                    .build()
+            ))
+            .build();
+
+        // Act
+        UserStateV2Dto dto = commonUserStateMapper.toUserStateV2Dto(userStateV2);
+
+        // Assert
+        assertNull(dto.getCacheName());
+        assertEquals(objectMapper.readTree("""
+                {
+                  "user_id": 123,
+                  "username": "username",
+                  "name": "token",
+                  "status": "ACTIVE",
+                  "version": 321,
+                  "cache_name": null,
+                  "is_system_user": true,
+                  "domains": {
+                    "fines": {
+                      "business_unit_users": [
+                        {
+                          "business_unit_user_id": "ABC123",
+                          "business_unit_id": 41,
+                          "permissions": []
+                        }
+                      ]
+                    }
+                  }
+                }
+            """), objectMapper.readTree(objectMapper.writeValueAsString(dto)));
     }
 
     private UserStateV2 createUserStateV2ModelWithMultipleDomains() {

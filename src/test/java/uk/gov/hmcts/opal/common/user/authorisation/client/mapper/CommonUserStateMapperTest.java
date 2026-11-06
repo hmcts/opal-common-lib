@@ -239,6 +239,18 @@ class CommonUserStateMapperTest {
             """), objectMapper.readTree(objectMapper.writeValueAsString(dto)));
     }
 
+    @Test
+    void toDomainOrNull_forValidDomainName_returnsDomain() {
+        Domain domain = commonUserStateMapper.toDomainOrNull("fines");
+        assertEquals(Domain.FINES, domain);
+    }
+
+    @Test
+    void toDomainOrNull_forInvalidDomainName_returnsNull() {
+        Domain domain = commonUserStateMapper.toDomainOrNull("SomeDomainName");
+        assertNull(domain);
+    }
+
     private UserStateV2 createUserStateV2ModelWithMultipleDomains() {
         PermissionV2 permA = PermissionV2.ACCOUNT_ENQUIRY;
         PermissionV2 permB = PermissionV2.ACCOUNT_ENQUIRY_NOTES;

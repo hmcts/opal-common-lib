@@ -152,7 +152,6 @@ public class UserStateV2 implements Serializable {
     }
 
     public interface UserBusinessUnits {
-
         boolean containsBusinessUnit(Short businessUnitId);
     }
 

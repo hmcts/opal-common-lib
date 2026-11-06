@@ -89,5 +89,4 @@ public interface CommonUserStateMapper {
 
         return PermissionV2.fromPermissionCode(permissionV2Dto.getPermissionCode());
     }
-
 }

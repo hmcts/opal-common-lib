@@ -147,10 +147,10 @@ ext['snakeyaml.version'] = '2.0'
 
 dependencyManagement {
   imports {
-    mavenBom "tools.jackson:jackson-bom:3.2.4"
+    mavenBom "tools.jackson:jackson-bom:3.3.0"
     mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.2'
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.4'
-    mavenBom "io.netty:netty-bom:4.2.19.Final"
+    mavenBom "io.netty:netty-bom:4.2.20.Final"
     mavenBom "org.apache.logging.log4j:log4j-bom:2.26.1"
   }
 }
@@ -170,7 +170,7 @@ dependencies {
   implementation 'jakarta.persistence:jakarta.persistence-api'
   api 'jakarta.xml.bind:jakarta.xml.bind-api'
   implementation 'org.aspectj:aspectjweaver'
-  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.3'
+  implementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.5'
   implementation 'jakarta.servlet:jakarta.servlet-api'
   implementation 'org.springframework.security:spring-security-web'
   implementation 'org.springframework.security:spring-security-oauth2-jose'
@@ -181,7 +181,7 @@ dependencies {
   implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.4', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
-  implementation 'org.hibernate.validator:hibernate-validator:9.1.5.Final'    // CVE-2025-15104 false positive suppressed in owasp file
+  implementation 'org.hibernate.validator:hibernate-validator:9.1.6.Final'    // CVE-2025-15104 false positive suppressed in owasp file
   compileOnly 'org.hibernate.orm:hibernate-core'
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.10'

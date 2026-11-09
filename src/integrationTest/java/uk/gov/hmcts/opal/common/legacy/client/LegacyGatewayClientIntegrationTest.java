@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.common.legacy.client;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -93,6 +94,20 @@ class LegacyGatewayClientIntegrationTest {
             "getAccount", String.class, "{}", null);
 
         assertThat(response.code).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(response.body).isNull();
+    }
+
+    @Test
+    void postToGateway_doesNotFollowRedirect() {
+        wireMockServer.stubFor(post(urlPathEqualTo("/opal"))
+            .willReturn(aResponse().withStatus(302).withHeader("Location", wireMockServer.baseUrl() + "/redirected")));
+        wireMockServer.stubFor(get(urlPathEqualTo("/redirected"))
+            .willReturn(aResponse().withStatus(200).withBody("redirected")));
+
+        GatewayService.Response<String> response = gatewayService.postToGateway(
+            "getAccount", String.class, "{}", null);
+
+        assertThat(response.code).isEqualTo(HttpStatus.FOUND);
         assertThat(response.body).isNull();
     }
 

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class OpalMethodSecurityExpressionTestService {
 
-    @PreAuthorize("hasPermission('TEST_PERM')")
+    @PreAuthorize("hasPermission('ACCOUNT_ENQUIRY')")
     public String requiresPermission() {
         return "ok";
     }
@@ -16,7 +16,7 @@ public class OpalMethodSecurityExpressionTestService {
         return "ok " + businessUnitId;
     }
 
-    @PreAuthorize("hasPermissionInBusinessUnit('TEST_PERM', #businessUnitId)")
+    @PreAuthorize("hasPermissionInBusinessUnit('ACCOUNT_ENQUIRY', #businessUnitId)")
     public String requiresPermissionInBusinessUnit(String businessUnitId) {
         return "ok " + businessUnitId;
     }

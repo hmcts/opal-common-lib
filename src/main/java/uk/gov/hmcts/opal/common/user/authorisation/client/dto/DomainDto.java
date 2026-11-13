@@ -15,5 +15,5 @@ import java.util.List;
 public class DomainDto {
 
     @JsonProperty("business_unit_users")
-    private List<BusinessUnitUserDto> businessUnitUsers;
+    private List<BusinessUnitUserV2Dto> businessUnitUsers;
 }

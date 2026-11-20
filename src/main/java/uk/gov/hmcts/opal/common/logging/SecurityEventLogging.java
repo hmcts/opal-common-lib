@@ -13,6 +13,7 @@ public class SecurityEventLogging {
 
     public class EventName {
         public static final String SERVICE_TO_SERVICE_AUTH = "Service to Service Authentication";
+        public static final String AUTHORISATION_ACCESS_CONTROL = "Authorisation Access Control";
     }
 
     public class EventOpType {

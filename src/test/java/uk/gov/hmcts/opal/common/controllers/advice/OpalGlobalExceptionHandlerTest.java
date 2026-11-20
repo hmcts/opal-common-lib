@@ -85,7 +85,7 @@ class OpalGlobalExceptionHandlerTest {
     void handleCommonRequestErrors_areNonRetriable() throws Exception {
         ResponseEntity<ProblemDetail> notAcceptable = handler.handleHttpMediaTypeNotAcceptableException(
             new HttpMediaTypeNotAcceptableException("nope"));
-        assertProblem(notAcceptable, HttpStatus.NOT_ACCEPTABLE, "Not Acceptable", "not-acceptable", false);
+        assertProblem(notAcceptable, HttpStatus.BAD_REQUEST, "Invalid/Unsupported Media Type", "not-acceptable", false);
 
         Method method = OpalGlobalExceptionHandlerTest.class.getMethod("sampleMethod", Integer.class);
         MethodArgumentTypeMismatchException typeMismatch = new MethodArgumentTypeMismatchException(
@@ -94,8 +94,8 @@ class OpalGlobalExceptionHandlerTest {
             "sample",
             new org.springframework.core.MethodParameter(method, 0),
             new NumberFormatException("bad"));
-        assertProblem(handler.handleMethodArgumentTypeMismatchException(typeMismatch), HttpStatus.NOT_ACCEPTABLE,
-                      "Not Acceptable", "type-mismatch", false);
+        assertProblem(handler.handleMethodArgumentTypeMismatchException(typeMismatch), HttpStatus.BAD_REQUEST,
+                      "Bad Request", "type-mismatch", false);
 
         HttpInputMessage inputMessage = mock(HttpInputMessage.class);
         assertProblem(handler.handleHttpMessageNotReadableException(new HttpMessageNotReadableException("bad",

@@ -31,7 +31,7 @@ public class SecurityEventLogging {
     }
 
     public class EventDataValue {
-        public static final String FILE_HANDLER_SERVICE_NAME = "opal-filehandler-service";
+        public static final String FILE_HANDLER_SERVICE_NAME = "opal-file-handler-service";
         public static final String FINES_SERVICE_NAME = "opal-fines-service";
     }
 }

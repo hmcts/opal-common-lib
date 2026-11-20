@@ -9,6 +9,8 @@ public class SecurityEventLogging {
     public class ActionOutcome {
         public static final String PASS = "Pass";
         public static final String FAIL = "Fail";
+        public static final String SUCCESS = "Success";
+        public static final String FAILURE = "Failure";
     }
 
     public class EventName {
@@ -21,6 +23,9 @@ public class SecurityEventLogging {
     }
 
     public class EventDataKey {
+        public static final String USER_IDENTIFIER = "UserIdentifier";
+        public static final String DETAILS = "Details";
+        public static final String RESOURCE = "Resource";
         public static final String AUTHENTICATING_SERVICE = "Authenticating Service";
         public static final String TARGET_SERVICE = "Target Service";
     }

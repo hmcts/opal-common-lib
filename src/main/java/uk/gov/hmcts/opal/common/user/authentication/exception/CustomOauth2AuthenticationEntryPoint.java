@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.ActionOutcome;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventDataKey;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventName;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventOpType;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
@@ -53,13 +54,13 @@ public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntry
         String message = ex.getMessage() != null ? ex.getMessage() : UNKNOWN;
 
         Map<String, Object> eventData = Map.of(
-            "UserIdentifier", userIdentifier,
-            "Details", message,
-            "Resource", resource);
+            EventDataKey.USER_IDENTIFIER, userIdentifier,
+            EventDataKey.DETAILS, message,
+            EventDataKey.RESOURCE, resource);
 
         securityEventLoggingService.logEvent(
             EventName.AUTHORISATION_ACCESS_CONTROL,
-            ActionOutcome.FAIL,
+            ActionOutcome.FAILURE,
             null,
             EventOpType.AUTHENTICATION,
             LogUtil.getRequestTimestamp(),

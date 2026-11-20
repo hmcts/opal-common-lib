@@ -81,7 +81,7 @@ class CustomOauth2AuthenticationEntryPointTest {
 
         verify(securityEventLoggingService).logEvent(
             eq("Authorisation Access Control"),
-            eq("Fail"),
+            eq("Failure"),
             eq(null),
             eq("Authentication"),
             eq(timestamp),

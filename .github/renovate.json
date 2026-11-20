@@ -74,6 +74,20 @@
       ]
     },
     {
+      "description": "Keep Spring Boot on 4.1.x until a compatible Spring Cloud release train is adopted",
+      "matchPackageNames": ["org.springframework.boot:spring-boot-dependencies"],
+      "groupName": "Spring Boot Dependencies",
+      "allowedVersions": "/^4\\.1\\./",
+      "automerge": false
+    },
+    {
+      "description": "Keep Spring Cloud on 2025.1.x while using Spring Boot 4.1.x",
+      "matchPackageNames": ["org.springframework.cloud:spring-cloud-dependencies"],
+      "groupName": "Spring Cloud Dependencies",
+      "allowedVersions": "/^2025\\.1\\./",
+      "automerge": false
+    },
+    {
       "description": "Group all test dependencies - Minor/Patch",
       "matchManagers": ["gradle"],
       "matchUpdateTypes": ["minor", "patch"],

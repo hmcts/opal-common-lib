@@ -178,7 +178,7 @@ dependencies {
   implementation "org.springframework.boot:spring-boot-starter-security"
   implementation 'tools.jackson.core:jackson-databind'
   implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:5.0.4', {
+  implementation 'org.springframework.cloud:spring-cloud-starter-openfeign', {
     exclude group: 'commons-fileupload', module: 'commons-fileupload'
   }
   implementation 'org.hibernate.validator:hibernate-validator:9.1.6.Final'    // CVE-2025-15104 false positive suppressed in owasp file

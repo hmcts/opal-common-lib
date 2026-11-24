@@ -10,7 +10,7 @@ import java.util.Set;
 
 class DomainBusinessUnitUsersTest {
 
-    private final DomainBusinessUnitUsers domainBusinessUnitUsers = DomainBusinessUnitUsers.builder()
+    private final DomainBusinessUnitUsersV2 domainBusinessUnitUsers = DomainBusinessUnitUsersV2.builder()
         .businessUnitUsers(List.of(
             businessUnitUser("buu-10", (short) 10, TestPermission.ACCOUNT_ENQUIRY),
             businessUnitUser("buu-20", (short) 20, TestPermission.PROCESS_PAYMENTS),
@@ -84,13 +84,13 @@ class DomainBusinessUnitUsersTest {
 
     @Test
     void userHasPermission_returnsFalseWhenBusinessUnitUserIsMissing() {
-        assertThat(DomainBusinessUnitUsers.userHasPermission(
+        assertThat(DomainBusinessUnitUsersV2.userHasPermission(
             Optional.empty(), TestPermission.PROCESS_PAYMENTS)).isFalse();
     }
 
     @Test
     void userHasAnyPermission_returnsFalseWhenBusinessUnitUserIsMissing() {
-        assertThat(DomainBusinessUnitUsers.userHasAnyPermission(
+        assertThat(DomainBusinessUnitUsersV2.userHasAnyPermission(
             Optional.empty(), TestPermission.PROCESS_PAYMENTS)).isFalse();
     }
 

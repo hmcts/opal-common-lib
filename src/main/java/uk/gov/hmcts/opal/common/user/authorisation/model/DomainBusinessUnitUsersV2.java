@@ -14,13 +14,13 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserBusines
 
 @Builder
 @Data
-public class DomainBusinessUnitUsers {
+public class DomainBusinessUnitUsersV2 {
 
     @JsonProperty("business_unit_users")
     List<BusinessUnitUserV2> businessUnitUsers;
 
     @JsonCreator
-    public DomainBusinessUnitUsers(@JsonProperty("business_unit_users") List<BusinessUnitUserV2> businessUnitUsers) {
+    public DomainBusinessUnitUsersV2(@JsonProperty("business_unit_users") List<BusinessUnitUserV2> businessUnitUsers) {
         this.businessUnitUsers = businessUnitUsers;
     }
 

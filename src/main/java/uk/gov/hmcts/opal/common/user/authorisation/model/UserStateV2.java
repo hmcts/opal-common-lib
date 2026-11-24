@@ -45,7 +45,7 @@ public class UserStateV2 implements Serializable {
     boolean systemUser;
 
     @JsonProperty("domains")
-    Map<Domain, DomainBusinessUnitUsers> domains;
+    Map<Domain, DomainBusinessUnitUsersV2> domains;
 
     @JsonCreator
     public UserStateV2(
@@ -56,7 +56,7 @@ public class UserStateV2 implements Serializable {
         @JsonProperty("version") Long version,
         @JsonProperty("cache_name") String cacheName,
         @JsonProperty("is_system_user") boolean systemUser,
-        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsers> domains
+        @JsonProperty("domains") Map<Domain, DomainBusinessUnitUsersV2> domains
     ) {
         this.userId = userId;
         this.username = username;
@@ -68,24 +68,24 @@ public class UserStateV2 implements Serializable {
         this.domains = domains;
     }
 
-    public Map<Domain, DomainBusinessUnitUsers> getDomains() {
+    public Map<Domain, DomainBusinessUnitUsersV2> getDomains() {
         if (domains == null) {
             return new HashMap<>();
         }
         return domains;
     }
 
-    public DomainBusinessUnitUsers getDomainBusinessUnitUsers(Domain domain) {
-        DomainBusinessUnitUsers users = domain == null || domains == null ? null : domains.get(domain);
+    public DomainBusinessUnitUsersV2 getDomainBusinessUnitUsers(Domain domain) {
+        DomainBusinessUnitUsersV2 users = domain == null || domains == null ? null : domains.get(domain);
         return users != null
             ? users
-            : DomainBusinessUnitUsers.builder()
+            : DomainBusinessUnitUsersV2.builder()
               .businessUnitUsers(emptyList())
               .build();
     }
 
     public boolean anyBusinessUnitUserHasPermission(PermissionDescriptorV2 permission) {
-        for (DomainBusinessUnitUsers domainBusinessUnitUsers : getDomains().values()) {
+        for (DomainBusinessUnitUsersV2 domainBusinessUnitUsers : getDomains().values()) {
             boolean hasPermission = domainBusinessUnitUsers.anyBusinessUnitUserHasPermission(permission);
 
             if (hasPermission) {
@@ -97,7 +97,7 @@ public class UserStateV2 implements Serializable {
     }
 
     public boolean anyBusinessUnitUserHasAnyPermission(PermissionDescriptorV2... permission) {
-        for (DomainBusinessUnitUsers domainBusinessUnitUsers : getDomains().values()) {
+        for (DomainBusinessUnitUsersV2 domainBusinessUnitUsers : getDomains().values()) {
             boolean hasPermission = domainBusinessUnitUsers.anyBusinessUnitUserHasAnyPermission(permission);
             if (hasPermission) {
                 return true;
@@ -117,7 +117,7 @@ public class UserStateV2 implements Serializable {
     }
 
     public Optional<BusinessUnitUserV2> getBusinessUnitUserForBusinessUnit(short businessUnitId) {
-        for (DomainBusinessUnitUsers domainBusinessUnitUsers : getDomains().values()) {
+        for (DomainBusinessUnitUsersV2 domainBusinessUnitUsers : getDomains().values()) {
             Optional<BusinessUnitUserV2> hasBusinessUnit =
                 domainBusinessUnitUsers.businessUnitUsers.stream().filter(r ->
                         r.matchesBusinessUnitId(businessUnitId)).findFirst();

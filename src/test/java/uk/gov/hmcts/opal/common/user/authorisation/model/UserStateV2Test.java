@@ -18,13 +18,13 @@ class UserStateV2Test {
     @Test
     void getDomainBusinessUnitUsers_returnsDomainDataWhenDomainExists() {
         // Arrange
-        DomainBusinessUnitUsers finesUsers = DomainBusinessUnitUsers.builder()
+        DomainBusinessUnitUsersV2 finesUsers = DomainBusinessUnitUsersV2.builder()
             .businessUnitUsers(List.of())
             .build();
         UserStateV2 userStateV2 = createUserStateV2(Map.of(Domain.FINES, finesUsers));
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isSameAs(finesUsers);
@@ -36,7 +36,7 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(null);
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isNotNull();
@@ -49,7 +49,7 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(new HashMap<>());
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(null);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(null);
 
         //Assert
         assertThat(result).isNotNull();
@@ -62,7 +62,7 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(new HashMap<>());
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isNotNull();
@@ -72,12 +72,12 @@ class UserStateV2Test {
     @Test
     void getDomainBusinessUnitUsers_returnsEmptyBusinessUnitUsersWhenDomainValueIsNull() {
         //Arrange
-        Map<Domain, DomainBusinessUnitUsers> domains = new HashMap<>();
+        Map<Domain, DomainBusinessUnitUsersV2> domains = new HashMap<>();
         domains.put(Domain.FINES, null);
         UserStateV2 userStateV2 = createUserStateV2(domains);
 
         //Act
-        DomainBusinessUnitUsers result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
+        DomainBusinessUnitUsersV2 result = userStateV2.getDomainBusinessUnitUsers(Domain.FINES);
 
         //Assert
         assertThat(result).isNotNull();
@@ -90,7 +90,7 @@ class UserStateV2Test {
         UserStateV2 userStateV2 = createUserStateV2(null);
 
         //Act
-        Map<Domain, DomainBusinessUnitUsers> result = userStateV2.getDomains();
+        Map<Domain, DomainBusinessUnitUsersV2> result = userStateV2.getDomains();
 
         //Assert
         assertThat(result).isNotNull();
@@ -105,8 +105,8 @@ class UserStateV2Test {
         assertFalse(userState.anyBusinessUnitUserHasAnyPermission(PermissionV2.CONSOLIDATE.getDescriptor()));
     }
 
-    private static EnumMap<Domain, DomainBusinessUnitUsers> createDomainBusinessUnitUsers() {
-        EnumMap<Domain, DomainBusinessUnitUsers> domains = new EnumMap<>(Domain.class);
+    private static EnumMap<Domain, DomainBusinessUnitUsersV2> createDomainBusinessUnitUsers() {
+        EnumMap<Domain, DomainBusinessUnitUsersV2> domains = new EnumMap<>(Domain.class);
 
         List<BusinessUnitUserV2> businessUnitUsers = new ArrayList<>();
 
@@ -118,7 +118,7 @@ class UserStateV2Test {
             .build());
 
         domains.put(Domain.FINES,
-            DomainBusinessUnitUsers.builder().businessUnitUsers(businessUnitUsers).build());
+            DomainBusinessUnitUsersV2.builder().businessUnitUsers(businessUnitUsers).build());
 
         return domains;
     }
@@ -135,8 +135,8 @@ class UserStateV2Test {
         assertTrue(userState.noBusinessUnitUserHasPermission(PermissionV2.ACCOUNT_ENQUIRY.getDescriptor()));
     }
 
-    private static Map<Domain, DomainBusinessUnitUsers> createDomainsForTest() {
-        EnumMap<Domain, DomainBusinessUnitUsers> domains = new EnumMap<>(Domain.class);
+    private static Map<Domain, DomainBusinessUnitUsersV2> createDomainsForTest() {
+        EnumMap<Domain, DomainBusinessUnitUsersV2> domains = new EnumMap<>(Domain.class);
 
         List<BusinessUnitUserV2> businessUnitUsers = new ArrayList<>();
 
@@ -148,12 +148,12 @@ class UserStateV2Test {
             .build());
 
         domains.put(Domain.FINES,
-            DomainBusinessUnitUsers.builder().businessUnitUsers(businessUnitUsers).build());
+            DomainBusinessUnitUsersV2.builder().businessUnitUsers(businessUnitUsers).build());
 
         return domains;
     }
 
-    private UserStateV2 createUserStateV2(Map<Domain, DomainBusinessUnitUsers> domains) {
+    private UserStateV2 createUserStateV2(Map<Domain, DomainBusinessUnitUsersV2> domains) {
         return UserStateV2.builder()
             .userId(123L)
             .username("test.user")

@@ -18,13 +18,13 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
 import uk.gov.hmcts.opal.common.user.authorisation.client.UserClient;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
@@ -134,17 +134,17 @@ public class UserStateClientService {
             .build();
     }
 
-    private Map<Domain, DomainDto> getDomainsFromUserStateV2Dto(UserStateV2 userState) {
-        Map<Domain, DomainDto> domains = new EnumMap<>(Domain.class);
+    private Map<Domain, DomainV2Dto> getDomainsFromUserStateV2Dto(UserStateV2 userState) {
+        Map<Domain, DomainV2Dto> domains = new EnumMap<>(Domain.class);
         for (Domain domain : userState.getDomains().keySet()) {
-            DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
-            domains.put(domain, DomainDto.builder()
+            DomainBusinessUnitUsersV2 sourceDomain = userState.getDomains().get(domain);
+            domains.put(domain, DomainV2Dto.builder()
                 .businessUnitUsers(getBusinessUnitUsersFromDomain(sourceDomain)).build());
         }
         return domains;
     }
 
-    private List<BusinessUnitUserV2Dto> getBusinessUnitUsersFromDomain(DomainBusinessUnitUsers sourceDomain) {
+    private List<BusinessUnitUserV2Dto> getBusinessUnitUsersFromDomain(DomainBusinessUnitUsersV2 sourceDomain) {
         List<BusinessUnitUserV2Dto> businessUnitUsers = new ArrayList<>();
 
         for (BusinessUnitUserV2 businessUnitUser : sourceDomain.getBusinessUnitUsers()) {

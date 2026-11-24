@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.common.user.model;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +22,7 @@ class DomainBusinessUnitUsersTest {
         when(businessUnitUser2.matchesBusinessUnitId((short) 2)).thenReturn(true);
 
         Optional<BusinessUnitUserV2> result =
-            new DomainBusinessUnitUsers(
+            new DomainBusinessUnitUsersV2(
                 List.of(businessUnitUser1, businessUnitUser2)
             ).getBusinessUnitUserForBusinessUnit((short) 2);
 
@@ -40,7 +40,7 @@ class DomainBusinessUnitUsersTest {
         when(businessUnitUser2.matchesBusinessUnitId((short) 2)).thenReturn(false);
 
         Optional<BusinessUnitUserV2> result =
-            new DomainBusinessUnitUsers(
+            new DomainBusinessUnitUsersV2(
                 List.of(businessUnitUser1, businessUnitUser2)
             ).getBusinessUnitUserForBusinessUnit((short) 3);
 

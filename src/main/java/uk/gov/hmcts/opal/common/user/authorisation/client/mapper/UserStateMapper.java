@@ -4,7 +4,7 @@ import lombok.NonNull;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserDto;
-import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionDto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateDto;
@@ -12,7 +12,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -47,7 +47,7 @@ public interface UserStateMapper {
 
     BusinessUnitUser toBusinessUnitUser(BusinessUnitUserDto businessUnitUserDto);
 
-    DomainBusinessUnitUsers toDomainBusinessUnitUsers(DomainDto domainDto);
+    DomainBusinessUnitUsersV2 toDomainBusinessUnitUsers(DomainV2Dto domainDto);
 
     Permission toPermission(PermissionDto permissionDto);
 
@@ -67,7 +67,7 @@ public interface UserStateMapper {
             return Set.of();
         }
 
-        DomainBusinessUnitUsers domainBusinessUnitUsers = userStateV2.getDomains().get(domain);
+        DomainBusinessUnitUsersV2 domainBusinessUnitUsers = userStateV2.getDomains().get(domain);
         if (Objects.isNull(domainBusinessUnitUsers)) {
             return Set.of();
         }

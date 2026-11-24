@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DomainDto {
+public class DomainV2Dto {
 
     @JsonProperty("business_unit_users")
     private List<BusinessUnitUserV2Dto> businessUnitUsers;

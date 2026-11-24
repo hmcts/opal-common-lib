@@ -9,7 +9,7 @@ import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsersV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -38,7 +38,7 @@ public class OpalJwtAuthenticationToken extends JwtAuthenticationToken {
         this.userState = userState;
 
 
-        DomainBusinessUnitUsers domainBusinessUnitUsers = userState.getDomainBusinessUnitUsers(domain);
+        DomainBusinessUnitUsersV2 domainBusinessUnitUsers = userState.getDomainBusinessUnitUsers(domain);
 
         this.permissionNames = domainBusinessUnitUsers.getBusinessUnitUsers().stream()
             .flatMap(buUser -> buUser.getPermissions().stream())

@@ -32,7 +32,8 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     CREATE_INTERFACE_FILES("CREATE_INTERFACE_FILES", "Create Interface Files"),
     DRAFT_ACCOUNT_PERMISSIONS("DRAFT_ACCOUNT_PERMISSIONS", "Draft Account Permissions"),
     PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments"),
-    ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance Minor Creditor");
+    ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance Minor Creditor"),
+    MANAGE_ALTERNATE_PAYMENT_REFERENCES("MANAGE_ALTERNATE_PAYMENT_REFERENCES", "Manage Alternate Payment References");
 
     //  Properties:
     @JsonProperty("permission_code")
@@ -46,8 +47,8 @@ public enum PermissionV2 implements PermissionDescriptorV2 {
     /**
      * Enumeration constructor.
      *
-     * @param permissionCode                The enumeration code
-     * @param permissionName                The enumeration name
+     * @param permissionCode The enumeration code
+     * @param permissionName The enumeration name
      */
     PermissionV2(String permissionCode, String permissionName) {
         this.permissionCode = permissionCode;

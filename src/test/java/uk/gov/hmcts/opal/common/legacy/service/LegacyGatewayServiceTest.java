@@ -5,14 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import feign.Request;
+import feign.RetryableException;
 import jakarta.xml.bind.UnmarshalException;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
@@ -28,6 +33,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.ResourceAccessException;
 import org.xml.sax.SAXParseException;
 import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.common.legacy.client.LegacyGatewayClient;
@@ -73,6 +79,24 @@ class LegacyGatewayServiceTest {
         assertEquals(HttpStatus.OK, response.code);
         assertNull(response.body);
         assertFalse(response.isError());
+    }
+
+    @Test
+    void postToGateway_mapsNetworkFailureToResourceAccessException() {
+        IOException cause = new IOException("Connection refused");
+        Request request = Request.create(Request.HttpMethod.POST, "http://test.com/opal", Map.of(),
+            null, StandardCharsets.UTF_8, null);
+        RetryableException failure = new RetryableException(-1, "Connection refused", Request.HttpMethod.POST,
+            cause, (Long) null, request);
+        when(properties.getUrl()).thenReturn("http://test.com/opal");
+        when(properties.getUsername()).thenReturn("user");
+        when(properties.getPassword()).thenReturn("password");
+        when(gatewayClient.post(anyString(), anyString(), any())).thenThrow(failure);
+
+        ResourceAccessException thrown = assertThrows(ResourceAccessException.class,
+            () -> gatewayService.postToGateway("testAction", "{}"));
+
+        assertSame(cause, thrown.getCause());
     }
 
     @Test

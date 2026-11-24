@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.common.legacy.service;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
@@ -15,6 +17,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.core.JacksonException;
@@ -57,6 +60,9 @@ public class LegacyGatewayService implements GatewayService {
             try {
                 return gatewayClient.post(actionType, authorization, request);
             } catch (FeignException exception) {
+                if (exception.status() >= 300 && exception.status() < 400) {
+                    return toRedirectResponse(exception);
+                }
                 throw toRestClientException(exception);
             }
         };
@@ -146,6 +152,10 @@ public class LegacyGatewayService implements GatewayService {
 
     private RuntimeException toRestClientException(FeignException exception) {
         int rawStatus = exception.status();
+        if (rawStatus <= 0) {
+            IOException cause = exception.getCause() instanceof IOException io ? io : new IOException(exception);
+            return new ResourceAccessException(exception.getMessage(), cause);
+        }
         if (rawStatus < 400 || rawStatus >= 600) {
             return exception;
         }
@@ -153,20 +163,35 @@ public class LegacyGatewayService implements GatewayService {
         HttpStatusCode status = HttpStatusCode.valueOf(rawStatus);
         HttpStatus knownStatus = HttpStatus.resolve(rawStatus);
         String statusText = knownStatus != null ? knownStatus.getReasonPhrase() : "";
+        return status.is4xxClientError()
+            ? HttpClientErrorException.create(status, statusText, responseHeaders(exception),
+                responseBody(exception), StandardCharsets.UTF_8)
+            : HttpServerErrorException.create(status, statusText, responseHeaders(exception),
+                responseBody(exception), StandardCharsets.UTF_8);
+    }
+
+    private ResponseEntity<String> toRedirectResponse(FeignException exception) {
+        HttpHeaders headers = responseHeaders(exception);
+        byte[] body = responseBody(exception);
+        Charset charset = headers.getContentType() != null && headers.getContentType().getCharset() != null
+            ? headers.getContentType().getCharset() : StandardCharsets.UTF_8;
+
+        return ResponseEntity.status(exception.status()).headers(headers)
+            .body(body.length == 0 ? null : new String(body, charset));
+    }
+
+    private HttpHeaders responseHeaders(FeignException exception) {
         HttpHeaders headers = new HttpHeaders();
         exception.responseHeaders().forEach((name, values) -> values.forEach(value -> headers.add(name, value)));
-        byte[] body = exception.responseBody().map(buffer -> {
+        return headers;
+    }
+
+    private byte[] responseBody(FeignException exception) {
+        return exception.responseBody().map(buffer -> {
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
             return bytes;
         }).orElseGet(() -> new byte[0]);
-
-        if (status.is4xxClientError()) {
-            return HttpClientErrorException.create(status, statusText, headers,
-                body, StandardCharsets.UTF_8);
-        }
-        return HttpServerErrorException.create(status, statusText, headers,
-            body, StandardCharsets.UTF_8);
     }
 
     /**

@@ -12,6 +12,10 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.ActionOutcome;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventDataKey;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventName;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventOpType;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.dto.ToJsonString;
@@ -29,9 +33,6 @@ import static uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenSe
 public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     public static final String UNKNOWN = "Unknown";
-    public static final String EVENT_NAME = "Authorisation Access Control";
-    public static final String EVENT_ACTION_OUTCOME = "Failure";
-    public static final String EVENT_OP_TYPE = "Authentication";
 
     private final SecurityEventLoggingService securityEventLoggingService;
     private final AccessTokenService tokenService;
@@ -53,15 +54,15 @@ public class CustomOauth2AuthenticationEntryPoint implements AuthenticationEntry
         String message = ex.getMessage() != null ? ex.getMessage() : UNKNOWN;
 
         Map<String, Object> eventData = Map.of(
-            "UserIdentifier", userIdentifier,
-            "Details", message,
-            "Resource", resource);
+            EventDataKey.USER_IDENTIFIER, userIdentifier,
+            EventDataKey.DETAILS, message,
+            EventDataKey.RESOURCE, resource);
 
         securityEventLoggingService.logEvent(
-            EVENT_NAME,
-            EVENT_ACTION_OUTCOME,
+            EventName.AUTHORISATION_ACCESS_CONTROL,
+            ActionOutcome.FAILURE,
             null,
-            EVENT_OP_TYPE,
+            EventOpType.AUTHENTICATION,
             LogUtil.getRequestTimestamp(),
             eventData
         );
